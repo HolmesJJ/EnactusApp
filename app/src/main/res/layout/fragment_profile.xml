@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include layout="@layout/toolbar"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?android:attr/actionBarSize">
+
+        <View
+            android:id="@+id/split_line1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_centerVertical="true" />
+
+        <ImageButton
+            android:id="@+id/profile_image_btn"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="30dp"
+            android:layout_above="@+id/split_line1"
+            android:src="@drawable/ic_change_profile"
+            android:scaleType="fitCenter"
+            android:background="@color/transparent"/>
+
+        <TextView
+            android:id="@+id/profile_name_tv"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginStart="55dp"
+            android:layout_below="@+id/split_line1"
+            android:gravity="left"
+            android:textSize="30dp"
+            android:textColor="@color/Black"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/profile_name_et"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="50dp"
+            android:layout_below="@+id/split_line1"
+            android:gravity="left"
+            android:textSize="30dp"
+            android:textColor="@color/Black"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/profile_edit_btn"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginEnd="55dp"
+            android:layout_marginTop="45dp"
+            android:layout_below="@+id/split_line1"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/ic_refresh"
+            android:scaleType="fitCenter"
+            android:background="@color/transparent"/>
+
+        <ImageButton
+            android:id="@+id/profile_confirm_btn"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_marginEnd="55dp"
+            android:layout_marginTop="45dp"
+            android:layout_below="@+id/split_line1"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/ic_confirm"
+            android:scaleType="fitCenter"
+            android:background="@color/transparent"/>
+
+        <Button
+            android:id="@+id/logout_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:textColor="@color/Black"
+            android:textAllCaps="false"
+            android:textSize="25dp"
+            android:text="Logout"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>

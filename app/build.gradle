@@ -1,0 +1,68 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.0"
+    defaultConfig {
+        applicationId "com.example.enactusapp"
+        minSdkVersion 17
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        sourceSets.main {
+            jniLibs.srcDir 'src/main/libs' //这一句是设置目标的so存放路径，也就是组装到apk中的so路径
+            jni.srcDirs = [] //这一句是禁用gradle默认的ndk-build，防止AS自己生成android.mk编译
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    // OpenCV
+    implementation fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
+
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.material:material:1.0.0'
+
+    // Fragmentation https://github.com/YoKeyword/Fragmentation
+    implementation 'me.yokeyword:fragmentation:1.3.7'
+    implementation 'me.yokeyword:fragmentation-swipeback:1.3.7'
+    implementation 'me.yokeyword:eventbus-activity-scope:1.1.0'
+
+    // EventBus https://github.com/greenrobot/EventBus
+    implementation 'org.greenrobot:eventbus:3.1.1'
+
+    // FireBase
+    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+
+    // Location
+    implementation 'com.google.android.gms:play-services-location:16.0.0'
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation project(path: ':openCVLibrary340')
+}
+
+// OpenCV
+task nativeLibsToJar(type: Jar, description: 'create a jar archive of the native libs') {
+    destinationDir file("$buildDir/native-libs")
+    baseName 'native-libs'
+    extension 'jar'
+    from fileTree(dir: 'libs', include: '**/*.so')
+    into 'lib/'
+}
+
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn(nativeLibsToJar)
+}

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include layout="@layout/toolbar"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?android:attr/actionBarSize">
+
+        <TextView
+            android:id="@+id/message_tv"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_margin="20dp"
+            android:textSize="30sp"
+            android:textColor="#000" />
+
+        <View
+            android:id="@+id/split_line1"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_centerVertical="true"
+            android:background="@color/Black"
+            android:layout_below="@+id/message_tv"/>
+
+        <TextView
+            android:id="@+id/possible_answers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Possible Answers:"
+            android:layout_below="@+id/split_line1"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:textStyle="italic|bold"
+            android:gravity="center"
+            android:textSize="30sp"
+            android:textColor="#000" />
+
+        <EditText
+            android:id="@+id/input_et"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/split_line1"
+            android:layout_marginEnd="50dp"
+            android:textSize="30sp"
+            android:textColor="#000"
+            android:visibility="invisible"
+            android:saveEnabled="false"/>
+
+        <ImageButton
+            android:id="@+id/input_backspace_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/split_line1"
+            android:layout_alignParentRight="true"
+            android:src="@drawable/ic_backspace"
+            android:background="@color/transparent"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="15dp"
+            android:visibility="invisible"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/possible_answers">
+
+            <com.example.enactusapp.Adapter.CustomViewPager
+                android:id="@+id/dialog_answer_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="50dp"/>
+
+            <ImageView
+                android:id="@+id/scroll_left_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/ic_arrow_left"
+                android:clickable="true"/>
+
+            <ImageView
+                android:id="@+id/scroll_right_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_alignParentEnd="true"
+                android:src="@drawable/ic_arrow_right"
+                android:clickable="true"/>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <View
+        android:id="@+id/split_line1"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:background="@color/Black" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignRight="@+id/split_line1">
+
+        <View
+            android:id="@+id/split_line2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:background="@color/Black" />
+
+        <TextView
+            android:id="@+id/input_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:text=""
+            android:textSize="25dp"
+            android:textStyle="bold"
+            android:textColor="#000" />
+
+        <Button
+            android:id="@+id/t2keyboard_left_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="10dp"
+            android:layout_alignRight="@+id/split_line2"
+            android:layout_centerVertical="true"
+            android:textAllCaps="false"
+            android:textSize="20dp"
+            android:text="abc\ndef\nghi\njkl\nm"/>
+
+        <Button
+            android:id="@+id/t2keyboard_right_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="10dp"
+            android:layout_alignLeft="@+id/split_line2"
+            android:layout_centerVertical="true"
+            android:textAllCaps="false"
+            android:textSize="20dp"
+            android:text="nop\nqrs\ntuv\nwxy\nz"/>
+
+        <Button
+            android:id="@+id/t2keyboard_send_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_alignRight="@+id/split_line2"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:textAllCaps="false"
+            android:textSize="15dp"
+            android:text="Send"/>
+
+        <Button
+            android:id="@+id/t2keyboard_back_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_alignLeft="@+id/split_line2"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:textAllCaps="false"
+            android:textSize="15dp"
+            android:text="Back"/>
+
+    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/dialog_possible_words_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignLeft="@+id/split_line1"/>
+
+</RelativeLayout>

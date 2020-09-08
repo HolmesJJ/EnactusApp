@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include layout="@layout/toolbar"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?android:attr/actionBarSize">
+
+        <View
+            android:id="@+id/split_line1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_centerVertical="true" />
+
+        <ImageView
+            android:id="@+id/notification_iv"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="30dp"
+            android:layout_above="@+id/split_line1"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/notification_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_below="@+id/split_line1"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:textColor="@color/Black"
+            android:textStyle="bold" />
+
+        <View
+            android:id="@+id/split_line2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:id="@+id/cancel_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignEnd="@+id/split_line2"
+            android:textColor="@color/Black"
+            android:textAllCaps="false"
+            android:textSize="20dp"
+            android:text="Cancel"/>
+
+        <Button
+            android:id="@+id/start_chatting_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignStart="@+id/split_line2"
+            android:textColor="@color/Black"
+            android:textAllCaps="false"
+            android:textSize="20dp"
+            android:text="Start Chatting"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>
