@@ -1,37 +1,41 @@
 package com.example.enactusapp.Fragment.ObjectDetection;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.hardware.camera2.CameraDevice;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
+import android.util.Log;
+import android.util.Size;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.TextView;
+import android.view.ViewTreeObserver;
 
-import com.example.enactusapp.Adapter.ObjectDetectionSentencesAdapter;
-import com.example.enactusapp.CustomView.CustomToast;
+import com.example.enactusapp.Camera2.Camera2Helper;
+import com.example.enactusapp.Camera2.Camera2Listener;
 import com.example.enactusapp.Entity.CameraEvent;
 import com.example.enactusapp.Entity.ObjectDetectionEvent;
-import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
-import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
+import com.example.enactusapp.Thread.CustomThreadPool;
+import com.example.enactusapp.UI.AutoFitTextureView;
+import com.example.enactusapp.Utils.ImageUtils;
 
 import org.greenrobot.eventbus.Subscribe;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.JavaCameraView;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Comparator;
+
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
@@ -42,26 +46,56 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class ObjectDetectionFragment extends SupportFragment implements CameraBridgeViewBase.CvCameraViewListener2, OnItemClickListener {
+public class ObjectDetectionFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, Camera2Listener {
+
+    private static final String TAG = "ObjectDetectionFragment";
+
+    // 默认打开的CAMERA
+    private static final String CAMERA_ID = Camera2Helper.CAMERA_ID_BACK;
 
     private Toolbar mToolbar;
-    private RecyclerView mObjectDetectionSentencesRecyclerView;
-    private ObjectDetectionSentencesAdapter mObjectDetectionSentencesAdapter;
-    private JavaCameraView mJavaCameraView;
-    private TextView objectDetectionPen;
-    private TextView objectDetectionWallet;
-    private TextView objectDetectionGlasses;
-    private ImageButton objectDetectionStartBtn;
-    private View objectDetectionLine1;
-    private View objectDetectionLine2;
+    private TextureView mTvCamera;
+    private Camera2Helper camera2Helper;
 
-    private List<String> objectDetectionSentencesList = new ArrayList<>();
+    // 预览宽度
+    private int mPreviewW = -1;
+    // 预览高度
+    private int mPreviewH = -1;
+    // 颜色通道
+    private byte[] y;
+    private byte[] u;
+    private byte[] v;
+    // 步长
+    private int stride;
+    // 显示的旋转角度
+    private int displayOrientation;
+    // 是否手动镜像预览
+    private boolean isMirrorPreview;
+    // 实际打开的cameraId
+    private String openedCameraId;
+    // 图像帧数据，全局变量避免反复创建，降低gc频率
+    private byte[] mRGBCameraTrackNv21;
+    // 帧处理
+    private volatile boolean mIsRGBCameraNv21Ready;
 
-    private Mat frame;
-    private int countFrame = 0;
+    // 线程池
+    private static CustomThreadPool sThreadPoolRGBTrack = new CustomThreadPool(Thread.NORM_PRIORITY);
 
-    private TextToSpeech mTextToSpeech;
+    private static SparseIntArray ORIENTATIONS = new SparseIntArray();
+    static {
+        ORIENTATIONS.append(Surface.ROTATION_0, 0);
+        ORIENTATIONS.append(Surface.ROTATION_90, 90);
+        ORIENTATIONS.append(Surface.ROTATION_180, 180);
+        ORIENTATIONS.append(Surface.ROTATION_270, 270);
+    }
 
+    private static class CompareSizeByArea implements Comparator<Size> {
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            return Long.signum( (long)(lhs.getWidth() * lhs.getHeight()) -
+                    (long)(rhs.getWidth() * rhs.getHeight()));
+        }
+    }
     public static ObjectDetectionFragment newInstance(){
         ObjectDetectionFragment fragment = new ObjectDetectionFragment();
         Bundle bundle = new Bundle();
@@ -81,18 +115,8 @@ public class ObjectDetectionFragment extends SupportFragment implements CameraBr
     private void initView(View view) {
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.objectDetection);
-        mJavaCameraView = (JavaCameraView) view.findViewById(R.id.object_detection_cv_camera);
-        objectDetectionPen = (TextView) view.findViewById(R.id.object_detection_pen);
-        objectDetectionWallet = (TextView) view.findViewById(R.id.object_detection_wallet);
-        objectDetectionGlasses = (TextView) view.findViewById(R.id.object_detection_glasses);
-        objectDetectionStartBtn = (ImageButton) view.findViewById(R.id.object_detection_start);
-        objectDetectionLine1 = (View) view.findViewById(R.id.object_detection_line1);
-        objectDetectionLine2 = (View) view.findViewById(R.id.object_detection_line2);
-        mObjectDetectionSentencesRecyclerView = (RecyclerView) view.findViewById(R.id.object_detection_sentences_recycler_view);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mObjectDetectionSentencesRecyclerView.getContext(), linearLayoutManager.getOrientation());
-        mObjectDetectionSentencesRecyclerView.setLayoutManager(linearLayoutManager);
-        mObjectDetectionSentencesRecyclerView.addItemDecoration(dividerItemDecoration);
+        mTvCamera = (AutoFitTextureView) view.findViewById(R.id.tv_camera);
+        mTvCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
     }
 
     @Override
@@ -101,121 +125,128 @@ public class ObjectDetectionFragment extends SupportFragment implements CameraBr
     }
 
     private void initDelayView() {
-        if(GetSetSharedPreferences.getDefaults("isEnableEyeTrackingCamera", _mActivity) != null) {
-            GetSetSharedPreferences.removeDefaults("isEnableEyeTrackingCamera", _mActivity);
-            startCamera();
+
+    }
+
+    private void initCamera() {
+        camera2Helper = new Camera2Helper.Builder()
+                .cameraListener(this)
+                .maxPreviewSize(new Point(1920, 1080))
+                .minPreviewSize(new Point(1280, 720))
+                .specificCameraId(CAMERA_ID)
+                .context(_mActivity)
+                .previewOn(mTvCamera)
+                .previewViewSize(new Point(mTvCamera.getWidth(), mTvCamera.getHeight()))
+                .rotation(_mActivity.getWindowManager().getDefaultDisplay().getRotation())
+                .build();
+        camera2Helper.start();
+    }
+
+
+    private void startTrackRGBTask() {
+        sThreadPoolRGBTrack.execute(() -> {
+            if (mIsRGBCameraNv21Ready) {
+                // 回传数据是YUV422
+                if (y.length / u.length == 2) {
+                    ImageUtils.yuv422ToYuv420sp(y, u, v, mRGBCameraTrackNv21, stride, mPreviewH);
+                }
+                // 回传数据是YUV420
+                else if (y.length / u.length == 4) {
+                    ImageUtils.yuv420ToYuv420sp(y, u, v, mRGBCameraTrackNv21, stride, mPreviewH);
+                }
+                YuvImage yuvImage = new YuvImage(mRGBCameraTrackNv21, ImageFormat.NV21, stride, mPreviewH, null);
+
+                // ByteArrayOutputStream的close中其实没做任何操作，可不执行
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+                // 由于某些stride和previewWidth差距大的分辨率，[0,previewWidth)是有数据的，而[previewWidth,stride)补上的U、V均为0，因此在这种情况下运行会看到明显的绿边
+                // yuvImage.compressToJpeg(new Rect(0, 0, stride, previewSize.getHeight()), 100, byteArrayOutputStream);
+
+                // 由于U和V一般都有缺损，因此若使用方式，可能会有个宽度为1像素的绿边
+                yuvImage.compressToJpeg(new Rect(0, 0, mPreviewW, mPreviewH), 100, byteArrayOutputStream);
+
+                // 为了删除绿边，抛弃一行像素
+                // yuvImage.compressToJpeg(new Rect(0, 0, previewSize.getWidth() - 1, previewSize.getHeight()), 100, byteArrayOutputStream);
+
+                byte[] jpgBytes = byteArrayOutputStream.toByteArray();
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = 4;
+                // 原始预览数据生成的bitmap
+                final Bitmap originalBitmap = BitmapFactory.decodeByteArray(jpgBytes, 0, jpgBytes.length, options);
+                Matrix matrix = new Matrix();
+                // 预览相对于原数据可能有旋转
+                matrix.postRotate(Camera2Helper.CAMERA_ID_BACK.equals(openedCameraId) ? displayOrientation : -displayOrientation);
+
+                // 对于前置数据，镜像处理；若手动设置镜像预览，则镜像处理；若都有，则不需要镜像处理
+                if (Camera2Helper.CAMERA_ID_FRONT.equals(openedCameraId) ^ isMirrorPreview) {
+                    matrix.postScale(-1, 1);
+                }
+
+                // 和预览画面相同的bitmap
+                final Bitmap previewBitmap = Bitmap.createBitmap(originalBitmap, 0, 0, originalBitmap.getWidth(), originalBitmap.getHeight(), matrix, false);
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // mIvPreview.setImageBitmap(previewBitmap);
+                    }
+                });
+                mIsRGBCameraNv21Ready = false;
+            }
+        });
+    }
+
+    @Override
+    public void onGlobalLayout() {
+        mTvCamera.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+    }
+
+    @Override
+    public void onCameraOpened(CameraDevice cameraDevice, String cameraId, final Size previewSize, final int displayOrientation, boolean isMirror) {
+        Log.i(TAG, "onCameraOpened:  previewSize = " + previewSize.getWidth() + "x" + previewSize.getHeight());
+        this.displayOrientation = displayOrientation;
+        this.isMirrorPreview = isMirror;
+        this.openedCameraId = cameraId;
+    }
+
+    @Override
+    public void onPreview(final byte[] y, final byte[] u, final byte[] v, final Size previewSize, final int stride) {
+
+        if (mRGBCameraTrackNv21 == null) {
+            mRGBCameraTrackNv21 = new byte[stride * previewSize.getHeight() * 3 / 2];
         }
 
-        mTextToSpeech = new TextToSpeech(_mActivity, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int i) {
-                if(i == TextToSpeech.SUCCESS) {
-                    int result = mTextToSpeech.setLanguage(Locale.UK);
-                    if(result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        CustomToast.show(_mActivity, "Text to Speech Error!");
-                    }
-                }
-                else {
-                    CustomToast.show(_mActivity, "Text to Speech Error!");
-                }
-            }
-        });
-
-        objectDetectionStartBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                objectDetectionPen.setVisibility(View.VISIBLE);
-                objectDetectionWallet.setVisibility(View.VISIBLE);
-                objectDetectionGlasses.setVisibility(View.VISIBLE);
-                objectDetectionLine1.setVisibility(View.VISIBLE);
-                objectDetectionLine2.setVisibility(View.VISIBLE);
-            }
-        });
-
-        objectDetectionPen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                objectDetectionSentencesList.clear();
-                objectDetectionSentencesList.add("That is a ink pen.");
-                objectDetectionSentencesList.add("This is a very beautiful pen.");
-                objectDetectionSentencesList.add("My pen is out of ink.");
-                objectDetectionSentencesList.add("Shall I buy a pen as a gift for someone?");
-                refreshList();
-            }
-        });
-
-        objectDetectionWallet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                objectDetectionSentencesList.clear();
-                objectDetectionSentencesList.add("I forgot my wallet.");
-                objectDetectionSentencesList.add("This wallet looks beautiful.");
-                objectDetectionSentencesList.add("I wish i can have this wallet.");
-                objectDetectionSentencesList.add("The wallet was a gift from a friend.");
-                refreshList();
-            }
-        });
-
-        objectDetectionGlasses.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                objectDetectionSentencesList.clear();
-                objectDetectionSentencesList.add("I need my glasses.");
-                objectDetectionSentencesList.add("Pick up my glasses for me please?");
-                objectDetectionSentencesList.add("My glasses are damaged.");
-                objectDetectionSentencesList.add("My glasses look unfashionable.");
-                refreshList();
-            }
-        });
-    }
-
-    private void refreshList() {
-        mObjectDetectionSentencesAdapter = new ObjectDetectionSentencesAdapter(_mActivity, objectDetectionSentencesList);
-        mObjectDetectionSentencesRecyclerView.setAdapter(mObjectDetectionSentencesAdapter);
-        mObjectDetectionSentencesAdapter.setOnItemClickListener(this);
-    }
-
-    private void startCamera() {
-        mJavaCameraView.setCvCameraViewListener(this);
-        // 前置摄像头
-        mJavaCameraView.setCameraIndex(0);
-        mJavaCameraView.enableView();
+        if (!mIsRGBCameraNv21Ready) {
+            mIsRGBCameraNv21Ready = true;
+            mPreviewW = previewSize.getWidth();
+            mPreviewH = previewSize.getHeight();
+            this.y = y;
+            this.u = u;
+            this.v = v;
+            this.stride = stride;
+            startTrackRGBTask();
+        }
     }
 
     @Override
-    public void onCameraViewStarted(int width, int height) {
-        frame = new Mat(height, width, CvType.CV_8UC4);
+    public void onCameraClosed() {
+        Log.i(TAG, "onCameraClosed: ");
     }
 
     @Override
-    public void onCameraViewStopped() {
-        frame.release();
-    }
-
-    @Override
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        frame = inputFrame.rgba();
-        Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
-        return frame;
-    }
-
-    private void speak(String speakText) {
-        mTextToSpeech.setPitch(0.5f);
-        mTextToSpeech.setPitch(0.5f);
-        mTextToSpeech.speak(speakText, TextToSpeech.QUEUE_FLUSH, null);
+    public void onCameraError(Exception e) {
+        e.printStackTrace();
     }
 
     @Subscribe
     public void onCameraEvent(CameraEvent event) {
         if(event.isEnabled()) {
-            if(mJavaCameraView != null) {
-                mJavaCameraView.setCameraIndex(0);
-                mJavaCameraView.enableView();
-            }
+            initCamera();
         }
         else {
-            if(mJavaCameraView != null) {
-                mJavaCameraView.disableView();
+            if (camera2Helper != null) {
+                camera2Helper.stop();
+                camera2Helper.release();
+                camera2Helper = null;
             }
         }
     }
@@ -223,28 +254,33 @@ public class ObjectDetectionFragment extends SupportFragment implements CameraBr
     @Subscribe
     public void onObjectDetectionEvent(ObjectDetectionEvent event) {
         if(!event.isShowed()) {
-            objectDetectionPen.setVisibility(View.GONE);
-            objectDetectionWallet.setVisibility(View.GONE);
-            objectDetectionGlasses.setVisibility(View.GONE);
-            objectDetectionLine1.setVisibility(View.GONE);
-            objectDetectionLine2.setVisibility(View.GONE);
-            objectDetectionSentencesList.clear();
-            refreshList();
+
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (camera2Helper != null) {
+            camera2Helper.start();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (camera2Helper != null) {
+            camera2Helper.stop();
+        }
+        super.onPause();
     }
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
-        if(mTextToSpeech != null) {
-            mTextToSpeech.stop();
-            mTextToSpeech.shutdown();
+        if (camera2Helper != null) {
+            camera2Helper.release();
+            camera2Helper = null;
         }
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
-    }
-
-    @Override
-    public void onItemClick(int position) {
-        speak(objectDetectionSentencesList.get(position));
+        super.onDestroyView();
     }
 }

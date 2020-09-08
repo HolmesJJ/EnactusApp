@@ -116,7 +116,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
+        super.onDestroyView();
     }
 }

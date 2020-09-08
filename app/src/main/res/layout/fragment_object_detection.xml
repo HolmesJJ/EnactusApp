@@ -11,90 +11,10 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?android:attr/actionBarSize">
 
-        <View
-            android:id="@+id/split_line1"
+        <com.example.enactusapp.UI.AutoFitTextureView
+            android:id="@+id/tv_camera"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_centerVertical="true"
-            android:background="@color/Black" />
-
-        <org.opencv.android.JavaCameraView
-            android:id="@+id/object_detection_cv_camera"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/split_line1"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/object_detection_sentences_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="130dp"
-            android:layout_below="@+id/split_line1" />
-
-        <LinearLayout
-            android:layout_width="120dp"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_below="@+id/split_line1">
-
-            <TextView
-                android:id="@+id/object_detection_pen"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="25dp"
-                android:textColor="@color/Black"
-                android:layout_marginStart="10dp"
-                android:layout_marginBottom="10dp"
-                android:text="Pen"
-                android:clickable="true"
-                android:visibility="gone"/>
-
-            <View
-                android:id="@+id/object_detection_line1"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/Black"
-                android:visibility="gone"/>
-
-            <TextView
-                android:id="@+id/object_detection_wallet"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="25dp"
-                android:textColor="@color/Black"
-                android:layout_marginStart="10dp"
-                android:layout_marginBottom="10dp"
-                android:text="Wallet"
-                android:clickable="true"
-                android:visibility="gone"/>
-
-            <View
-                android:id="@+id/object_detection_line2"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/Black"
-                android:visibility="gone"/>
-
-            <TextView
-                android:id="@+id/object_detection_glasses"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="25dp"
-                android:textColor="@color/Black"
-                android:layout_marginStart="10dp"
-                android:layout_marginBottom="10dp"
-                android:text="Glasses"
-                android:clickable="true"
-                android:visibility="gone"/>
-
-        </LinearLayout>
-
-        <ImageButton
-            android:id="@+id/object_detection_start"
-            android:layout_width="120dp"
-            android:layout_height="50dp"
-            android:layout_alignParentBottom="true"
-            android:background="@color/transparent"/>
+            android:layout_height="match_parent" />
 
     </RelativeLayout>
 

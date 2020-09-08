@@ -274,11 +274,11 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
         if(mTextToSpeech != null) {
             mTextToSpeech.stop();
             mTextToSpeech.shutdown();
         }
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
+        super.onDestroyView();
     }
 }

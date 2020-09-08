@@ -113,8 +113,8 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
         handler.removeCallbacksAndMessages(null);
+        super.onDestroyView();
     }
 
     public String convertToJSON(String message, String user_firebase_token) {

@@ -6,7 +6,7 @@ android {
     buildToolsVersion "29.0.0"
     defaultConfig {
         applicationId "com.example.enactusapp"
-        minSdkVersion 17
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -15,6 +15,10 @@ android {
             jniLibs.srcDir 'src/main/libs' //这一句是设置目标的so存放路径，也就是组装到apk中的so路径
             jni.srcDirs = [] //这一句是禁用gradle默认的ndk-build，防止AS自己生成android.mk编译
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     buildTypes {
         release {

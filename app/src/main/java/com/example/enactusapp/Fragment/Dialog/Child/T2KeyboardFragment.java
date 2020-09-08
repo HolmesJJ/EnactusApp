@@ -241,7 +241,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
+        super.onDestroyView();
     }
 }

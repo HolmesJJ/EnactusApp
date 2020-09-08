@@ -184,9 +184,6 @@ public class MainFragment extends SupportFragment implements CameraBridgeViewBas
                     }
                 }
                 else if(prePosition != 2 && position == 2) {
-                    if(GetSetSharedPreferences.getDefaults("isEnableEyeTrackingCamera", _mActivity) == null) {
-                        GetSetSharedPreferences.setDefaults("isEnableEyeTrackingCamera", "true", _mActivity);
-                    }
                     if(mJavaCameraView != null) {
                         mJavaCameraView.disableView();
                         mJavaCameraView.setVisibility(View.INVISIBLE);
@@ -655,9 +652,9 @@ public class MainFragment extends SupportFragment implements CameraBridgeViewBas
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
         handler.removeCallbacksAndMessages(null);
+        super.onDestroyView();
     }
 
     // 一个Native Method就是一个Java调用非Java代码的接口
