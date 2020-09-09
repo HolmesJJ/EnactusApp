@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'de.undercouch.download'
 
 android {
     compileSdkVersion 29
@@ -15,6 +16,9 @@ android {
             jniLibs.srcDir 'src/main/libs' //这一句是设置目标的so存放路径，也就是组装到apk中的so路径
             jni.srcDirs = [] //这一句是禁用gradle默认的ndk-build，防止AS自己生成android.mk编译
         }
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -26,7 +30,23 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    aaptOptions {
+        noCompress "tflite"
+    }
+    lintOptions {
+        abortOnError false
+    }
 }
+
+// import DownloadModels task
+project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
+project.ext.TMP_DIR   = project.buildDir.toString() + '/downloads'
+
+// Download default models; if you wish to use your own models then
+// place them in the "assets" directory and comment out this line.
+//apply from: "download_model.gradle"
+
+apply from:'download_model.gradle'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -51,6 +71,9 @@ dependencies {
 
     // Location
     implementation 'com.google.android.gms:play-services-location:16.0.0'
+
+    // TensorFlow
+    implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'

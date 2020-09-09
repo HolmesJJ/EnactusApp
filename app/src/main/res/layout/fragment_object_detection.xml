@@ -11,10 +11,36 @@
         android:layout_height="match_parent"
         android:layout_marginTop="?android:attr/actionBarSize">
 
-        <com.example.enactusapp.UI.AutoFitTextureView
-            android:id="@+id/tv_camera"
+        <com.example.enactusapp.UI.FixedAspectRatioRelativeLayout
+            android:id="@+id/farrl_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextureView
+                android:id="@+id/tv_camera"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </com.example.enactusapp.UI.FixedAspectRatioRelativeLayout>
+
+        <com.example.enactusapp.CustomView.OverlayView
+            android:id="@+id/tracking_overlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/iv_preview"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:scaleType="fitCenter"/>
+
+        <TextView
+            android:id="@+id/tv_inference_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/Black"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
 
