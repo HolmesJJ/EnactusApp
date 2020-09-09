@@ -12,12 +12,11 @@
         android:layout_marginTop="?android:attr/actionBarSize">
 
         <com.example.enactusapp.UI.FixedAspectRatioRelativeLayout
-            android:id="@+id/farrl_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <TextureView
-                android:id="@+id/tv_camera"
+                android:id="@+id/tv_back_camera"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 

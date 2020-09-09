@@ -15,12 +15,22 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
-import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
+import com.example.enactusapp.Utils.PermissionsUtils;
+import com.example.enactusapp.config.Config;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-public class LoginActivity extends AppCompatActivity {
+import pub.devrel.easypermissions.AfterPermissionGranted;
+
+public class LoginActivity extends BaseActivity {
+
+    private static final int REC_PERMISSION = 100;
+    String[] PERMISSIONS = {
+            android.Manifest.permission.CAMERA,
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     private LinearLayout loginForm;
     private ProgressBar loginProgress;
@@ -29,34 +39,36 @@ public class LoginActivity extends AppCompatActivity {
     private Button email_sign_in_button;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         initView();
 
-        if(GetSetSharedPreferences.getDefaults("nric", getApplicationContext()) != null) {
+        if (Config.sIsLogin) {
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
             startActivity(intent);
             finish();
         }
 
+        requestPermission();
+
         email_sign_in_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(view.getWindowToken(),0);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 showProgress(true);
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         showProgress(false);
-                        if(mNRIC.getText().toString().equals("A1234567B") || mNRIC.getText().toString().equals("C7654321D")) {
-                            GetSetSharedPreferences.setDefaults("nric", mNRIC.getText().toString(), getApplicationContext());
+                        if (mNRIC.getText().toString().equals("A1234567B") || mNRIC.getText().toString().equals("C7654321D")) {
+                            Config.setIsLogin(true);
+                            Config.setUserId(mNRIC.getText().toString());
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                             startActivity(intent);
                             finish();
-                        }
-                        else {
+                        } else {
                             mNRIC.setError("Wrong NRIC!");
                         }
                     }
@@ -73,6 +85,14 @@ public class LoginActivity extends AppCompatActivity {
         mToolbar.setTitle(R.string.login);
         mNRIC = (EditText) findViewById(R.id.nric);
         email_sign_in_button = (Button) findViewById(R.id.email_sign_in_button);
+    }
+
+    @AfterPermissionGranted(REC_PERMISSION)
+    private void requestPermission() {
+        email_sign_in_button.setEnabled(false);
+        PermissionsUtils.doSomeThingWithPermission(this, () -> {
+            email_sign_in_button.setEnabled(true);
+        }, PERMISSIONS, REC_PERMISSION, R.string.rationale_init);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)

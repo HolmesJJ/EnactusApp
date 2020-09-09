@@ -32,8 +32,7 @@ import com.example.enactusapp.Camera2.Camera2Helper;
 import com.example.enactusapp.Camera2.Camera2Listener;
 import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
-import com.example.enactusapp.Entity.CameraEvent;
-import com.example.enactusapp.Entity.ObjectDetectionEvent;
+import com.example.enactusapp.Entity.BackCameraEvent;
 import com.example.enactusapp.R;
 import com.example.enactusapp.TensorFlow.Classifier;
 import com.example.enactusapp.TensorFlow.MultiBoxTracker;
@@ -90,7 +89,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     }
 
     private Toolbar mToolbar;
-    private TextureView mTvCamera;
+    private TextureView mTvBackCamera;
     private OverlayView trackingOverlay;
     private Camera2Helper camera2Helper;
     private ImageView mIvPreview;
@@ -182,8 +181,8 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     private void initView(View view) {
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.objectDetection);
-        mTvCamera = (TextureView) view.findViewById(R.id.tv_camera);
-        mTvCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
+        mTvBackCamera = (TextureView) view.findViewById(R.id.tv_back_camera);
+        mTvBackCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
         trackingOverlay = (OverlayView) view.findViewById(R.id.tracking_overlay);
         mIvPreview = (ImageView) view.findViewById(R.id.iv_preview);
         mTvInferenceTimeView = (TextView) view.findViewById(R.id.tv_inference_time);
@@ -205,8 +204,8 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
                 .minPreviewSize(new Point(640, 480))
                 .specificCameraId(CAMERA_ID)
                 .context(_mActivity)
-                .previewOn(mTvCamera)
-                .previewViewSize(new Point(mTvCamera.getWidth(), mTvCamera.getHeight()))
+                .previewOn(mTvBackCamera)
+                .previewViewSize(new Point(mTvBackCamera.getWidth(), mTvBackCamera.getHeight()))
                 .rotation(_mActivity.getWindowManager().getDefaultDisplay().getRotation())
                 .build();
         camera2Helper.start();
@@ -345,12 +344,12 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
 
     @Override
     public void onGlobalLayout() {
-        mTvCamera.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        mTvBackCamera.getViewTreeObserver().removeOnGlobalLayoutListener(this);
     }
 
     @Override
     public void onCameraOpened(CameraDevice cameraDevice, String cameraId, final Size previewSize, final int displayOrientation, boolean isMirror) {
-        Log.i(TAG, "onCameraOpened:  previewSize = " + previewSize.getWidth() + "x" + previewSize.getHeight());
+        Log.i(TAG, "onCameraOpened: previewSize = " + previewSize.getWidth() + "x" + previewSize.getHeight());
         this.displayOrientation = displayOrientation;
         this.isMirrorPreview = isMirror;
         this.openedCameraId = cameraId;
@@ -396,7 +395,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     }
 
     @Subscribe
-    public void onCameraEvent(CameraEvent event) {
+    public void onBackCameraEvent(BackCameraEvent event) {
         if(event.isEnabled()) {
             initCamera();
             mIsRGBCameraReady = false;
@@ -407,13 +406,6 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
                 camera2Helper.release();
                 camera2Helper = null;
             }
-        }
-    }
-
-    @Subscribe
-    public void onObjectDetectionEvent(ObjectDetectionEvent event) {
-        if(!event.isShowed()) {
-
         }
     }
 

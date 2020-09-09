@@ -10,10 +10,11 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Entity.StartChatEvent;
 import com.example.enactusapp.R;
-import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
+import com.example.enactusapp.config.Config;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
@@ -32,7 +33,7 @@ public class NotificationFragment extends SupportFragment {
     private Button cancelBtn;
     private Button startChattingBtn;
 
-    public static NotificationFragment newInstance(){
+    public static NotificationFragment newInstance() {
         NotificationFragment fragment = new NotificationFragment();
         Bundle bundle = new Bundle();
         fragment.setArguments(bundle);
@@ -42,7 +43,7 @@ public class NotificationFragment extends SupportFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_notification,container,false);
+        View view = inflater.inflate(R.layout.fragment_notification, container, false);
         initView(view);
         return view;
     }
@@ -76,11 +77,10 @@ public class NotificationFragment extends SupportFragment {
             }
         });
 
-        if(GetSetSharedPreferences.getDefaults("nric", _mActivity).equals("A1234567B")) {
+        if (Config.sIsLogin && Config.sUserId.equals("A1234567B")) {
             notificationIv.setImageResource(_mActivity.getResources().getIdentifier("user2", "drawable", _mActivity.getPackageName()));
             notificationTv.setText("Mr.Chai");
-        }
-        else {
+        } else {
             notificationIv.setImageResource(_mActivity.getResources().getIdentifier("user1", "drawable", _mActivity.getPackageName()));
             notificationTv.setText("Mr.Wong");
         }

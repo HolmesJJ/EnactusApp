@@ -2,6 +2,8 @@ package com.example.enactusapp;
 
 import android.app.Application;
 
+import com.example.enactusapp.Utils.ContextUtils;
+
 import me.yokeyword.fragmentation.Fragmentation;
 
 /**
@@ -22,5 +24,7 @@ public class BaseApplication extends Application {
                 .stackViewMode(Fragmentation.NONE)
                 .debug(BuildConfig.DEBUG)
                 .install();
+
+        ContextUtils.init(this);
     }
 }

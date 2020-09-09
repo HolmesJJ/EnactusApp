@@ -11,11 +11,14 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
-import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
+import com.example.enactusapp.config.Config;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+
 import me.yokeyword.fragmentation.SupportFragment;
+
+import static com.example.enactusapp.config.Config.resetConfig;
 
 /**
  * @author Administrator
@@ -34,7 +37,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     private EditText profileNameEt;
     private Button logoutBtn;
 
-    public static ProfileFragment newInstance(){
+    public static ProfileFragment newInstance() {
         ProfileFragment fragment = new ProfileFragment();
         Bundle bundle = new Bundle();
         fragment.setArguments(bundle);
@@ -44,7 +47,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_profile,container,false);
+        View view = inflater.inflate(R.layout.fragment_profile, container, false);
         initView(view);
         return view;
     }
@@ -68,11 +71,10 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     }
 
     private void initDelayView() {
-        if (GetSetSharedPreferences.getDefaults("nric", _mActivity).equals("A1234567B")) {
+        if (Config.sIsLogin && Config.sUserId.equals("A1234567B")) {
             profileImageBtn.setImageResource(_mActivity.getResources().getIdentifier("user1", "drawable", _mActivity.getPackageName()));
             profileNameTv.setText("Mr.Wong");
-        }
-        else if (GetSetSharedPreferences.getDefaults("nric", _mActivity).equals("C7654321D")) {
+        } else if (Config.sIsLogin && Config.sUserId.equals("C7654321D")) {
             profileImageBtn.setImageResource(_mActivity.getResources().getIdentifier("user2", "drawable", _mActivity.getPackageName()));
             profileNameTv.setText("Mr.Chai");
         }
@@ -104,9 +106,8 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         logoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                GetSetSharedPreferences.removeDefaults("nric", _mActivity);
+                resetConfig();
                 _mActivity.finish();
-                System.exit(0);
             }
         });
     }
@@ -115,8 +116,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     public void onTaskCompleted(String response) {
         try {
 
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

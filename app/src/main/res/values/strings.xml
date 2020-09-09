@@ -8,6 +8,10 @@
     <string name="login">Login</string>
     <string name="notification">Notification</string>
 
+    <string name="rationale_init">APP Needs some Permission</string>
+    <string name="permissions_denied_content_str">Permission Denied \nOpen Setting to Modify APP Permission</string>
+    <string name="need_permissions_str">Permission Required</string>
+
     <string name="possibleAnswers">Possible Answers</string>
     <string name="t2keyboard">T2 Keyboard</string>
     <string name="t26keyboard">T26 Keyboard</string>

@@ -12,7 +12,7 @@ import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
-import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
+import com.example.enactusapp.config.Config;
 
 import org.json.JSONObject;
 import org.opencv.core.Mat;
@@ -84,7 +84,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     private void initDelayView() {
 
-        if(GetSetSharedPreferences.getDefaults("nric", _mActivity).equals("A1234567B")) {
+        if (Config.sIsLogin && Config.sUserId.equals("A1234567B")) {
             contactNameList.add("Mr.Chai");
             contactNameList.add("Ms.Cheng");
             contactNameList.add("Mr.Liaw");
@@ -93,8 +93,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             contactThumbnailList.add("user3");
             contactThumbnailList.add("user4");
             contactThumbnailList.add("user5");
-        }
-        else {
+        } else {
             contactNameList.add("Mr.Wong");
             contactNameList.add("Ms.Cheng");
             contactNameList.add("Mr.Liaw");

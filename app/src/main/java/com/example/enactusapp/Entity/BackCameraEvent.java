@@ -7,11 +7,11 @@ package com.example.enactusapp.Entity;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class CameraEvent {
+public class BackCameraEvent {
 
     private boolean isEnabled;
 
-    public CameraEvent(boolean isEnabled) {
+    public BackCameraEvent(boolean isEnabled) {
         this.isEnabled = isEnabled;
     }
 
