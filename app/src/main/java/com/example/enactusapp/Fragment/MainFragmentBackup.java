@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -19,7 +18,6 @@ import androidx.annotation.RawRes;
 import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.example.enactusapp.CustomView.CustomToast;
 import com.example.enactusapp.Entity.BlinkEvent;
 import com.example.enactusapp.Entity.BackCameraEvent;
 import com.example.enactusapp.Entity.MessageEvent;
@@ -34,8 +32,8 @@ import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Utils.ToastUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
@@ -210,7 +208,7 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
                     @Override
                     public void onComplete(@NonNull Task<InstanceIdResult> task) {
                         if (!task.isSuccessful()) {
-                            CustomToast.show(_mActivity, "FireBase Token Error!");
+                            ToastUtils.showShortSafe("FireBase Token Error!");
                             return;
                         }
                         try {
@@ -218,7 +216,7 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
                             fireBaseToken = task.getResult().getToken();
                             System.out.println("fireBaseToken: " + fireBaseToken);
                         } catch (Exception e) {
-                            CustomToast.show(_mActivity, "FireBase Token Error!");
+                            ToastUtils.showShortSafe("FireBase Token Error!");
                         }
                     }
                 });

@@ -28,4 +28,24 @@
         android:layout_height="@dimen/bottom_bar_height"
         android:layout_gravity="bottom" />
 
+    <com.example.enactusapp.EyeTracker.PointView
+        android:id="@+id/pv_point"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <com.example.enactusapp.EyeTracker.CalibrationViewer
+        android:id="@+id/cv_calibration"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <Button
+        android:id="@+id/btn_stop_calibration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:visibility="gone"
+        android:text="Stop"/>
+
 </FrameLayout>

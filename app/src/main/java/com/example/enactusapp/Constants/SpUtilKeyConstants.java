@@ -4,6 +4,8 @@ public class SpUtilKeyConstants {
 
     public static final String IS_LOGIN = "is_login";
     public static final String USER_ID = "user_id";
+    public static final String IS_CALIBRATED = "is_calibrated";
+    public static final String LAST_CALIBRATED_TIME = "last_calibrated_time";
 
     public SpUtilKeyConstants() {
     }

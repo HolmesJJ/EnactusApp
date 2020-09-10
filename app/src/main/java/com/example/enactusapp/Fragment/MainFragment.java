@@ -4,10 +4,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Point;
-import android.hardware.camera2.CameraDevice;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -17,13 +16,16 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 
-import com.example.enactusapp.Camera2.Camera2Helper;
-import com.example.enactusapp.Camera2.Camera2Listener;
-import com.example.enactusapp.CustomView.CustomToast;
 import com.example.enactusapp.Entity.BackCameraEvent;
+import com.example.enactusapp.Entity.CalibrationEvent;
 import com.example.enactusapp.Entity.MessageEvent;
 import com.example.enactusapp.Entity.StartChatEvent;
+import com.example.enactusapp.EyeTracker.CalibrationViewer;
+import com.example.enactusapp.EyeTracker.GazeHelper;
+import com.example.enactusapp.EyeTracker.GazeListener;
+import com.example.enactusapp.EyeTracker.PointView;
 import com.example.enactusapp.Fragment.Contact.ContactFragment;
 import com.example.enactusapp.Fragment.Dialog.DialogFragment;
 import com.example.enactusapp.Fragment.Notification.NotificationFragment;
@@ -31,11 +33,10 @@ import com.example.enactusapp.Fragment.ObjectDetection.ObjectDetectionFragment;
 import com.example.enactusapp.Fragment.Profile.ProfileFragment;
 import com.example.enactusapp.R;
 import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
-import com.example.enactusapp.Thread.CustomThreadPool;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
-import com.example.enactusapp.Utils.ImageUtils;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Utils.ToastUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -49,6 +50,12 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.Comparator;
 
+import camp.visual.gazetracker.GazeTracker;
+import camp.visual.gazetracker.constant.CalibrationModeType;
+import camp.visual.gazetracker.constant.InitializationErrorType;
+import camp.visual.gazetracker.constant.StatusErrorType;
+import camp.visual.gazetracker.state.TrackingState;
+import camp.visual.gazetracker.util.ViewLayoutChecker;
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
@@ -59,7 +66,7 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, Camera2Listener {
+public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener {
 
     private static final String TAG = "MainFragment";
 
@@ -68,43 +75,22 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private static final int THIRD = 2;
     private static final int FOURTH = 3;
 
-    // 默认打开的CAMERA
-    private static final String FRONT_CAMERA_ID = Camera2Helper.CAMERA_ID_FRONT;
-
-    // RGBCamera是否就绪
-    private boolean mIsRGBCameraReady = false;
-    // 预览宽度
-    private int mPreviewW = -1;
-    // 预览高度
-    private int mPreviewH = -1;
-    // 颜色通道
-    private byte[] y;
-    private byte[] u;
-    private byte[] v;
-    // 步长
-    private int stride;
-    // 显示的旋转角度
-    private int displayOrientation;
-    // 是否手动镜像预览
-    private boolean isMirrorPreview;
-    // 实际打开的cameraId
-    private String openedCameraId;
-    // 图像帧数据，全局变量避免反复创建，降低gc频率
-    private byte[] mRGBCameraTrackNv21;
-    // 帧处理
-    private volatile boolean mIsRGBCameraNv21Ready;
+    private static final long ONE_WEEK = 60 * 60 * 24 * 7;
+    private static final boolean IS_USE_GAZE_FILER = true;
 
     private SupportFragment[] mFragments = new SupportFragment[5];
 
     private TextureView mTvFrontCamera;
-    private Camera2Helper camera2Helper;
     private BottomBar mBottomBar;
+    private PointView mPvPoint;
+    private CalibrationViewer mVcCalibration;
+    private Button btnStopCalibration;
 
-    private Handler handler = new Handler();
     private String fireBaseToken;
 
-    // 线程池
-    private static CustomThreadPool sThreadPoolRGBTrack = new CustomThreadPool(Thread.NORM_PRIORITY);
+    private Handler backgroundHandler;
+    private HandlerThread backgroundThread = new HandlerThread("background");
+    private ViewLayoutChecker viewLayoutChecker = new ViewLayoutChecker();
 
     private static SparseIntArray ORIENTATIONS = new SparseIntArray();
 
@@ -136,6 +122,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         EventBusActivityScope.getDefault(_mActivity).register(this);
         initView(view);
+        initHandler();
         return view;
     }
 
@@ -168,6 +155,16 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
         mTvFrontCamera = (TextureView) view.findViewById(R.id.tv_front_camera);
         mTvFrontCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
+        mPvPoint = (PointView) view.findViewById(R.id.pv_point);
+        mVcCalibration = (CalibrationViewer) view.findViewById(R.id.cv_calibration);
+        btnStopCalibration = (Button) view.findViewById(R.id.btn_stop_calibration);
+        btnStopCalibration.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                GazeHelper.getInstance().stopCalibration();
+                hideCalibrationView();
+            }
+        });
 
         mBottomBar = (BottomBar) view.findViewById(R.id.bottomBar);
 
@@ -181,11 +178,12 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             public void onTabSelected(int position, int prePosition) {
                 if (prePosition == 2 && position != 2) {
                     EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(false));
-                    // 开启摄像头
-                    initCamera();
+                    GazeHelper.getInstance().initGaze(_mActivity, MainFragment.this);
+                    setOffsetOfView();
                 } else if (prePosition != 2 && position == 2) {
-                    // 关闭摄像头
-                    releaseCamera();
+                    GazeHelper.getInstance().stopTracking();
+                    GazeHelper.getInstance().removeCameraPreview();
+                    GazeHelper.getInstance().releaseGaze();
                     EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(true));
                 }
                 showHideFragment(mFragments[position], mFragments[prePosition]);
@@ -210,7 +208,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                     @Override
                     public void onComplete(@NonNull Task<InstanceIdResult> task) {
                         if (!task.isSuccessful()) {
-                            CustomToast.show(_mActivity, "FireBase Token Error!");
+                            ToastUtils.showShortSafe("FireBase Token Error!");
                             return;
                         }
                         try {
@@ -218,97 +216,189 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                             fireBaseToken = task.getResult().getToken();
                             System.out.println("fireBaseToken: " + fireBaseToken);
                         } catch (Exception e) {
-                            CustomToast.show(_mActivity, "FireBase Token Error!");
+                            ToastUtils.showShortSafe("FireBase Token Error!");
                         }
                     }
                 });
+
+        setOffsetOfView();
     }
 
-    private void initCamera() {
-        camera2Helper = new Camera2Helper.Builder()
-                .cameraListener(this)
-                .maxPreviewSize(new Point(640, 480))
-                .minPreviewSize(new Point(640, 480))
-                .specificCameraId(FRONT_CAMERA_ID)
-                .context(_mActivity)
-                .previewOn(mTvFrontCamera)
-                .previewViewSize(new Point(mTvFrontCamera.getWidth(), mTvFrontCamera.getHeight()))
-                .rotation(_mActivity.getWindowManager().getDefaultDisplay().getRotation())
-                .build();
-        camera2Helper.start();
+    private void setCalibrationPoint(final float x, final float y) {
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                btnStopCalibration.setVisibility(View.VISIBLE);
+                mVcCalibration.setVisibility(View.VISIBLE);
+                mVcCalibration.changeDraw(true, null);
+                mVcCalibration.setPointPosition(x, y);
+                mVcCalibration.setPointAnimationPower(0);
+            }
+        });
     }
 
-    private void releaseCamera() {
-        if (camera2Helper != null) {
-            camera2Helper.stop();
-            camera2Helper.release();
-            camera2Helper = null;
+    private void setCalibrationProgress(final float progress) {
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mVcCalibration.setPointAnimationPower(progress);
+            }
+        });
+    }
+
+    private void hideCalibrationView() {
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mVcCalibration.setVisibility(View.GONE);
+                btnStopCalibration.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    // 注视坐标或校准坐标仅作为绝对坐标（即全屏屏幕）传输，但是Android视图的坐标系是相对坐标系，不考虑操作栏，状态栏和导航栏
+    private void setOffsetOfView() {
+        viewLayoutChecker.setOverlayView(mPvPoint, new ViewLayoutChecker.ViewLayoutListener() {
+            @Override
+            public void getOffset(int x, int y) {
+                mPvPoint.setOffset(x, y);
+                mVcCalibration.setOffset(x, y);
+            }
+        });
+    }
+
+    private void showGazePoint(final float x, final float y, final int type) {
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mPvPoint.setType(type == TrackingState.TRACKING ? PointView.TYPE_DEFAULT : PointView.TYPE_OUT_OF_SCREEN);
+                mPvPoint.setPosition(x, y);
+            }
+        });
+    }
+
+    private void initHandler() {
+        backgroundThread.start();
+        if (backgroundHandler == null) {
+            backgroundHandler = new Handler(backgroundThread.getLooper());
         }
     }
 
-    private void startTrackRGBTask() {
-        sThreadPoolRGBTrack.execute(() -> {
-            if (mIsRGBCameraNv21Ready) {
+    private void releaseHandler() {
+        if (backgroundHandler != null) {
+            backgroundHandler.removeCallbacksAndMessages(null);
+            backgroundHandler = null;
+        }
+        backgroundThread.quitSafely();
+    }
 
-                // 回传数据是YUV422
-                if (y.length / u.length == 2) {
-                    ImageUtils.yuv422ToYuv420sp(y, u, v, mRGBCameraTrackNv21, stride, mPreviewH);
-                }
-                // 回传数据是YUV420
-                else if (y.length / u.length == 4) {
-                    ImageUtils.yuv420ToYuv420sp(y, u, v, mRGBCameraTrackNv21, stride, mPreviewH);
-                }
-
-                mIsRGBCameraNv21Ready = false;
-            }
-        });
+    @Override
+    public void onEnterAnimationEnd(Bundle savedInstanceState) {
+        Log.i(TAG, "Gaze Version: " + GazeTracker.getVersionName());
+        GazeHelper.getInstance().initGaze(_mActivity, this);
     }
 
     @Override
     public void onGlobalLayout() {
         mTvFrontCamera.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-        initCamera();
     }
 
     @Override
-    public void onCameraOpened(CameraDevice cameraDevice, String cameraId, final Size previewSize, final int displayOrientation, boolean isMirror) {
-        Log.i(TAG, "onCameraOpened: previewSize = " + previewSize.getWidth() + "x" + previewSize.getHeight());
-        this.displayOrientation = displayOrientation;
-        this.isMirrorPreview = isMirror;
-        this.openedCameraId = cameraId;
-    }
-
-    @Override
-    public void onPreview(final byte[] y, final byte[] u, final byte[] v, final Size previewSize, final int stride) {
-        if (mRGBCameraTrackNv21 == null) {
-            mRGBCameraTrackNv21 = new byte[stride * previewSize.getHeight() * 3 / 2];
+    public void onGazeInitSuccess() {
+        GazeHelper.getInstance().showCurrentDeviceInfo();
+        ToastUtils.showShortSafe("Gaze Initialized");
+        if (mTvFrontCamera.isAvailable()) {
+            GazeHelper.getInstance().setCameraPreview(mTvFrontCamera);
         }
+        GazeHelper.getInstance().startTracking();
+    }
 
-        if (!mIsRGBCameraReady) {
-            mIsRGBCameraReady = true;
-            mPreviewW = previewSize.getWidth();
-            mPreviewH = previewSize.getHeight();
-            Log.i(TAG, "mPreviewW: " + mPreviewW + ", mPreviewH: " + mPreviewH);
-            this.y = y;
-            this.u = u;
-            this.v = v;
-            this.stride = stride;
+    @Override
+    public void onGazeInitFail(int error) {
+        String err = "";
+        if (error == InitializationErrorType.ERROR_CAMERA_PERMISSION) {
+            err = "Gaze required permission not granted";
+        } else if (error == InitializationErrorType.ERROR_AUTHENTICATE) {
+            err = "Gaze authentication failed";
+        } else  {
+            err = "Init gaze library fail";
         }
+        ToastUtils.showShortSafe(err);
+    }
 
-        if (!mIsRGBCameraNv21Ready) {
-            mIsRGBCameraNv21Ready = true;
-            startTrackRGBTask();
+    @Override
+    public void onGazeCoord(long timestamp, float x, float y, int state) {
+        if (!IS_USE_GAZE_FILER) {
+            if (state != TrackingState.FACE_MISSING && state != TrackingState.CALIBRATING) {
+                showGazePoint(x, y, state);
+            }
         }
     }
 
     @Override
-    public void onCameraClosed() {
-        Log.i(TAG, "onCameraClosed: ");
+    public void onFilteredGazeCoord(long timestamp, float x, float y, int state) {
+        if (IS_USE_GAZE_FILER) {
+            if (state != TrackingState.CALIBRATING) {
+                showGazePoint(x, y, state);
+            }
+        }
     }
 
     @Override
-    public void onCameraError(Exception e) {
-        e.printStackTrace();
+    public void onGazeCalibrationProgress(float progress) {
+        setCalibrationProgress(progress);
+    }
+
+    @Override
+    public void onGazeCalibrationNextPoint(float x, float y) {
+        setCalibrationPoint(x, y);
+        // 设置好校准坐标后，等待1秒钟，收集样品，然后在眼睛找到坐标后进行校准
+        backgroundHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                GazeHelper.getInstance().startCollectSamples();
+            }
+        }, 1000);
+    }
+
+    @Override
+    public void onGazeCalibrationFinished() {
+        hideCalibrationView();
+        Config.setLastCalibratedTime(System.currentTimeMillis());
+        Config.setIsCalibrated(true);
+    }
+
+    @Override
+    public void onGazeEyeMovement(long timestamp, long duration, float x, float y, int state) {
+        // Log.i(TAG, "onGazeEyeMovement");
+    }
+
+    @Override
+    public void onGazeImage(long timestamp, byte[] image) {
+        // Log.i(TAG, "onGazeImage");
+    }
+
+    @Override
+    public void onGazeStarted() {
+        Log.i(TAG, "onGazeStarted");
+        if (!Config.sIsCalibrated || System.currentTimeMillis() + ONE_WEEK > Config.sLastCalibratedTime) {
+            GazeHelper.getInstance().startCalibration(CalibrationModeType.FIVE_POINT);
+        }
+    }
+
+    @Override
+    public void onGazeStopped(int error) {
+        Log.i(TAG, "onGazeStopped");
+        if (error != StatusErrorType.ERROR_NONE) {
+            switch (error) {
+                case StatusErrorType.ERROR_CAMERA_START:
+                    ToastUtils.showShortSafe("ERROR_CAMERA_START");
+                    break;
+                case StatusErrorType.ERROR_CAMERA_INTERRUPT:
+                    ToastUtils.showShortSafe("ERROR_CAMERA_INTERRUPT");
+                    break;
+            }
+        }
     }
 
     public void startBrotherFragment(SupportFragment targetFragment) {
@@ -364,28 +454,36 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         }
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (camera2Helper != null) {
-            camera2Helper.start();
+    @Subscribe
+    public void onCalibrationEvent(CalibrationEvent event) {
+        if (event.isStartCalibration()) {
+            GazeHelper.getInstance().startCalibration(CalibrationModeType.FIVE_POINT);
         }
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        setOffsetOfView();
+        GazeHelper.getInstance().setCameraPreview(mTvFrontCamera);
+        GazeHelper.getInstance().startTracking();
+    }
+
+    @Override
     public void onPause() {
-        if (camera2Helper != null) {
-            camera2Helper.stop();
-        }
+        GazeHelper.getInstance().stopTracking();
+        GazeHelper.getInstance().removeCameraPreview();
         super.onPause();
     }
 
     @Override
     public void onDestroyView() {
-        if (camera2Helper != null) {
-            camera2Helper.release();
-            camera2Helper = null;
+        releaseHandler();
+        if (viewLayoutChecker != null) {
+            viewLayoutChecker.releaseChecker();
         }
+        GazeHelper.getInstance().stopTracking();
+        GazeHelper.getInstance().releaseGaze();
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
         super.onDestroyView();
     }

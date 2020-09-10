@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.enactusapp.CustomView.CustomToast;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
 

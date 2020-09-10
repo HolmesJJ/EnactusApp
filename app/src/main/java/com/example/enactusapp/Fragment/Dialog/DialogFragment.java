@@ -15,7 +15,6 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.CustomViewPager;
 import com.example.enactusapp.Adapter.DialogChildAdapter;
-import com.example.enactusapp.CustomView.CustomToast;
 import com.example.enactusapp.Entity.MessageEvent;
 import com.example.enactusapp.Entity.PossibleWordEvent;
 import com.example.enactusapp.Entity.SpeakPossibleAnswersEvent;
@@ -23,6 +22,7 @@ import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
+import com.example.enactusapp.Utils.ToastUtils;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
@@ -108,14 +108,13 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         mTextToSpeech = new TextToSpeech(_mActivity, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int i) {
-                if(i == TextToSpeech.SUCCESS) {
+                if (i == TextToSpeech.SUCCESS) {
                     int result = mTextToSpeech.setLanguage(Locale.UK);
                     if(result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        CustomToast.show(_mActivity, "Text to Speech Error!");
+                        ToastUtils.showShortSafe("Text to Speech Error!");
                     }
-                }
-                else {
-                    CustomToast.show(_mActivity, "Text to Speech Error!");
+                } else {
+                    ToastUtils.showShortSafe("Text to Speech Error!");
                 }
             }
         });
@@ -263,10 +262,10 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
         // if response is from upload request
         if (isSucceeded == 1){
-            CustomToast.show(_mActivity, "Sent!");
+            ToastUtils.showShortSafe("Sent!");
         }
         else {
-            CustomToast.show(_mActivity, "Failed to send!");
+            ToastUtils.showShortSafe("Failed to send!");
         }
 
         isSucceeded = 0;

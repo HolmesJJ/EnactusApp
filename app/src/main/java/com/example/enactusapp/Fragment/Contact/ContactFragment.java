@@ -7,12 +7,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.enactusapp.Adapter.ContactAdapter;
-import com.example.enactusapp.CustomView.CustomToast;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Utils.ToastUtils;
 
 import org.json.JSONObject;
 import org.opencv.core.Mat;
@@ -142,15 +142,12 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     @Override
     public void onTaskCompleted(String response) {
         retrieveFromJSON(response);
-
         // if response is from upload request
         if (isSucceeded == 1){
-            CustomToast.show(_mActivity, "Sent!");
+            ToastUtils.showShortSafe("Sent!");
+        } else {
+            ToastUtils.showShortSafe("Failed to send!");
         }
-        else {
-            CustomToast.show(_mActivity, "Failed to send!");
-        }
-
         isSucceeded = 0;
     }
 

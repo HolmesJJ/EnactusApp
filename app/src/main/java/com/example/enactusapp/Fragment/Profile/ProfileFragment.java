@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.example.enactusapp.Entity.CalibrationEvent;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
@@ -16,6 +17,7 @@ import com.example.enactusapp.Config.Config;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 
+import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
 import static com.example.enactusapp.Config.Config.resetConfig;
@@ -35,6 +37,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     private ImageButton profileConfirmBtn;
     private TextView profileNameTv;
     private EditText profileNameEt;
+    private Button startCalibrationBtn;
     private Button logoutBtn;
 
     public static ProfileFragment newInstance() {
@@ -62,6 +65,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         profileNameTv = (TextView) view.findViewById(R.id.profile_name_tv);
         profileNameEt = (EditText) view.findViewById(R.id.profile_name_et);
         profileNameEt.setVisibility(View.GONE);
+        startCalibrationBtn = (Button) view.findViewById(R.id.start_calibration_btn);
         logoutBtn = (Button) view.findViewById(R.id.logout_btn);
     }
 
@@ -100,6 +104,13 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
                 profileNameTv.setVisibility(View.VISIBLE);
                 profileNameTv.setText(profileNameEt.getText());
                 profileNameEt.setText("");
+            }
+        });
+
+        startCalibrationBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EventBusActivityScope.getDefault(_mActivity).post(new CalibrationEvent(true));
             }
         });
 

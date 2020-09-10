@@ -77,6 +77,16 @@
             android:background="@color/transparent"/>
 
         <Button
+            android:id="@+id/start_calibration_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/logout_btn"
+            android:textColor="@color/Black"
+            android:textAllCaps="false"
+            android:textSize="25dp"
+            android:text="Start Calibration"/>
+
+        <Button
             android:id="@+id/logout_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

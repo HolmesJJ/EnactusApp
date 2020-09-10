@@ -40,6 +40,7 @@ import com.example.enactusapp.TensorFlow.TFLiteObjectDetectionAPIModel;
 import com.example.enactusapp.Thread.CustomThreadPool;
 import com.example.enactusapp.Utils.FileUtils;
 import com.example.enactusapp.Utils.ImageUtils;
+import com.example.enactusapp.Utils.ToastUtils;
 
 import org.greenrobot.eventbus.Subscribe;
 
@@ -198,6 +199,9 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     }
 
     private void initCamera() {
+        if (camera2Helper != null) {
+            return;
+        }
         camera2Helper = new Camera2Helper.Builder()
                 .cameraListener(this)
                 .maxPreviewSize(new Point(640, 480))
@@ -211,6 +215,14 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
         camera2Helper.start();
     }
 
+    private void releaseCamera() {
+        if (camera2Helper != null) {
+            camera2Helper.stop();
+            camera2Helper.release();
+            camera2Helper = null;
+        }
+    }
+
     private void initClassifier() {
         tracker = new MultiBoxTracker(_mActivity);
         try {
@@ -221,6 +233,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
                     TF_OD_API_INPUT_SIZE,
                     TF_OD_API_IS_QUANTIZED);
             Log.i(TAG,  "Classifier Initialized");
+            ToastUtils.showShortSafe("Classifier Initialized");
         } catch (final IOException e) {
             e.printStackTrace();
             Log.e(TAG, "Exception initializing classifier! " + e.getMessage());
@@ -428,10 +441,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
 
     @Override
     public void onDestroyView() {
-        if (camera2Helper != null) {
-            camera2Helper.release();
-            camera2Helper = null;
-        }
+        releaseCamera();
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
         super.onDestroyView();
     }
