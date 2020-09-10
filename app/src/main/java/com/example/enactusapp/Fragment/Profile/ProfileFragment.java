@@ -11,14 +11,14 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
-import com.example.enactusapp.config.Config;
+import com.example.enactusapp.Config.Config;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 
 import me.yokeyword.fragmentation.SupportFragment;
 
-import static com.example.enactusapp.config.Config.resetConfig;
+import static com.example.enactusapp.Config.Config.resetConfig;
 
 /**
  * @author Administrator

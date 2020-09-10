@@ -1,5 +1,6 @@
 package com.example.enactusapp;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -16,7 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.example.enactusapp.Utils.PermissionsUtils;
-import com.example.enactusapp.config.Config;
+import com.example.enactusapp.Config.Config;
 
 import androidx.appcompat.widget.Toolbar;
 
@@ -29,7 +30,9 @@ public class LoginActivity extends BaseActivity {
             android.Manifest.permission.CAMERA,
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION,
     };
 
     private LinearLayout loginForm;

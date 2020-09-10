@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Entity.StartChatEvent;
 import com.example.enactusapp.R;
-import com.example.enactusapp.config.Config;
+import com.example.enactusapp.Config.Config;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;

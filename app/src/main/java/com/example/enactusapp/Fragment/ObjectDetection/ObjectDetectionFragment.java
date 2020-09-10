@@ -67,7 +67,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     private static final String TAG = "ObjectDetectionFragment";
 
     // 默认打开的CAMERA
-    private static final String CAMERA_ID = Camera2Helper.CAMERA_ID_BACK;
+    private static final String BACK_CAMERA_ID = Camera2Helper.CAMERA_ID_BACK;
 
     // Configuration values for the prepackaged SSD model.
     private static final int TF_OD_API_INPUT_SIZE = 300;
@@ -202,7 +202,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
                 .cameraListener(this)
                 .maxPreviewSize(new Point(640, 480))
                 .minPreviewSize(new Point(640, 480))
-                .specificCameraId(CAMERA_ID)
+                .specificCameraId(BACK_CAMERA_ID)
                 .context(_mActivity)
                 .previewOn(mTvBackCamera)
                 .previewViewSize(new Point(mTvBackCamera.getWidth(), mTvBackCamera.getHeight()))

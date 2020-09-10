@@ -1,4 +1,4 @@
-package com.example.enactusapp.constants;
+package com.example.enactusapp.Constants;
 
 public class SpUtilKeyConstants {
 

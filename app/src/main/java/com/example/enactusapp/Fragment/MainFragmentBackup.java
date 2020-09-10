@@ -33,9 +33,7 @@ import com.example.enactusapp.R;
 import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
-import com.example.enactusapp.config.Config;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
+import com.example.enactusapp.Config.Config;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -91,7 +89,6 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
     private BottomBar mBottomBar;
     private JavaCameraView mJavaCameraView;
 
-    private FusedLocationProviderClient mFusedLocationProviderClient;
     private Handler handler = new Handler();
     private String fireBaseToken;
 
@@ -230,8 +227,6 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
             MainFragmentBackup.this.requestPermissions(PERMISSIONS, PERMISSION_ALL);
         }
 
-        handler.post(timedTask);
-
         staticLoadCVLibraries();
 
         Handler handler = new Handler();
@@ -278,27 +273,6 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
             return;
         }
     }
-
-    private Runnable timedTask = new Runnable() {
-        @Override
-        public void run() {
-            mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(_mActivity);
-            if (ActivityCompat.checkSelfPermission(_mActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-
-            mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(_mActivity, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    if (location != null) {
-                        System.out.println("Latitude: " + location.getLatitude());
-                        System.out.println("getLongitude: " + location.getLongitude());
-                    }
-                }
-            });
-            handler.postDelayed(timedTask, 10000);
-        }
-    };
 
     private BroadcastReceiver mMessageBroadcastReceiver = new BroadcastReceiver() {
         @Override

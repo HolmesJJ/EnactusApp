@@ -12,7 +12,7 @@ import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
-import com.example.enactusapp.config.Config;
+import com.example.enactusapp.Config.Config;
 
 import org.json.JSONObject;
 import org.opencv.core.Mat;

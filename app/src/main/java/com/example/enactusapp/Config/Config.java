@@ -1,7 +1,7 @@
-package com.example.enactusapp.config;
+package com.example.enactusapp.Config;
 
 import com.example.enactusapp.Utils.SpUtils;
-import com.example.enactusapp.constants.SpUtilKeyConstants;
+import com.example.enactusapp.Constants.SpUtilKeyConstants;
 
 public class Config {
 

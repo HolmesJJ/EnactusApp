@@ -72,9 +72,6 @@ dependencies {
     // FireBase
     implementation 'com.google.firebase:firebase-messaging:17.3.4'
 
-    // Location
-    implementation 'com.google.android.gms:play-services-location:16.0.0'
-
     // TensorFlow
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
 
