@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.UUID;
 
 public class FileUtils {
@@ -111,6 +112,30 @@ public class FileUtils {
             fops = new FileOutputStream(file);
             fops.flush();
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fops);
+            fops.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(fops != null) {
+                try {
+                    fops.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void writeTxtToDisk(String data, String fileName) {
+        FileOutputStream fops = null;
+        try {
+            File file = new File(fileName);
+            if(!file.getParentFile().exists()){
+                file.getParentFile().mkdirs();
+            }
+            fops = new FileOutputStream(file);
+            fops.write(data.getBytes());
+            fops.flush();
             fops.close();
         } catch (Exception e) {
             e.printStackTrace();

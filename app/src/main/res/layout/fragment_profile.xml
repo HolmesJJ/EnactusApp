@@ -90,6 +90,7 @@
             android:id="@+id/logout_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:layout_alignParentBottom="true"
             android:textColor="@color/Black"
             android:textAllCaps="false"

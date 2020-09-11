@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
 import com.example.enactusapp.Entity.BackCameraEvent;
 import com.example.enactusapp.Entity.CalibrationEvent;
@@ -37,6 +38,7 @@ import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Utils.SimulateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -77,18 +79,22 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private static final int THIRD = 2;
     private static final int FOURTH = 3;
 
-    private static final long ONE_WEEK = 60 * 60 * 24 * 7;
-    private static final boolean IS_USE_GAZE_FILER = false;
+    private static final boolean IS_USE_GAZE_FILER = true;
 
     private SupportFragment[] mFragments = new SupportFragment[5];
 
     private TextureView mTvFrontCamera;
+    private ProgressBar mPbGaze;
     private BottomBar mBottomBar;
     private PointView mPvPoint;
     private CalibrationViewer mVcCalibration;
     private Button btnStopCalibration;
 
     private String fireBaseToken;
+
+    // 眼睛是在凝视或在移动
+    private int fixationCounter = 0;
+    private int currentEyeMovementState = EyeMovementState.FIXATION;
 
     private Handler backgroundHandler;
     private HandlerThread backgroundThread = new HandlerThread("background");
@@ -156,6 +162,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private void initView(View view) {
 
         mTvFrontCamera = (TextureView) view.findViewById(R.id.tv_front_camera);
+        mPbGaze = (ProgressBar) view.findViewById(R.id.pb_gaze);
         mTvFrontCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
         mPvPoint = (PointView) view.findViewById(R.id.pv_point);
         mVcCalibration = (CalibrationViewer) view.findViewById(R.id.cv_calibration);
@@ -332,8 +339,16 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onGazeCoord(long timestamp, float x, float y, int state) {
         if (!IS_USE_GAZE_FILER) {
-            if (state != TrackingState.FACE_MISSING && state != TrackingState.CALIBRATING) {
+            if (state == TrackingState.TRACKING) {
                 showGazePoint(x, y, state);
+            } else {
+                fixationCounter = 0;
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPbGaze.setProgress(0);
+                    }
+                });
             }
         }
     }
@@ -341,8 +356,17 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onFilteredGazeCoord(long timestamp, float x, float y, int state) {
         if (IS_USE_GAZE_FILER) {
-            if (state != TrackingState.CALIBRATING) {
+            if (state == TrackingState.TRACKING) {
+                Log.i(TAG, "showGazePoint: (" + x + "x" + y + ")");
                 showGazePoint(x, y, state);
+            } else {
+                fixationCounter = 0;
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPbGaze.setProgress(0);
+                    }
+                });
             }
         }
     }
@@ -373,15 +397,35 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onGazeEyeMovement(long timestamp, long duration, float x, float y, int state) {
-        String type = "UNKNOWN";
-        if (state == EyeMovementState.FIXATION) {
-            type = "FIXATION";
-        } else if (state == EyeMovementState.SACCADE) {
-            type = "SACCADE";
-        } else {
-            type = "UNKNOWN";
-        }
         // Log.i(TAG, "check eyeMovement timestamp: " + timestamp + " (" + x + "x" + y + ") : " + type);
+        if (state == EyeMovementState.FIXATION) {
+            if (currentEyeMovementState == EyeMovementState.FIXATION) {
+                fixationCounter++;
+                if (fixationCounter <= 50) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPbGaze.setProgress(fixationCounter * 2);
+                        }
+                    });
+                    if (fixationCounter == 50) {
+                        SimulateUtils.simulateClick(_mActivity, (int)x, (int)y);
+                    }
+                } else {
+                    fixationCounter = 0;
+                }
+            } else {
+                currentEyeMovementState = EyeMovementState.FIXATION;
+                fixationCounter = 0;
+            }
+        } else if (state == EyeMovementState.SACCADE) {
+            if (currentEyeMovementState != EyeMovementState.SACCADE) {
+                currentEyeMovementState = EyeMovementState.SACCADE;
+                fixationCounter = 0;
+            }
+        } else {
+            fixationCounter = 0;
+        }
     }
 
     @Override
@@ -392,9 +436,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onGazeStarted() {
         Log.i(TAG, "onGazeStarted");
-        if (!Config.sIsCalibrated || System.currentTimeMillis() > Config.sLastCalibratedTime + ONE_WEEK) {
-            GazeHelper.getInstance().startCalibration(CalibrationModeType.FIVE_POINT);
-        }
+        GazeHelper.getInstance().startCalibration(CalibrationModeType.FIVE_POINT);
     }
 
     @Override

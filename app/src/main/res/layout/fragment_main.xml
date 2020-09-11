@@ -22,6 +22,14 @@
 
     </com.example.enactusapp.UI.FixedAspectRatioRelativeLayout>
 
+    <ProgressBar
+        android:id="@+id/pb_gaze"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="@dimen/bottom_bar_height"
+        style="?android:attr/progressBarStyleHorizontal"/>
+
     <com.example.enactusapp.UI.BottomBar
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
