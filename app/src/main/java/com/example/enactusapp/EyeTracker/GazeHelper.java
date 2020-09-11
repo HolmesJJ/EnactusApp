@@ -2,19 +2,15 @@ package com.example.enactusapp.EyeTracker;
 
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 import android.view.TextureView;
 
 import com.example.enactusapp.Constants.Constants;
 
-import camp.visual.gazetracker.GazeTracker;
 import camp.visual.gazetracker.callback.CalibrationCallback;
 import camp.visual.gazetracker.callback.EyeMovementCallback;
 import camp.visual.gazetracker.callback.GazeCallback;
 import camp.visual.gazetracker.callback.ImageCallback;
-import camp.visual.gazetracker.callback.InitializationCallback;
 import camp.visual.gazetracker.callback.StatusCallback;
-import camp.visual.gazetracker.device.GazeDevice;
 
 public class GazeHelper implements InitializationCallback, GazeCallback, CalibrationCallback, EyeMovementCallback, ImageCallback, StatusCallback {
 
@@ -46,7 +42,7 @@ public class GazeHelper implements InitializationCallback, GazeCallback, Calibra
 
     public void releaseGaze() {
         if (isGazeNonNull()) {
-            this.mGazeTracker.setGazeCallback(null);
+            this.mGazeTracker.removeCallbacks();
             GazeTracker.deinitGazeTracker(this.mGazeTracker);
             this.mGazeTracker = null;
         }
@@ -116,13 +112,16 @@ public class GazeHelper implements InitializationCallback, GazeCallback, Calibra
         }
     }
 
-    public void showCurrentDeviceInfo() {
-        GazeDevice.Info info = mGazeDevice.getCurrentDeviceInfo();
-        System.out.println("Current Device -- Model: " + info.modelName + ", x: " + info.screen_origin_x + ", y: " + info.screen_origin_y);
+    public boolean isCurrentDeviceFound() {
+        return this.mGazeDevice.isCurrentDeviceFound();
+    }
+
+    public GazeDevice.Info showCurrentDeviceInfo() {
+        return this.mGazeDevice.getCurrentDeviceInfo();
     }
 
     public void showAvailableDevices() {
-        GazeDevice.Info[] infos = mGazeDevice.getAvailableDevices();
+        GazeDevice.Info[] infos = this.mGazeDevice.getAvailableDevices();
         for (GazeDevice.Info info : infos) {
             System.out.println("Available Devices -- Model: " + info.modelName + ", x: " + info.screen_origin_x + ", y: " + info.screen_origin_y);
         }

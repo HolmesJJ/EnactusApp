@@ -23,6 +23,7 @@ import com.example.enactusapp.Entity.CalibrationEvent;
 import com.example.enactusapp.Entity.MessageEvent;
 import com.example.enactusapp.Entity.StartChatEvent;
 import com.example.enactusapp.EyeTracker.CalibrationViewer;
+import com.example.enactusapp.EyeTracker.GazeDevice;
 import com.example.enactusapp.EyeTracker.GazeHelper;
 import com.example.enactusapp.EyeTracker.GazeListener;
 import com.example.enactusapp.EyeTracker.PointView;
@@ -54,6 +55,7 @@ import camp.visual.gazetracker.GazeTracker;
 import camp.visual.gazetracker.constant.CalibrationModeType;
 import camp.visual.gazetracker.constant.InitializationErrorType;
 import camp.visual.gazetracker.constant.StatusErrorType;
+import camp.visual.gazetracker.state.EyeMovementState;
 import camp.visual.gazetracker.state.TrackingState;
 import camp.visual.gazetracker.util.ViewLayoutChecker;
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
@@ -76,7 +78,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private static final int FOURTH = 3;
 
     private static final long ONE_WEEK = 60 * 60 * 24 * 7;
-    private static final boolean IS_USE_GAZE_FILER = true;
+    private static final boolean IS_USE_GAZE_FILER = false;
 
     private SupportFragment[] mFragments = new SupportFragment[5];
 
@@ -305,8 +307,9 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onGazeInitSuccess() {
-        GazeHelper.getInstance().showCurrentDeviceInfo();
-        ToastUtils.showShortSafe("Gaze Initialized");
+        GazeHelper.getInstance().showAvailableDevices();
+        GazeDevice.Info gazeDeviceInfo = GazeHelper.getInstance().showCurrentDeviceInfo();
+        ToastUtils.showShortSafe(gazeDeviceInfo.modelName + " x: " + gazeDeviceInfo.screen_origin_x + ", y: " + gazeDeviceInfo.screen_origin_y + " " + GazeHelper.getInstance().isCurrentDeviceFound());
         if (mTvFrontCamera.isAvailable()) {
             GazeHelper.getInstance().setCameraPreview(mTvFrontCamera);
         }
@@ -370,7 +373,15 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onGazeEyeMovement(long timestamp, long duration, float x, float y, int state) {
-        // Log.i(TAG, "onGazeEyeMovement");
+        String type = "UNKNOWN";
+        if (state == EyeMovementState.FIXATION) {
+            type = "FIXATION";
+        } else if (state == EyeMovementState.SACCADE) {
+            type = "SACCADE";
+        } else {
+            type = "UNKNOWN";
+        }
+        // Log.i(TAG, "check eyeMovement timestamp: " + timestamp + " (" + x + "x" + y + ") : " + type);
     }
 
     @Override
@@ -381,7 +392,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onGazeStarted() {
         Log.i(TAG, "onGazeStarted");
-        if (!Config.sIsCalibrated || System.currentTimeMillis() + ONE_WEEK > Config.sLastCalibratedTime) {
+        if (!Config.sIsCalibrated || System.currentTimeMillis() > Config.sLastCalibratedTime + ONE_WEEK) {
             GazeHelper.getInstance().startCalibration(CalibrationModeType.FIVE_POINT);
         }
     }
