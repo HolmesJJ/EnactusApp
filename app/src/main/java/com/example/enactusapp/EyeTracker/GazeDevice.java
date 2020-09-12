@@ -69,9 +69,11 @@ public class GazeDevice {
         LG_F600S("LG-F600S", -12.0F, -5.5F),
         LM_G820N("LM-G820N", -25.0F, 1.0F),
         PAFM00("PAFM00", -52.0F, -5.5F),
-        PCRM00("PCRM00", -7.5F, 4.0F),
+        PCRM00("PCRM00", -7.5F, 0.0F),
         // 红米10X
-        M2004J78C("M2004J7BC", -34f, -3.5f);
+        M2004J78C("M2004J7BC", -34f, -1.0f),
+        // 华为Mate30Pro
+        LIO_AN00("LIO-AN00", -46f, -1.0f);
 
         String model;
         float screen_origin_x;

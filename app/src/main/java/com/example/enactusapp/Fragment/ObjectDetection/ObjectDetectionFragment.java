@@ -32,7 +32,7 @@ import com.example.enactusapp.Camera2.Camera2Helper;
 import com.example.enactusapp.Camera2.Camera2Listener;
 import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
-import com.example.enactusapp.Entity.BackCameraEvent;
+import com.example.enactusapp.Event.BackCameraEvent;
 import com.example.enactusapp.R;
 import com.example.enactusapp.TensorFlow.Classifier;
 import com.example.enactusapp.TensorFlow.MultiBoxTracker;

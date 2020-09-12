@@ -2,10 +2,15 @@ package com.example.enactusapp.Service;
 
 import android.content.Intent;
 
+import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Utils.ToastUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * @author Administrator
@@ -16,36 +21,57 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
  */
 public class FcmMessagingService extends FirebaseMessagingService {
 
+    private int id;
+    private String username;
+    private String name;
     private String message;
+    private String body;
+    private String type;
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // Check if message contains a data payload.
-        if (remoteMessage.getData().size() > 0) {
-            System.out.println("MessageEvent data payload: " + remoteMessage.getData());
-            message = remoteMessage.getData().toString();
-        }
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
             System.out.println("MessageEvent Notification Body: " + remoteMessage.getNotification().getBody());
-            message = remoteMessage.getNotification().getBody();
+            body = remoteMessage.getNotification().getBody();
+            type = remoteMessage.getNotification().getTitle();
         }
 
-        if(message != null && message.equals("user2ChatWithYou")) {
-            Intent notificationIntent = new Intent("getChatIntent");
-            notificationIntent.putExtra("chat", message);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
+        if (body != null) {
+            if (retrieveFromJSON(body)) {
+                if (type.equals(MessageType.GREETING.getValue())) {
+                    Intent notificationIntent = new Intent(MessageType.GREETING.getValue());
+                    notificationIntent.putExtra("id", id);
+                    notificationIntent.putExtra("username", username);
+                    notificationIntent.putExtra("name", name);
+                    notificationIntent.putExtra("message", message);
+                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
+                } else {
+                    Intent notificationIntent = new Intent(MessageType.NORMAL.getValue());
+                    notificationIntent.putExtra("id", id);
+                    notificationIntent.putExtra("username", username);
+                    notificationIntent.putExtra("name", name);
+                    notificationIntent.putExtra("message", message);
+                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
+                }
+            }
         }
-        else if(message != null && message.equals("user1ChatWithYou")) {
-            Intent notificationIntent = new Intent("getChatIntent");
-            notificationIntent.putExtra("chat", message);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
+    }
+
+    private boolean retrieveFromJSON(String body) {
+        try {
+            JSONObject jsonBodyObject = new JSONObject(body);
+            String from = jsonBodyObject.getString("from");
+            message = jsonBodyObject.getString("message");
+            JSONObject jsonFromObject = new JSONObject(from);
+            id = jsonFromObject.getInt("id");
+            username = jsonFromObject.getString("username");
+            name = jsonFromObject.getString("name");
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        else {
-            Intent notificationIntent = new Intent("getMessageIntent");
-            notificationIntent.putExtra("message", message);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
-        }
+        return false;
     }
 }

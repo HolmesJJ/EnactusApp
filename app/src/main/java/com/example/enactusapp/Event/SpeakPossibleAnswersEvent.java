@@ -1,4 +1,4 @@
-package com.example.enactusapp.Entity;
+package com.example.enactusapp.Event;
 
 /**
  * @author Administrator
@@ -7,11 +7,11 @@ package com.example.enactusapp.Entity;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class MessageEvent {
+public class SpeakPossibleAnswersEvent {
 
     private String message;
 
-    public MessageEvent(String message) {
+    public SpeakPossibleAnswersEvent(String message) {
         this.message = message;
     }
 

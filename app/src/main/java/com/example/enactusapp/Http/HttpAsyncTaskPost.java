@@ -24,15 +24,16 @@ import java.net.URL;
 
 public class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
 
-    private final static String TAG = "HttpAsynTaskPost";
-    private final static String basicAuth = "key=AAAATXQDbI0:APA91bH_feXkLVx3JfZOdEJ2azTPegMuRcpd65NOV2MGRCBsixeREJ5beX5BZzueNxssd8839iEL71OR-oZiJVT_b-mYeymqBXdJfy85UicC9kE2nYqyD8Fbj2I6HmGGGls07r5UAo4q";
+    private final static String TAG = "HttpAsyncTaskPost";
     private OnTaskCompleted listener;
+    private int requestId;
 
-    public HttpAsyncTaskPost(OnTaskCompleted listener) {
-        this.listener=listener;
+    public HttpAsyncTaskPost(OnTaskCompleted listener, int requestId) {
+        this.listener = listener;
+        this.requestId = requestId;
     }
 
-    public static String POST(String urlString, String data) {
+    public static String POST(String urlString, String data, String authorization) {
         String result = "";
         try {
             Log.d(TAG, "Sending data["+data+"]");
@@ -46,7 +47,9 @@ public class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
                 urlConnection.setDoOutput(true);
                 urlConnection.setChunkedStreamingMode(0);
                 urlConnection.setRequestProperty("Content-Type", "application/json");
-                urlConnection.setRequestProperty("Authorization", basicAuth);
+                if (authorization != null) {
+                    urlConnection.setRequestProperty("Authorization", authorization);
+                }
                 DataOutputStream outputStream = new DataOutputStream(urlConnection.getOutputStream());
                 outputStream.write(data.getBytes("UTF-8"));
                 outputStream.flush();
@@ -83,13 +86,13 @@ public class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
 
     // doInBackground execute tasks when asynctask is run
     @Override
-    protected String doInBackground(String... urls) {
-        return POST(urls[0], urls[1]);
+    protected String doInBackground(String... parameters) {
+        return POST(parameters[0], parameters[1], parameters[2]);
     }
     // onPostExecute displays the results of the AsyncTask.
     @Override
     protected void onPostExecute(String response) {
         Log.d(TAG, response);
-        listener.onTaskCompleted(response);
+        listener.onTaskCompleted(response, requestId);
     }
 }

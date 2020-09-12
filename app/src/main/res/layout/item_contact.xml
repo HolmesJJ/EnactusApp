@@ -10,7 +10,7 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="30dp" />
+        android:layout_marginLeft="10dp" />
 
     <TextView
         android:id="@+id/name_tv"

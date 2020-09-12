@@ -6,8 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.enactusapp.Adapter.DialogPossibleAnswersAdapter;
-import com.example.enactusapp.Entity.MessageEvent;
-import com.example.enactusapp.Entity.SpeakPossibleAnswersEvent;
+import com.example.enactusapp.Event.MessageEvent;
+import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
 import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;

@@ -8,5 +8,5 @@ package com.example.enactusapp.Listener;
  * @updateDes ${TODO}
  */
 public interface OnTaskCompleted {
-    void onTaskCompleted(String response);
+    void onTaskCompleted(String response, int requestId);
 }

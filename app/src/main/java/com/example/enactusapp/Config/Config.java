@@ -7,7 +7,10 @@ public class Config {
 
     public static final String SETTING_CONFIG = "SettingConfig";
     public static boolean sIsLogin;
-    public static String sUserId;
+    public static int sUserId;
+    public static String sUsername;
+    public static String sName;
+    public static String sFirebaseToken;
     public static boolean sIsCalibrated;
     public static long sLastCalibratedTime;
 
@@ -21,9 +24,24 @@ public class Config {
         sIsLogin = isLogin;
     }
 
-    public static void setUserId(String userId) {
+    public static void setUserId(int userId) {
         sSp.put(SpUtilKeyConstants.USER_ID, userId);
         sUserId = userId;
+    }
+
+    public static void setUsername(String username) {
+        sSp.put(SpUtilKeyConstants.USERNAME, username);
+        sUsername = username;
+    }
+
+    public static void setName(String name) {
+        sSp.put(SpUtilKeyConstants.NAME, name);
+        sName = name;
+    }
+
+    public static void setFirebaseToken(String firebaseToken) {
+        sSp.put(SpUtilKeyConstants.FIREBASE_TOKEN, firebaseToken);
+        sFirebaseToken = firebaseToken;
     }
 
     public static void setIsCalibrated(boolean isCalibrated) {
@@ -43,7 +61,10 @@ public class Config {
 
     public static void loadConfig() {
         sIsLogin = sSp.getBoolean(SpUtilKeyConstants.IS_LOGIN, false);
-        sUserId = sSp.getString(SpUtilKeyConstants.USER_ID, "");
+        sUserId = sSp.getInt(SpUtilKeyConstants.USER_ID, -1);
+        sUsername = sSp.getString(SpUtilKeyConstants.USERNAME, "");
+        sName = sSp.getString(SpUtilKeyConstants.NAME, "");
+        sFirebaseToken = sSp.getString(SpUtilKeyConstants.FIREBASE_TOKEN, "");
         sIsCalibrated = sSp.getBoolean(SpUtilKeyConstants.IS_CALIBRATED, false);
         sLastCalibratedTime = sSp.getLong(SpUtilKeyConstants.LAST_CALIBRATED_TIME, 0);
     }

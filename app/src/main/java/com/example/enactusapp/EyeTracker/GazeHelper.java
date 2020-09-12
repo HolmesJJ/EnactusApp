@@ -37,7 +37,7 @@ public class GazeHelper implements InitializationCallback, GazeCallback, Calibra
 
         // 红米10X
         this.mGazeDevice.addDeviceInfo(Build.MODEL, -34f, -3.5f);
-        GazeTracker.initGazeTracker(context, this.mGazeDevice, Constants.GazeLicenseKey, this);
+        GazeTracker.initGazeTracker(context, this.mGazeDevice, Constants.GAZE_LICENSE_KEY, this);
     }
 
     public void releaseGaze() {

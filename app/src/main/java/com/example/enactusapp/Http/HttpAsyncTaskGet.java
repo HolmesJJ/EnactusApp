@@ -25,9 +25,11 @@ public class HttpAsyncTaskGet extends AsyncTask<String, Void, String> {
 
     private final static String TAG = "HttpAsyncTaskGet";
     private OnTaskCompleted listener;
+    private int requestId;
 
-    public HttpAsyncTaskGet(OnTaskCompleted listener) {
+    public HttpAsyncTaskGet(OnTaskCompleted listener, int requestId) {
         this.listener = listener;
+        this.requestId = requestId;
     }
 
     public static String GET(String urlString) {
@@ -79,6 +81,6 @@ public class HttpAsyncTaskGet extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String response) {
         Log.d(TAG, response);
-        listener.onTaskCompleted(response);
+        listener.onTaskCompleted(response, requestId);
     }
 }

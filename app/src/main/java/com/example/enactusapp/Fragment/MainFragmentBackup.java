@@ -18,10 +18,11 @@ import androidx.annotation.RawRes;
 import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.example.enactusapp.Entity.BlinkEvent;
-import com.example.enactusapp.Entity.BackCameraEvent;
-import com.example.enactusapp.Entity.MessageEvent;
-import com.example.enactusapp.Entity.StartChatEvent;
+import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Event.BlinkEvent;
+import com.example.enactusapp.Event.BackCameraEvent;
+import com.example.enactusapp.Event.MessageEvent;
+import com.example.enactusapp.Event.StartChatEvent;
 import com.example.enactusapp.Fragment.Contact.ContactFragment;
 import com.example.enactusapp.Fragment.Dialog.DialogFragment;
 import com.example.enactusapp.Fragment.Notification.NotificationFragment;
@@ -200,8 +201,8 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
 
         mJavaCameraView = (JavaCameraView) view.findViewById(R.id.eye_blinking_cv_camera);
 
-        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mMessageBroadcastReceiver, new IntentFilter("getMessageIntent"));
-        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mChatBroadcastReceiver, new IntentFilter("getChatIntent"));
+        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mGreetingBroadcastReceiver, new IntentFilter(MessageType.GREETING.getValue()));
+        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mNormalBroadcastReceiver, new IntentFilter(MessageType.NORMAL.getValue()));
 
         FirebaseInstanceId.getInstance().getInstanceId()
                 .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
@@ -272,7 +273,18 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
         }
     }
 
-    private BroadcastReceiver mMessageBroadcastReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mGreetingBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int id = intent.getIntExtra("id", -1);
+            String username = intent.getStringExtra("username");
+            String name = intent.getStringExtra("name");
+            String message = intent.getStringExtra("message");
+            startBrotherFragment(NotificationFragment.newInstance(id, username, name));
+        }
+    };
+
+    private BroadcastReceiver mNormalBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (GetSetSharedPreferences.getDefaults("ChatWithDisabled", _mActivity) != null) {
@@ -291,14 +303,6 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
                 showHideFragment(mFragments[1], mFragments[3]);
                 mBottomBar.setCurrentItem(1);
             }
-        }
-    };
-
-    private BroadcastReceiver mChatBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            GetSetSharedPreferences.setDefaults("ChatWithDisabled", "true", _mActivity);
-            startBrotherFragment(NotificationFragment.newInstance());
         }
     };
 
@@ -595,7 +599,7 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
 
     @Subscribe
     public void onStartChatEvent(StartChatEvent event) {
-        if (Config.sIsLogin && Config.sUserId.equals("A1234567B")) {
+        if (Config.sIsLogin && Config.sUsername.equals("A1234567B")) {
             EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent("Hi, Mr.Wong, How are you?"));
         } else {
             EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent("Hi, Mr.Chai, How are you?"));

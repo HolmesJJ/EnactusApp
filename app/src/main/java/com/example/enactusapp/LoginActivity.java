@@ -1,6 +1,5 @@
 package com.example.enactusapp;
 
-import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -8,7 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -16,15 +15,29 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
+import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Http.HttpAsyncTaskPost;
+import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.Utils.PermissionsUtils;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Utils.ToastUtils;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+
+import org.json.JSONObject;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 
-public class LoginActivity extends BaseActivity {
+public class LoginActivity extends BaseActivity implements OnTaskCompleted {
 
+    private static final String TAG = "LoginActivity";
+
+    private static final int LOGIN = 1;
     private static final int REC_PERMISSION = 100;
     String[] PERMISSIONS = {
             android.Manifest.permission.CAMERA,
@@ -36,10 +49,11 @@ public class LoginActivity extends BaseActivity {
     };
 
     private LinearLayout loginForm;
-    private ProgressBar loginProgress;
+    private ProgressBar mPbLoading;
     private Toolbar mToolbar;
-    private EditText mNRIC;
-    private Button email_sign_in_button;
+    private EditText mUsername;
+    private EditText mPassword;
+    private Button mBtnSignIn;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,46 +69,54 @@ public class LoginActivity extends BaseActivity {
 
         requestPermission();
 
-        email_sign_in_button.setOnClickListener(new View.OnClickListener() {
+        mBtnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 showProgress(true);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        showProgress(false);
-                        if (mNRIC.getText().toString().equals("A1234567B") || mNRIC.getText().toString().equals("C7654321D")) {
-                            Config.setIsLogin(true);
-                            Config.setUserId(mNRIC.getText().toString());
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            mNRIC.setError("Wrong NRIC!");
-                        }
-                    }
-                }, 1000);
-
+                HttpAsyncTaskPost task = new HttpAsyncTaskPost(LoginActivity.this, LOGIN);
+                String jsonData = convertToJSON(mUsername.getText().toString(), mPassword.getText().toString(), Config.sFirebaseToken);
+                task.execute(Constants.IP_ADDRESS + "login.php", jsonData, null);
             }
         });
     }
 
     private void initView() {
         loginForm = (LinearLayout) findViewById(R.id.loginForm);
-        loginProgress = (ProgressBar) findViewById(R.id.loginProgress);
+        mPbLoading = (ProgressBar) findViewById(R.id.pb_loading);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.login);
-        mNRIC = (EditText) findViewById(R.id.nric);
-        email_sign_in_button = (Button) findViewById(R.id.email_sign_in_button);
+        mUsername = (EditText) findViewById(R.id.username);
+        mPassword = (EditText) findViewById(R.id.password);
+        mBtnSignIn = (Button) findViewById(R.id.btn_sign_in);
     }
 
     @AfterPermissionGranted(REC_PERMISSION)
     private void requestPermission() {
-        email_sign_in_button.setEnabled(false);
+        mBtnSignIn.setEnabled(false);
         PermissionsUtils.doSomeThingWithPermission(this, () -> {
-            email_sign_in_button.setEnabled(true);
+            mBtnSignIn.setEnabled(true);
+            showProgress(true);
+            FirebaseInstanceId.getInstance().getInstanceId()
+                    .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                            if (!task.isSuccessful()) {
+                                ToastUtils.showShortSafe("FireBase Token Error!");
+                                return;
+                            }
+                            try {
+                                // Get new Instance ID token
+                                String fireBaseToken = task.getResult().getToken();
+                                Log.i(TAG, "fireBaseToken: " + fireBaseToken);
+                                Config.setFirebaseToken(fireBaseToken);
+                            } catch (Exception e) {
+                                ToastUtils.showShortSafe("FireBase Token Error!");
+                            }
+                            showProgress(false);
+                        }
+                    });
         }, PERMISSIONS, REC_PERMISSION, R.string.rationale_init);
     }
 
@@ -112,19 +134,64 @@ public class LoginActivity extends BaseActivity {
                 }
             });
 
-            loginProgress.setVisibility(show ? View.VISIBLE : View.GONE);
-            loginProgress.animate().setDuration(shortAnimTime).alpha(
+            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
+            mPbLoading.animate().setDuration(shortAnimTime).alpha(
                     show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    loginProgress.setVisibility(show ? View.VISIBLE : View.GONE);
+                    mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
                 }
             });
         } else {
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
-            loginProgress.setVisibility(show ? View.VISIBLE : View.GONE);
+            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
             loginForm.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private String convertToJSON(String username, String password, String firebaseToken) {
+        JSONObject jsonMsg = new JSONObject();
+        try {
+            jsonMsg.put("Username", username);
+            jsonMsg.put("Password", password);
+            jsonMsg.put("FirebaseToken", firebaseToken);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonMsg.toString();
+    }
+
+    private void retrieveFromJSON(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            int code = jsonObject.getInt("code");
+            int id = jsonObject.getInt("id");
+            String username = jsonObject.getString("username");
+            String name = jsonObject.getString("name");
+            String firebaseToken = jsonObject.getString("firebase_token");
+            String message = jsonObject.getString("message");
+            if (code == 1) {
+                Config.setIsLogin(true);
+                Config.setUserId(id);
+                Config.setUsername(username);
+                Config.setName(name);
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                ToastUtils.showShortSafe(message);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onTaskCompleted(String response, int requestId) {
+        showProgress(false);
+        if (requestId == LOGIN) {
+            retrieveFromJSON(response);
         }
     }
 }

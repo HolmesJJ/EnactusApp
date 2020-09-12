@@ -48,7 +48,7 @@ public class T26KeyboardFragment extends SupportFragment implements OnTaskComple
     }
 
     @Override
-    public void onTaskCompleted(String response) {
+    public void onTaskCompleted(String response, int requestId) {
 
     }
 }

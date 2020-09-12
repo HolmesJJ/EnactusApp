@@ -15,9 +15,9 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.CustomViewPager;
 import com.example.enactusapp.Adapter.DialogChildAdapter;
-import com.example.enactusapp.Entity.MessageEvent;
-import com.example.enactusapp.Entity.PossibleWordEvent;
-import com.example.enactusapp.Entity.SpeakPossibleAnswersEvent;
+import com.example.enactusapp.Event.MessageEvent;
+import com.example.enactusapp.Event.PossibleWordEvent;
+import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
@@ -214,7 +214,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     public void onSpeakPossibleAnswersEvent(SpeakPossibleAnswersEvent event) {
         if(GetSetSharedPreferences.getDefaults("ChatWithDisabled", _mActivity) != null) {
             GetSetSharedPreferences.removeDefaults("ChatWithDisabled", _mActivity);
-            HttpAsyncTaskPost task = new HttpAsyncTaskPost(DialogFragment.this);
+            HttpAsyncTaskPost task = new HttpAsyncTaskPost(DialogFragment.this, 1);
             if(event.getMessage() != null) {
                 task.execute("https://fcm.googleapis.com/fcm/send", convertToJSON(event.getMessage()));
             }
@@ -257,7 +257,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     }
 
     @Override
-    public void onTaskCompleted(String response) {
+    public void onTaskCompleted(String response, int requestId) {
         retrieveFromJSON(response);
 
         // if response is from upload request

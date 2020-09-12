@@ -1,4 +1,4 @@
-package com.example.enactusapp.Entity;
+package com.example.enactusapp.Event;
 
 /**
  * @author Administrator

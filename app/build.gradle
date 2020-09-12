@@ -65,6 +65,9 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     // FireBase
     implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    // Glide
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
     // TensorFlow
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
     testImplementation 'junit:junit:4.12'

@@ -1,12 +1,21 @@
 package com.example.enactusapp.Fragment.Contact;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.example.enactusapp.Adapter.ContactAdapter;
+import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
@@ -14,9 +23,10 @@ import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
-import org.opencv.core.Mat;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +35,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import me.yokeyword.fragmentation.SupportFragment;
 
 /**
@@ -36,21 +48,16 @@ import me.yokeyword.fragmentation.SupportFragment;
  */
 public class ContactFragment extends SupportFragment implements OnItemClickListener, OnTaskCompleted {
 
+    private static final int GET_USERS = 1;
+    private static final int SEND_MESSAGE = 2;
+
     private Toolbar mToolbar;
+    private ProgressBar mPbLoading;
+    private SwipeRefreshLayout mSrlRefresh;
     private RecyclerView mContactRecyclerView;
     private ContactAdapter mContactAdapter;
 
-    private List<String> contactNameList = new ArrayList<>();
-    private List<String> contactThumbnailList = new ArrayList<>();
-
-    private Handler handler = new Handler();
-
-    private Mat frame;
-    private Mat mGray;
-
-    private int isSucceeded = 0;
-    private static final String USER1_FIREBASE_TOKEN = "emq4XVdGkfs:APA91bF0xqRrdB0REku_hR_VsnuGnw_xufRMcGVSv3Lx_-kv7e0m41HsMPUrOkbbxj02gJwvvhuhI5VZec2A7ar6j1UwXRh6Wjt3buF48prghlT2iP2YMR5f3IQZ6qDwmGdOEJbYyVXA";
-    private static final String USER2_FIREBASE_TOKEN = "e1tXvYDdr9M:APA91bE8x-VWP0QzInyLJ92_pD4KO96csJbnh5QaiQ1pxe2uiOBwaj8NQgtRs9ogdqdhgZrT6_ydEWe-VTQKvhpZLOeiUB8BMfZpe9gD2SD90hBdzJ569NLF9ClhXvM2aYPkluYe8i9T";
+    private List<User> users = new ArrayList<>();
 
     public static ContactFragment newInstance(){
         ContactFragment fragment = new ContactFragment();
@@ -70,11 +77,16 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     private void initView(View view) {
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.contact);
+        mPbLoading = (ProgressBar) view.findViewById(R.id.pb_loading);
+        mSrlRefresh = (SwipeRefreshLayout) view.findViewById(R.id.srl_refresh);
         mContactRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler_view);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mContactRecyclerView.getContext(), linearLayoutManager.getOrientation());
         mContactRecyclerView.setLayoutManager(linearLayoutManager);
         mContactRecyclerView.addItemDecoration(dividerItemDecoration);
+        mContactAdapter = new ContactAdapter(_mActivity, users);
+        mContactRecyclerView.setAdapter(mContactAdapter);
+        mContactAdapter.setOnItemClickListener(this);
     }
 
     @Override
@@ -83,46 +95,88 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     }
 
     private void initDelayView() {
-
-        if (Config.sIsLogin && Config.sUserId.equals("A1234567B")) {
-            contactNameList.add("Mr.Chai");
-            contactNameList.add("Ms.Cheng");
-            contactNameList.add("Mr.Liaw");
-            contactNameList.add("Ms.Lim");
-            contactThumbnailList.add("user2");
-            contactThumbnailList.add("user3");
-            contactThumbnailList.add("user4");
-            contactThumbnailList.add("user5");
-        } else {
-            contactNameList.add("Mr.Wong");
-            contactNameList.add("Ms.Cheng");
-            contactNameList.add("Mr.Liaw");
-            contactNameList.add("Ms.Lim");
-            contactThumbnailList.add("user1");
-            contactThumbnailList.add("user3");
-            contactThumbnailList.add("user4");
-            contactThumbnailList.add("user5");
-        }
-
-        mContactAdapter = new ContactAdapter(_mActivity, contactNameList, contactThumbnailList);
-        mContactRecyclerView.setAdapter(mContactAdapter);
-
-        mContactAdapter.setOnItemClickListener(this);
+        mSrlRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
+                String jsonData = convertToJSONGetUsers(Config.sUserId);
+                task.execute(Constants.IP_ADDRESS + "get_users.php", jsonData, null);
+            }
+        });
+        showProgress(true);
+        HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
+        String jsonData = convertToJSONGetUsers(Config.sUserId);
+        task.execute(Constants.IP_ADDRESS + "get_users.php", jsonData, null);
     }
 
     @Override
     public void onDestroyView() {
-        handler.removeCallbacksAndMessages(null);
         super.onDestroyView();
     }
 
-    public String convertToJSON(String message, String user_firebase_token) {
+    private String convertToJSONGetUsers(int userId) {
+        JSONObject jsonMsg = new JSONObject();
+        try {
+            jsonMsg.put("Id", userId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonMsg.toString();
+    }
+
+    private void retrieveFromJSONGetUsers(String response) {
+        try {
+            users.clear();
+            JSONArray jsonArray = new JSONArray(response);
+            for(int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = new JSONObject(jsonArray.getString(i));
+                int id = -1;
+                String username = "";
+                String name = "";
+                String thumbnail = "";
+                String firebaseToken = "";
+                if (jsonObject.has("id")) {
+                    id = jsonObject.getInt("id");
+                    thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
+                }
+                if (jsonObject.has("username")) {
+                    username = jsonObject.getString("username");
+                }
+                if (jsonObject.has("name")) {
+                    name = jsonObject.getString("name");
+                }
+                if (jsonObject.has("firebase_token")) {
+                    firebaseToken = jsonObject.getString("firebase_token");
+                }
+                users.add(new User(id, username, name, thumbnail, firebaseToken));
+                mContactAdapter.notifyDataSetChanged();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                String message = jsonObject.getString("message");
+                ToastUtils.showShortSafe(message);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private String convertToJSONSendMessage(String message, String firebaseToken) {
         JSONObject jsonMsg = new JSONObject();
         JSONObject content = new JSONObject();
+        JSONObject body = new JSONObject();
+        JSONObject from = new JSONObject();
         try {
-            content.put("title", "message");
-            content.put("body", message);
-            jsonMsg.put("to", user_firebase_token);
+            from.put("id", Config.sUserId);
+            from.put("username", Config.sUsername);
+            from.put("name", Config.sName);
+            body.put("from", from);
+            body.put("message", message);
+            content.put("title", MessageType.GREETING.getValue());
+            content.put("body", body);
+            jsonMsg.put("to", firebaseToken);
             jsonMsg.put("notification", content);
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,36 +184,65 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
         return jsonMsg.toString();
     }
 
-    public void retrieveFromJSON(String message) {
+    private void retrieveFromJSONSendMessage(String response) {
         try {
-            JSONObject jsonObject = new JSONObject(message);
-            isSucceeded = jsonObject.getInt("success");
+            JSONObject jsonObject = new JSONObject(response);
+            int id = jsonObject.getInt("success");
+            if (id == 1) {
+                ToastUtils.showShortSafe("Sent");
+            } else {
+                String results = jsonObject.getString("results");
+                JSONArray jsonArray = new JSONArray(results);
+                JSONObject result = new JSONObject(jsonArray.getString(0));
+                ToastUtils.showShortSafe(result.getString("error"));
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            ToastUtils.showShortSafe("System error");
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
+            mPbLoading.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
         }
     }
 
     @Override
-    public void onTaskCompleted(String response) {
-        retrieveFromJSON(response);
-        // if response is from upload request
-        if (isSucceeded == 1){
-            ToastUtils.showShortSafe("Sent!");
-        } else {
-            ToastUtils.showShortSafe("Failed to send!");
+    public void onTaskCompleted(String response, int requestId) {
+        showProgress(false);
+        if (requestId == GET_USERS) {
+            mSrlRefresh.setRefreshing(false);
+            retrieveFromJSONGetUsers(response);
         }
-        isSucceeded = 0;
+        if (requestId == SEND_MESSAGE) {
+            retrieveFromJSONSendMessage(response);
+
+        }
     }
 
     @Override
     public void onItemClick(int position) {
-        if(contactThumbnailList.get(position).equals("user1")) {
-            HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this);
-            task.execute("https://fcm.googleapis.com/fcm/send", convertToJSON("user2ChatWithYou", USER1_FIREBASE_TOKEN));
-        }
-        else if(contactThumbnailList.get(position).equals("user2")) {
-            HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this);
-            task.execute("https://fcm.googleapis.com/fcm/send", convertToJSON("user1ChatWithYou", USER2_FIREBASE_TOKEN));
+        if(!TextUtils.isEmpty(users.get(position).getFirebaseToken())) {
+            String firebaseToken = users.get(position).getFirebaseToken();
+            HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, SEND_MESSAGE);
+            task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(Config.sName + " says hello to you", firebaseToken), Constants.SERVER_KEY);
+        } else {
+            ToastUtils.showShortSafe("Firebase Token Empty");
         }
     }
 }

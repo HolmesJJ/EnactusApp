@@ -9,7 +9,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.example.enactusapp.Entity.CalibrationEvent;
+import com.example.enactusapp.Event.CalibrationEvent;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
@@ -75,10 +75,10 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     }
 
     private void initDelayView() {
-        if (Config.sIsLogin && Config.sUserId.equals("A1234567B")) {
+        if (Config.sIsLogin && Config.sUsername.equals("A1234567B")) {
             profileImageBtn.setImageResource(_mActivity.getResources().getIdentifier("user1", "drawable", _mActivity.getPackageName()));
             profileNameTv.setText("Mr.Wong");
-        } else if (Config.sIsLogin && Config.sUserId.equals("C7654321D")) {
+        } else if (Config.sIsLogin && Config.sUsername.equals("C7654321D")) {
             profileImageBtn.setImageResource(_mActivity.getResources().getIdentifier("user2", "drawable", _mActivity.getPackageName()));
             profileNameTv.setText("Mr.Chai");
         }
@@ -124,7 +124,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     }
 
     @Override
-    public void onTaskCompleted(String response) {
+    public void onTaskCompleted(String response, int requestId) {
         try {
 
         } catch (Exception e) {

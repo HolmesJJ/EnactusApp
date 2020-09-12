@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
 
@@ -25,8 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
 
     private Context context;
-    private List<String> nameList;
-    private List<String> thumbnailList;
+    private List<User> users;
 
     private LayoutInflater mInflater = null;
     private OnItemClickListener mOnItemClickListener;
@@ -35,11 +36,10 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         this.mOnItemClickListener = mOnItemClickListener;
     }
 
-    public ContactAdapter(Context context, List<String> nameList, List<String> thumbnailList) {
+    public ContactAdapter(Context context, List<User> users) {
         this.mInflater = LayoutInflater.from(context);
         this.context = context;
-        this.nameList = nameList;
-        this.thumbnailList = thumbnailList;
+        this.users = users;
     }
 
 
@@ -60,15 +60,15 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
 
     @Override
     public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
-        String name = nameList.get(position);
-        String thumbnail = thumbnailList.get(position);
+        String name = users.get(position).getName();
+        String thumbnail = users.get(position).getThumbnail();
         holder.mNameTextView.setText(name);
-        holder.mThumbnailImageView.setImageResource(context.getResources().getIdentifier(thumbnail, "drawable", context.getPackageName()));
+        Glide.with(context).load(thumbnail).into(holder.mThumbnailImageView);
     }
 
     @Override
     public int getItemCount() {
-        return nameList.size();
+        return users.size();
     }
 
     public class ContactViewHolder extends RecyclerView.ViewHolder {

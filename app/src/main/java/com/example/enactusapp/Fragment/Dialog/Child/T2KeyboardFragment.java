@@ -10,9 +10,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.DialogPossibleWordsAdapter;
-import com.example.enactusapp.Entity.BlinkEvent;
-import com.example.enactusapp.Entity.PossibleWordEvent;
-import com.example.enactusapp.Entity.SpeakPossibleAnswersEvent;
+import com.example.enactusapp.Event.BlinkEvent;
+import com.example.enactusapp.Event.PossibleWordEvent;
+import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
 

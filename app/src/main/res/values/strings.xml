@@ -16,7 +16,7 @@
     <string name="t2keyboard">T2 Keyboard</string>
     <string name="t26keyboard">T26 Keyboard</string>
 
-    <string name="prompt_nric">NRIC</string>
+    <string name="prompt_username">Username</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in</string>
 </resources>

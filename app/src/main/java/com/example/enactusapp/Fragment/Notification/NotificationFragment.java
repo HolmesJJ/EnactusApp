@@ -8,12 +8,15 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.enactusapp.Entity.StartChatEvent;
+import com.bumptech.glide.Glide;
+import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Event.StartChatEvent;
 import com.example.enactusapp.R;
-import com.example.enactusapp.Config.Config;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+
+import java.io.File;
 
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
@@ -27,15 +30,26 @@ import me.yokeyword.fragmentation.SupportFragment;
  */
 public class NotificationFragment extends SupportFragment {
 
+    public static final String ID = "id";
+    public static final String USERNAME = "username";
+    public static final String NAME = "name";
+
     private Toolbar mToolbar;
     private ImageView notificationIv;
     private TextView notificationTv;
     private Button cancelBtn;
     private Button startChattingBtn;
 
-    public static NotificationFragment newInstance() {
+    private int id;
+    private String username;
+    private String name;
+
+    public static NotificationFragment newInstance(int id, String username, String name) {
         NotificationFragment fragment = new NotificationFragment();
         Bundle bundle = new Bundle();
+        bundle.putInt(ID, id);
+        bundle.putString(USERNAME, username);
+        bundle.putString(NAME, name);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -45,6 +59,7 @@ public class NotificationFragment extends SupportFragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notification, container, false);
         initView(view);
+        initData();
         return view;
     }
 
@@ -55,6 +70,15 @@ public class NotificationFragment extends SupportFragment {
         notificationTv = (TextView) view.findViewById(R.id.notification_tv);
         cancelBtn = (Button) view.findViewById(R.id.cancel_btn);
         startChattingBtn = (Button) view.findViewById(R.id.start_chatting_btn);
+    }
+
+    private void initData() {
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+            id = bundle.getInt(ID, -1);
+            username = bundle.getString(USERNAME);
+            name = bundle.getString(NAME);
+        }
     }
 
     @Override
@@ -76,13 +100,10 @@ public class NotificationFragment extends SupportFragment {
                 _mActivity.pop();
             }
         });
-
-        if (Config.sIsLogin && Config.sUserId.equals("A1234567B")) {
-            notificationIv.setImageResource(_mActivity.getResources().getIdentifier("user2", "drawable", _mActivity.getPackageName()));
-            notificationTv.setText("Mr.Chai");
-        } else {
-            notificationIv.setImageResource(_mActivity.getResources().getIdentifier("user1", "drawable", _mActivity.getPackageName()));
-            notificationTv.setText("Mr.Wong");
+        if (id > 0) {
+            String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
+            Glide.with(this).load(thumbnail).into(notificationIv);
+            notificationTv.setText(name);
         }
     }
 }

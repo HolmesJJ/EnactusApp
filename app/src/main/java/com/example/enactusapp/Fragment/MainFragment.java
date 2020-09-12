@@ -19,10 +19,11 @@ import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
-import com.example.enactusapp.Entity.BackCameraEvent;
-import com.example.enactusapp.Entity.CalibrationEvent;
-import com.example.enactusapp.Entity.MessageEvent;
-import com.example.enactusapp.Entity.StartChatEvent;
+import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Event.BackCameraEvent;
+import com.example.enactusapp.Event.CalibrationEvent;
+import com.example.enactusapp.Event.MessageEvent;
+import com.example.enactusapp.Event.StartChatEvent;
 import com.example.enactusapp.EyeTracker.CalibrationViewer;
 import com.example.enactusapp.EyeTracker.GazeDevice;
 import com.example.enactusapp.EyeTracker.GazeHelper;
@@ -40,14 +41,9 @@ import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.SimulateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 
 import org.greenrobot.eventbus.Subscribe;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -89,8 +85,6 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private PointView mPvPoint;
     private CalibrationViewer mVcCalibration;
     private Button btnStopCalibration;
-
-    private String fireBaseToken;
 
     // 眼睛是在凝视或在移动
     private int fixationCounter = 0;
@@ -209,26 +203,8 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             }
         });
 
-        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mMessageBroadcastReceiver, new IntentFilter("getMessageIntent"));
-        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mChatBroadcastReceiver, new IntentFilter("getChatIntent"));
-
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        if (!task.isSuccessful()) {
-                            ToastUtils.showShortSafe("FireBase Token Error!");
-                            return;
-                        }
-                        try {
-                            // Get new Instance ID token
-                            fireBaseToken = task.getResult().getToken();
-                            System.out.println("fireBaseToken: " + fireBaseToken);
-                        } catch (Exception e) {
-                            ToastUtils.showShortSafe("FireBase Token Error!");
-                        }
-                    }
-                });
+        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mGreetingBroadcastReceiver, new IntentFilter(MessageType.GREETING.getValue()));
+        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mNormalBroadcastReceiver, new IntentFilter(MessageType.NORMAL.getValue()));
 
         setOffsetOfView();
     }
@@ -458,7 +434,18 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         start(targetFragment);
     }
 
-    private BroadcastReceiver mMessageBroadcastReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mGreetingBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int id = intent.getIntExtra("id", -1);
+            String username = intent.getStringExtra("username");
+            String name = intent.getStringExtra("name");
+            String message = intent.getStringExtra("message");
+            startBrotherFragment(NotificationFragment.newInstance(id, username, name));
+        }
+    };
+
+    private BroadcastReceiver mNormalBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (GetSetSharedPreferences.getDefaults("ChatWithDisabled", _mActivity) != null) {
@@ -480,17 +467,9 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         }
     };
 
-    private BroadcastReceiver mChatBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            GetSetSharedPreferences.setDefaults("ChatWithDisabled", "true", _mActivity);
-            startBrotherFragment(NotificationFragment.newInstance());
-        }
-    };
-
     @Subscribe
     public void onStartChatEvent(StartChatEvent event) {
-        if (Config.sIsLogin && Config.sUserId.equals("A1234567B")) {
+        if (Config.sIsLogin && Config.sUsername.equals("A1234567B")) {
             EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent("Hi, Mr.Wong, How are you?"));
         } else {
             EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent("Hi, Mr.Chai, How are you?"));
