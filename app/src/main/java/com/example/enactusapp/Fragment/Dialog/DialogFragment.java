@@ -1,9 +1,14 @@
 package com.example.enactusapp.Fragment.Dialog;
 
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,20 +16,27 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.CustomViewPager;
 import com.example.enactusapp.Adapter.DialogChildAdapter;
+import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Entity.User;
+import com.example.enactusapp.Event.MessageToPossibleAnswersEvent;
 import com.example.enactusapp.Event.MessageEvent;
 import com.example.enactusapp.Event.PossibleWordEvent;
+import com.example.enactusapp.Event.RequireMessageEvent;
 import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
-import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
 import com.example.enactusapp.Utils.ToastUtils;
 
 import org.greenrobot.eventbus.Subscribe;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Locale;
@@ -43,7 +55,10 @@ import me.yokeyword.fragmentation.SupportFragment;
  */
 public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
+    private static final int SEND_MESSAGE = 1;
+
     private Toolbar mToolbar;
+    private ProgressBar mPbLoading;
     private TextView mMessageTextView;
     private TextView mPossibleAnswers;
     private EditText mInputEditText;
@@ -55,10 +70,10 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     private TextToSpeech mTextToSpeech;
 
-    private int isSucceeded = 0;
-    private static final String FIREBASE_TOKEN = "e1tXvYDdr9M:APA91bE8x-VWP0QzInyLJ92_pD4KO96csJbnh5QaiQ1pxe2uiOBwaj8NQgtRs9ogdqdhgZrT6_ydEWe-VTQKvhpZLOeiUB8BMfZpe9gD2SD90hBdzJ569NLF9ClhXvM2aYPkluYe8i9T";
+    private User user;
+    private String message;
 
-    public static DialogFragment newInstance(){
+    public static DialogFragment newInstance() {
         DialogFragment fragment = new DialogFragment();
         Bundle bundle = new Bundle();
         fragment.setArguments(bundle);
@@ -77,6 +92,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     private void initView(View view) {
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.dialog);
+        mPbLoading = (ProgressBar) view.findViewById(R.id.pb_loading);
         mMessageTextView = (TextView) view.findViewById(R.id.message_tv);
         mPossibleAnswers = (TextView) view.findViewById(R.id.possible_answers);
         mInputEditText = (EditText) view.findViewById(R.id.input_et);
@@ -189,6 +205,10 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
                 }
             }
         });
+
+        if (user != null && !TextUtils.isEmpty(message)) {
+            mMessageTextView.setText(message);
+        }
     }
 
     private void speak(String speakText) {
@@ -199,8 +219,15 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Subscribe
     public void onMessageEvent(MessageEvent event) {
-        mMessageTextView.setText(event.getMessage());
-        GetSetSharedPreferences.setDefaults("message", event.getMessage(), _mActivity);
+        user = event.getUser();
+        message = event.getMessage();
+        mMessageTextView.setText(message);
+        EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message));
+    }
+
+    @Subscribe
+    public void onRequireMessageEvent(RequireMessageEvent event) {
+        EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message));
     }
 
     @Subscribe
@@ -212,34 +239,40 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Subscribe
     public void onSpeakPossibleAnswersEvent(SpeakPossibleAnswersEvent event) {
-        if(GetSetSharedPreferences.getDefaults("ChatWithDisabled", _mActivity) != null) {
-            GetSetSharedPreferences.removeDefaults("ChatWithDisabled", _mActivity);
-            HttpAsyncTaskPost task = new HttpAsyncTaskPost(DialogFragment.this, 1);
-            if(event.getMessage() != null) {
-                task.execute("https://fcm.googleapis.com/fcm/send", convertToJSON(event.getMessage()));
-            }
-            else {
-                task.execute("https://fcm.googleapis.com/fcm/send", convertToJSON(mInputEditText.getText().toString()));
-            }
+        if (!TextUtils.isEmpty(event.getAnswer())) {
+            speak(event.getAnswer());
+        } else {
+            speak(mInputEditText.getText().toString());
         }
-        else {
-            if(event.getMessage() != null) {
-                speak(event.getMessage());
+        if (user == null) {
+            mInputEditText.setText("");
+        } else {
+            showProgress(true);
+            HttpAsyncTaskPost task = new HttpAsyncTaskPost(DialogFragment.this, SEND_MESSAGE);
+            if(!TextUtils.isEmpty(event.getAnswer())) {
+                task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(event.getAnswer(), user.getFirebaseToken()), Constants.SERVER_KEY);
             }
             else {
-                speak(mInputEditText.getText().toString());
+                task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(mInputEditText.getText().toString(), user.getFirebaseToken()), Constants.SERVER_KEY);
             }
-            mInputEditText.setText("");
         }
     }
 
-    public String convertToJSON(String message) {
+    private String convertToJSONSendMessage(String message, String firebaseToken) {
         JSONObject jsonMsg = new JSONObject();
         JSONObject content = new JSONObject();
+        JSONObject body = new JSONObject();
+        JSONObject from = new JSONObject();
         try {
-            content.put("title", "message");
-            content.put("body", message);
-            jsonMsg.put("to", FIREBASE_TOKEN);
+            from.put("id", Config.sUserId);
+            from.put("username", Config.sUsername);
+            from.put("name", Config.sName);
+            from.put("firebaseToken", Config.sFirebaseToken);
+            body.put("from", from);
+            body.put("message", message);
+            content.put("title", MessageType.NORMAL.getValue());
+            content.put("body", body);
+            jsonMsg.put("to", firebaseToken);
             jsonMsg.put("notification", content);
         } catch (Exception e) {
             e.printStackTrace();
@@ -247,28 +280,36 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         return jsonMsg.toString();
     }
 
-    public void retrieveFromJSON(String message) {
+    private void retrieveFromJSONSendMessage(String response) {
         try {
-            JSONObject jsonObject = new JSONObject(message);
-            isSucceeded = jsonObject.getInt("success");
+            JSONObject jsonObject = new JSONObject(response);
+            int id = jsonObject.getInt("success");
+            if (id == 1) {
+                ToastUtils.showShortSafe("Sent");
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mInputEditText.setText("");
+                    }
+                });
+            } else {
+                String results = jsonObject.getString("results");
+                JSONArray jsonArray = new JSONArray(results);
+                JSONObject result = new JSONObject(jsonArray.getString(0));
+                ToastUtils.showShortSafe(result.getString("error"));
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            ToastUtils.showShortSafe("System error");
         }
     }
 
     @Override
     public void onTaskCompleted(String response, int requestId) {
-        retrieveFromJSON(response);
-
-        // if response is from upload request
-        if (isSucceeded == 1){
-            ToastUtils.showShortSafe("Sent!");
+        showProgress(false);
+        if (requestId == SEND_MESSAGE) {
+            retrieveFromJSONSendMessage(response);
         }
-        else {
-            ToastUtils.showShortSafe("Failed to send!");
-        }
-
-        isSucceeded = 0;
     }
 
     @Override
@@ -279,5 +320,25 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         }
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
         super.onDestroyView();
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
+            mPbLoading.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
     }
 }

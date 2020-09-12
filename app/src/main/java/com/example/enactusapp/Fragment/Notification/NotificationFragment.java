@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.StartChatEvent;
 import com.example.enactusapp.R;
 
@@ -33,23 +34,30 @@ public class NotificationFragment extends SupportFragment {
     public static final String ID = "id";
     public static final String USERNAME = "username";
     public static final String NAME = "name";
+    public static final String FIREBASE_TOKEN = "firebaseToken";
+    public static final String MESSAGE = "message";
 
     private Toolbar mToolbar;
-    private ImageView notificationIv;
-    private TextView notificationTv;
+    private ImageView mIvThumbnail;
+    private TextView mTvName;
+    private TextView mTvMessage;
     private Button cancelBtn;
     private Button startChattingBtn;
 
     private int id;
     private String username;
     private String name;
+    private String firebaseToken;
+    private String message;
 
-    public static NotificationFragment newInstance(int id, String username, String name) {
+    public static NotificationFragment newInstance(int id, String username, String name, String firebaseToken, String message) {
         NotificationFragment fragment = new NotificationFragment();
         Bundle bundle = new Bundle();
         bundle.putInt(ID, id);
         bundle.putString(USERNAME, username);
         bundle.putString(NAME, name);
+        bundle.putString(FIREBASE_TOKEN, firebaseToken);
+        bundle.putString(MESSAGE, message);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -66,8 +74,9 @@ public class NotificationFragment extends SupportFragment {
     private void initView(View view) {
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.notification);
-        notificationIv = (ImageView) view.findViewById(R.id.notification_iv);
-        notificationTv = (TextView) view.findViewById(R.id.notification_tv);
+        mIvThumbnail = (ImageView) view.findViewById(R.id.iv_thumbnail);
+        mTvName = (TextView) view.findViewById(R.id.tv_name);
+        mTvMessage = (TextView) view.findViewById(R.id.tv_message);
         cancelBtn = (Button) view.findViewById(R.id.cancel_btn);
         startChattingBtn = (Button) view.findViewById(R.id.start_chatting_btn);
     }
@@ -78,6 +87,7 @@ public class NotificationFragment extends SupportFragment {
             id = bundle.getInt(ID, -1);
             username = bundle.getString(USERNAME);
             name = bundle.getString(NAME);
+            firebaseToken = bundle.getString(FIREBASE_TOKEN);
         }
     }
 
@@ -96,14 +106,16 @@ public class NotificationFragment extends SupportFragment {
         startChattingBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EventBusActivityScope.getDefault(_mActivity).post(new StartChatEvent(true));
+                String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
+                EventBusActivityScope.getDefault(_mActivity).post(new StartChatEvent(new User(id, username, name, thumbnail, firebaseToken)));
                 _mActivity.pop();
             }
         });
         if (id > 0) {
             String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
-            Glide.with(this).load(thumbnail).into(notificationIv);
-            notificationTv.setText(name);
+            Glide.with(this).load(thumbnail).into(mIvThumbnail);
+            mTvName.setText(name);
+            mTvMessage.setText(message);
         }
     }
 }

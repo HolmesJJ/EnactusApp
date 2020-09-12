@@ -1,5 +1,7 @@
 package com.example.enactusapp.Event;
 
+import com.example.enactusapp.Entity.User;
+
 /**
  * @author Administrator
  * @des ${TODO}
@@ -9,17 +11,17 @@ package com.example.enactusapp.Event;
  */
 public class SpeakPossibleAnswersEvent {
 
-    private String message;
+    private String answer;
 
-    public SpeakPossibleAnswersEvent(String message) {
-        this.message = message;
+    public SpeakPossibleAnswersEvent(String answer) {
+        this.answer = answer;
     }
 
-    public String getMessage() {
-        return message;
+    public String getAnswer() {
+        return answer;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setAnswer(String answer) {
+        this.answer = answer;
     }
 }

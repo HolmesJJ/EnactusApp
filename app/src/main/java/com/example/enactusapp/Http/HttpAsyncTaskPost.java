@@ -1,6 +1,7 @@
 package com.example.enactusapp.Http;
 
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.enactusapp.Listener.OnTaskCompleted;
@@ -47,7 +48,7 @@ public class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
                 urlConnection.setDoOutput(true);
                 urlConnection.setChunkedStreamingMode(0);
                 urlConnection.setRequestProperty("Content-Type", "application/json");
-                if (authorization != null) {
+                if (!TextUtils.isEmpty(authorization)) {
                     urlConnection.setRequestProperty("Authorization", authorization);
                 }
                 DataOutputStream outputStream = new DataOutputStream(urlConnection.getOutputStream());

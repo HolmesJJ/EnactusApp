@@ -1,5 +1,7 @@
 package com.example.enactusapp.Event;
 
+import com.example.enactusapp.Entity.User;
+
 /**
  * @author Administrator
  * @des ${TODO}
@@ -9,17 +11,17 @@ package com.example.enactusapp.Event;
  */
 public class StartChatEvent {
 
-    private boolean isStartChat;
+    private User user;
 
-    public StartChatEvent(boolean isStartChat) {
-        this.isStartChat = isStartChat;
+    public StartChatEvent(User user) {
+        this.user = user;
     }
 
-    public boolean isStartChat() {
-        return isStartChat;
+    public User getUser() {
+        return user;
     }
 
-    public void setStartChat(boolean startChat) {
-        isStartChat = startChat;
+    public void setUser(User user) {
+        this.user = user;
     }
 }

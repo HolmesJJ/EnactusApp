@@ -1,18 +1,18 @@
 package com.example.enactusapp.Fragment.Dialog.Child;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.enactusapp.Adapter.DialogPossibleAnswersAdapter;
-import com.example.enactusapp.Event.MessageEvent;
+import com.example.enactusapp.Entity.User;
+import com.example.enactusapp.Event.MessageToPossibleAnswersEvent;
+import com.example.enactusapp.Event.RequireMessageEvent;
 import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
-import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
-
-import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +21,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import org.greenrobot.eventbus.Subscribe;
+
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
@@ -36,6 +39,8 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     private RecyclerView mDialogPossibleAnswersRecyclerView;
     private DialogPossibleAnswersAdapter mDialogPossibleAnswersAdapter;
 
+    private User user;
+    private String message;
     private List<String> possibleAnswersList = new ArrayList<>();
 
     public static PossibleAnswersFragment newInstance() {
@@ -67,14 +72,13 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     }
 
     private void initDelayView() {
-        if(GetSetSharedPreferences.getDefaults("message", _mActivity) != null) {
-            String message = GetSetSharedPreferences.getDefaults("message", _mActivity).toLowerCase();
-            GetSetSharedPreferences.removeDefaults("message", _mActivity);
+        if (user != null && !TextUtils.isEmpty(message)) {
             qnaAnswers(message);
         }
+        EventBusActivityScope.getDefault(_mActivity).post(new RequireMessageEvent());
     }
 
-    private void qnaAnswers (String message) {
+    private void qnaAnswers(String message) {
         possibleAnswersList.clear();
         if(message.contains("how are you")) {
             possibleAnswersList.add("I am fine! And you?");
@@ -104,8 +108,9 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     }
 
     @Subscribe
-    public void onMessageEvent(MessageEvent event) {
-        String message = event.getMessage().toLowerCase();
+    public void onMessage2Event(MessageToPossibleAnswersEvent event) {
+        user = event.getUser();
+        message = event.getMessage().toLowerCase();
         qnaAnswers(message);
     }
 

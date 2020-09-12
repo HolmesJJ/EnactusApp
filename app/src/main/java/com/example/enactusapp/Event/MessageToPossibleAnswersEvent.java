@@ -2,19 +2,12 @@ package com.example.enactusapp.Event;
 
 import com.example.enactusapp.Entity.User;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
-public class MessageEvent {
+public class MessageToPossibleAnswersEvent {
 
     private User user;
     private String message;
 
-    public MessageEvent(User user, String message) {
+    public MessageToPossibleAnswersEvent(User user, String message) {
         this.user = user;
         this.message = message;
     }

@@ -18,7 +18,7 @@
             android:layout_centerVertical="true" />
 
         <ImageView
-            android:id="@+id/notification_iv"
+            android:id="@+id/iv_thumbnail"
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_centerHorizontal="true"
@@ -27,7 +27,7 @@
             android:scaleType="fitCenter" />
 
         <TextView
-            android:id="@+id/notification_tv"
+            android:id="@+id/tv_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
@@ -36,6 +36,17 @@
             android:textSize="30dp"
             android:textColor="@color/Black"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_below="@+id/tv_name"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:textSize="20dp"
+            android:textColor="@color/Black" />
 
         <View
             android:id="@+id/split_line2"

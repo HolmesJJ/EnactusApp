@@ -19,7 +19,9 @@ import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
+import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.BackCameraEvent;
 import com.example.enactusapp.Event.CalibrationEvent;
 import com.example.enactusapp.Event.MessageEvent;
@@ -35,7 +37,6 @@ import com.example.enactusapp.Fragment.Notification.NotificationFragment;
 import com.example.enactusapp.Fragment.ObjectDetection.ObjectDetectionFragment;
 import com.example.enactusapp.Fragment.Profile.ProfileFragment;
 import com.example.enactusapp.R;
-import com.example.enactusapp.SharedPreferences.GetSetSharedPreferences;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
@@ -47,6 +48,7 @@ import org.greenrobot.eventbus.Subscribe;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.io.File;
 import java.util.Comparator;
 
 import camp.visual.gazetracker.GazeTracker;
@@ -77,7 +79,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     private static final boolean IS_USE_GAZE_FILER = true;
 
-    private SupportFragment[] mFragments = new SupportFragment[5];
+    private SupportFragment[] mFragments = new SupportFragment[4];
 
     private TextureView mTvFrontCamera;
     private ProgressBar mPbGaze;
@@ -440,20 +442,22 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             int id = intent.getIntExtra("id", -1);
             String username = intent.getStringExtra("username");
             String name = intent.getStringExtra("name");
+            String firebaseToken = intent.getStringExtra("firebaseToken");
             String message = intent.getStringExtra("message");
-            startBrotherFragment(NotificationFragment.newInstance(id, username, name));
+            startBrotherFragment(NotificationFragment.newInstance(id, username, name, firebaseToken, message));
         }
     };
 
     private BroadcastReceiver mNormalBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (GetSetSharedPreferences.getDefaults("ChatWithDisabled", _mActivity) != null) {
-                GetSetSharedPreferences.removeDefaults("ChatWithDisabled", _mActivity);
-            }
+            int id = intent.getIntExtra("id", -1);
+            String username = intent.getStringExtra("username");
+            String name = intent.getStringExtra("name");
+            String firebaseToken = intent.getStringExtra("firebaseToken");
             String message = intent.getStringExtra("message");
-            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(message));
-            intent.removeExtra("message");
+            String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
+            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(new User(id, username, name, thumbnail, firebaseToken), message));
             if (mBottomBar.getCurrentItemPosition() == 0) {
                 showHideFragment(mFragments[1], mFragments[0]);
                 mBottomBar.setCurrentItem(1);
@@ -469,11 +473,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Subscribe
     public void onStartChatEvent(StartChatEvent event) {
-        if (Config.sIsLogin && Config.sUsername.equals("A1234567B")) {
-            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent("Hi, Mr.Wong, How are you?"));
-        } else {
-            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent("Hi, Mr.Chai, How are you?"));
-        }
+        EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(event.getUser(), "Hi, " + Config.sName + ", How are you?"));
         if (mBottomBar.getCurrentItemPosition() == 0) {
             showHideFragment(mFragments[1], mFragments[0]);
             mBottomBar.setCurrentItem(1);

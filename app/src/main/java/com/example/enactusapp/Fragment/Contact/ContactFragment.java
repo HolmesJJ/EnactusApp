@@ -172,6 +172,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             from.put("id", Config.sUserId);
             from.put("username", Config.sUsername);
             from.put("name", Config.sName);
+            from.put("firebaseToken", Config.sFirebaseToken);
             body.put("from", from);
             body.put("message", message);
             content.put("title", MessageType.GREETING.getValue());
@@ -231,12 +232,12 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
         }
         if (requestId == SEND_MESSAGE) {
             retrieveFromJSONSendMessage(response);
-
         }
     }
 
     @Override
     public void onItemClick(int position) {
+        showProgress(true);
         if(!TextUtils.isEmpty(users.get(position).getFirebaseToken())) {
             String firebaseToken = users.get(position).getFirebaseToken();
             HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, SEND_MESSAGE);

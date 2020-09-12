@@ -24,6 +24,7 @@ public class FcmMessagingService extends FirebaseMessagingService {
     private int id;
     private String username;
     private String name;
+    private String firebaseToken;
     private String message;
     private String body;
     private String type;
@@ -45,6 +46,7 @@ public class FcmMessagingService extends FirebaseMessagingService {
                     notificationIntent.putExtra("id", id);
                     notificationIntent.putExtra("username", username);
                     notificationIntent.putExtra("name", name);
+                    notificationIntent.putExtra("firebaseToken", firebaseToken);
                     notificationIntent.putExtra("message", message);
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
                 } else {
@@ -52,6 +54,7 @@ public class FcmMessagingService extends FirebaseMessagingService {
                     notificationIntent.putExtra("id", id);
                     notificationIntent.putExtra("username", username);
                     notificationIntent.putExtra("name", name);
+                    notificationIntent.putExtra("firebaseToken", firebaseToken);
                     notificationIntent.putExtra("message", message);
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
                 }
@@ -68,6 +71,7 @@ public class FcmMessagingService extends FirebaseMessagingService {
             id = jsonFromObject.getInt("id");
             username = jsonFromObject.getString("username");
             name = jsonFromObject.getString("name");
+            firebaseToken = jsonFromObject.getString("firebaseToken");
             return true;
         } catch (Exception e) {
             e.printStackTrace();
