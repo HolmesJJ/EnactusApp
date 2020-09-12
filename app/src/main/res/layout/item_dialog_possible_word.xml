@@ -9,10 +9,12 @@
         android:id="@+id/possible_word_tv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:textSize="20dp"/>
+        android:textSize="25dp"/>
 
 </LinearLayout>

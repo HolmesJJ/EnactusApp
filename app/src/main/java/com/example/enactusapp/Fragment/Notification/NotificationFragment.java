@@ -88,6 +88,7 @@ public class NotificationFragment extends SupportFragment {
             username = bundle.getString(USERNAME);
             name = bundle.getString(NAME);
             firebaseToken = bundle.getString(FIREBASE_TOKEN);
+            message = bundle.getString(MESSAGE);
         }
     }
 
