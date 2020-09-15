@@ -9,13 +9,16 @@ import com.baidu.tts.client.SpeechError;
 import com.baidu.tts.client.SpeechSynthesizeBag;
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.SpeechSynthesizerListener;
+import com.baidu.tts.client.SynthesizerTool;
 import com.baidu.tts.client.TtsMode;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.TTS.Config.TTSConfig;
 import com.example.enactusapp.TTS.Utils.AutoCheck;
 import com.example.enactusapp.TTS.Utils.IOfflineResourceConst;
+import com.example.enactusapp.TTS.Utils.OfflineResource;
 import com.example.enactusapp.Utils.ContextUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +38,16 @@ public class TTSHelper implements SpeechSynthesizerListener {
     private SpeechSynthesizer mSpeechSynthesizer;
 
     private boolean isInitialized = false;
+
+    // 离线发音选择，VOICE_FEMALE即为离线女声发音。
+    // assets目录下bd_etts_common_speech_m15_mand_eng_high_am-mix_vXXXXXXX.dat为离线男声模型文件；
+    // assets目录下bd_etts_common_speech_f7_mand_eng_high_am-mix_vXXXXX.dat为离线女声模型文件;
+    // assets目录下bd_etts_common_speech_yyjw_mand_eng_high_am-mix_vXXXXX.dat 为度逍遥模型文件;
+    // assets目录下bd_etts_common_speech_as_mand_eng_high_am_vXXXX.dat 为度丫丫模型文件;
+    // 在线合成sdk下面的参数不生效
+    private String offlineVoice = OfflineResource.VOICE_DUXY;
+
+    // ===============初始化参数设置完毕，更多合成参数请至getParams()方法中设置 =================
 
     private TTSHelper() {
     }
@@ -76,12 +89,24 @@ public class TTSHelper implements SpeechSynthesizerListener {
             // 离在线模式，强制在线优先。在线请求后超时2秒后，转为离线合成。
             */
             // 离线资源文件， 从assets目录中复制到临时目录，需要在initTTs方法前完成
-            // OfflineResource offlineResource = createOfflineResource(offlineVoice);
+            OfflineResource offlineResource = createOfflineResource(offlineVoice);
             // 声学模型文件路径 (离线引擎使用), 请确认下面两个文件存在
-            // params.put(SpeechSynthesizer.PARAM_TTS_TEXT_MODEL_FILE, offlineResource.getTextFilename());
-            // params.put(SpeechSynthesizer.PARAM_TTS_SPEECH_MODEL_FILE, offlineResource.getModelFilename());
+            params.put(SpeechSynthesizer.PARAM_TTS_TEXT_MODEL_FILE, offlineResource.getTextFilename());
+            params.put(SpeechSynthesizer.PARAM_TTS_SPEECH_MODEL_FILE, offlineResource.getModelFilename());
         }
         return params;
+    }
+
+    private OfflineResource createOfflineResource(String voiceType) {
+        OfflineResource offlineResource = null;
+        try {
+            offlineResource = new OfflineResource(ContextUtils.getContext(), voiceType);
+        } catch (IOException e) {
+            // IO 错误自行处理
+            e.printStackTrace();
+            Log.e(TAG, "【error】: copy files from assets failed. " + e.getMessage());
+        }
+        return offlineResource;
     }
 
     public void autoCheck() {
@@ -100,6 +125,21 @@ public class TTSHelper implements SpeechSynthesizerListener {
         });
     }
 
+    /**
+     * 在线合成sdk，这个方法不会被调用。
+     *
+     * 切换离线发音。注意需要添加额外的判断：引擎在合成时该方法不能调用
+     */
+    private void loadModel(String mode) {
+        offlineVoice = mode;
+        OfflineResource offlineResource = createOfflineResource(offlineVoice);
+        Log.i(TAG, "切换离线语音：" + offlineResource.getModelFilename());
+        int result = mSpeechSynthesizer.loadModel(offlineResource.getModelFilename(), offlineResource.getTextFilename());
+        if (result != 0) {
+            Log.e(TAG, "loadModel error code :" + result);
+        }
+    }
+
     public void initTTS(TTSListener ttsListener) {
         this.mTTSListener = ttsListener;
         Map<String, String> params = getParams();
@@ -107,13 +147,16 @@ public class TTSHelper implements SpeechSynthesizerListener {
         if (isOnlineSDK) {
             mTTSConfig = new TTSConfig(Constants.TTS_APP_ID, Constants.TTS_API_KEY, Constants.TTS_SECRET_KEY, ttsMode, params, this);
         } else {
-            mTTSConfig = new TTSConfig(Constants.TTS_APP_ID, Constants.TTS_API_KEY, Constants.TTS_SECRET_KEY, Constants.TTS_SN, ttsMode, params, this);
+            mTTSConfig = new TTSConfig(Constants.TTS_APP_ID, Constants.TTS_API_KEY, Constants.TTS_SECRET_KEY, Constants.TTS_REDMI_10X_SN, ttsMode, params, this);
         }
         autoCheck();
         initEngine();
     }
 
     public void initEngine() {
+        if (!isOnlineSDK) {
+            Log.i(TAG, "so version:" + SynthesizerTool.getEngineInfo());
+        }
         releaseEngine();
         mSpeechSynthesizer = SpeechSynthesizer.getInstance();
         mSpeechSynthesizer.setContext(ContextUtils.getContext());
