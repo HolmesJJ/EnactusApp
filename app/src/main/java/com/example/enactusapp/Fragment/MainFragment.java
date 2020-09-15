@@ -19,6 +19,7 @@ import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
+import com.baidu.tts.client.SpeechError;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
 import com.example.enactusapp.Entity.User;
@@ -37,6 +38,8 @@ import com.example.enactusapp.Fragment.Notification.NotificationFragment;
 import com.example.enactusapp.Fragment.ObjectDetection.ObjectDetectionFragment;
 import com.example.enactusapp.Fragment.Profile.ProfileFragment;
 import com.example.enactusapp.R;
+import com.example.enactusapp.TTS.TTSHelper;
+import com.example.enactusapp.TTS.TTSListener;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
@@ -68,7 +71,7 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener {
+public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener {
 
     private static final String TAG = "MainFragment";
 
@@ -283,6 +286,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     public void onEnterAnimationEnd(Bundle savedInstanceState) {
         Log.i(TAG, "Gaze Version: " + GazeTracker.getVersionName());
         GazeHelper.getInstance().initGaze(_mActivity, this);
+        TTSHelper.getInstance().initTTS(this);
     }
 
     @Override
@@ -432,6 +436,55 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         }
     }
 
+    // TTS
+    @Override
+    public void onTTSInitSuccess() {
+        Log.i(TAG, "初始化成功");
+        ToastUtils.showShortSafe("onTTSInitSuccess");
+    }
+
+    @Override
+    public void onTTSInitFailed() {
+        Log.i(TAG, "初始化失败");
+        ToastUtils.showShortSafe("onTTSInitFailed");
+    }
+
+    @Override
+    public void onTTSSynthesizeStart(String utteranceId) {
+        Log.i(TAG, "准备开始合成, 序列号: " + utteranceId);
+    }
+
+    @Override
+    public void onTTSSynthesizeDataArrived(String utteranceId, byte[] bytes, int progress) {
+        Log.i(TAG, "合成进度回调, progress：" + progress + ";序列号:" + utteranceId);
+    }
+
+    @Override
+    public void onTTSSynthesizeFinish(String utteranceId) {
+        Log.i(TAG, "合成结束回调, 序列号:" + utteranceId);
+    }
+
+    @Override
+    public void onTTSSpeechStart(String utteranceId) {
+        Log.i(TAG, "播放开始回调, 序列号: " + utteranceId);
+    }
+
+    @Override
+    public void onTTSSpeechProgressChanged(String utteranceId, int progress) {
+        Log.i(TAG, "播放进度回调, progress: " + progress + "; 序列号: " + utteranceId);
+    }
+
+    @Override
+    public void onTTSSpeechFinish(String utteranceId) {
+        Log.i(TAG, "播放结束回调, 序列号: " + utteranceId);
+    }
+
+    @Override
+    public void onTTSError(String utteranceId, SpeechError speechError) {
+        Log.e(TAG, "检测到错误");
+        ToastUtils.showShortSafe("错误发生: " + speechError.description + ", 错误编码: " + speechError.code + ", 序列号: " + utteranceId);
+    }
+
     public void startBrotherFragment(SupportFragment targetFragment) {
         start(targetFragment);
     }
@@ -514,6 +567,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (viewLayoutChecker != null) {
             viewLayoutChecker.releaseChecker();
         }
+        TTSHelper.getInstance().releaseTTS();
         GazeHelper.getInstance().stopTracking();
         GazeHelper.getInstance().releaseGaze();
         EventBusActivityScope.getDefault(_mActivity).unregister(this);

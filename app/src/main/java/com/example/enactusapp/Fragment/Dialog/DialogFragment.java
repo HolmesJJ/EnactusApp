@@ -7,7 +7,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,13 +32,12 @@ import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
+import com.example.enactusapp.TTS.TTSHelper;
 import com.example.enactusapp.Utils.ToastUtils;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Locale;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -67,8 +65,6 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     private ImageButton inputBackspaceBtn;
 
     private CustomViewPager dialogAnswerContainerViewPager;
-
-    private TextToSpeech mTextToSpeech;
 
     private User user;
     private String message;
@@ -117,20 +113,6 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
                     String inputEditText = mInputEditText.getText().toString().substring(0, mInputEditText.getText().toString().length()-1);
                     mInputEditText.setText(inputEditText);
                     mInputEditText.setSelection(mInputEditText.length());
-                }
-            }
-        });
-
-        mTextToSpeech = new TextToSpeech(_mActivity, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int i) {
-                if (i == TextToSpeech.SUCCESS) {
-                    int result = mTextToSpeech.setLanguage(Locale.UK);
-                    if(result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        ToastUtils.showShortSafe("Text to Speech Error!");
-                    }
-                } else {
-                    ToastUtils.showShortSafe("Text to Speech Error!");
                 }
             }
         });
@@ -211,12 +193,6 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         }
     }
 
-    private void speak(String speakText) {
-        mTextToSpeech.setPitch(0.5f);
-        mTextToSpeech.setPitch(0.5f);
-        mTextToSpeech.speak(speakText, TextToSpeech.QUEUE_FLUSH, null);
-    }
-
     @Subscribe
     public void onMessageEvent(MessageEvent event) {
         user = event.getUser();
@@ -227,7 +203,9 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Subscribe
     public void onRequireMessageEvent(RequireMessageEvent event) {
-        EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message));
+        if (user != null && !TextUtils.isEmpty(message)) {
+            EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message));
+        }
     }
 
     @Subscribe
@@ -240,9 +218,9 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     @Subscribe
     public void onSpeakPossibleAnswersEvent(SpeakPossibleAnswersEvent event) {
         if (!TextUtils.isEmpty(event.getAnswer())) {
-            speak(event.getAnswer());
+            TTSHelper.getInstance().speak(event.getAnswer());
         } else {
-            speak(mInputEditText.getText().toString());
+            TTSHelper.getInstance().speak(mInputEditText.getText().toString());
         }
         if (user == null) {
             mInputEditText.setText("");
@@ -314,10 +292,6 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Override
     public void onDestroyView() {
-        if(mTextToSpeech != null) {
-            mTextToSpeech.stop();
-            mTextToSpeech.shutdown();
-        }
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
         super.onDestroyView();
     }

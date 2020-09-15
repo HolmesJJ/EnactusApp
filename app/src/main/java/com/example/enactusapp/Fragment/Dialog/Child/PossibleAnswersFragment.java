@@ -108,7 +108,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     }
 
     @Subscribe
-    public void onMessage2Event(MessageToPossibleAnswersEvent event) {
+    public void onMessageToPossibleAnswersEvent(MessageToPossibleAnswersEvent event) {
         user = event.getUser();
         message = event.getMessage().toLowerCase();
         qnaAnswers(message);

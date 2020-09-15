@@ -1,7 +1,6 @@
 package com.example.enactusapp.EyeTracker;
 
 import android.content.Context;
-import android.os.Build;
 import android.view.TextureView;
 
 import com.example.enactusapp.Constants.Constants;
@@ -36,7 +35,9 @@ public class GazeHelper implements InitializationCallback, GazeCallback, Calibra
         this.mGazeListener = gazeListener;
 
         // 红米10X
-        this.mGazeDevice.addDeviceInfo(Build.MODEL, -34f, -3.5f);
+        this.mGazeDevice.addDeviceInfo("M2004J7BC", -34f, -3.5f);
+        // 华为Mate30Pro
+        this.mGazeDevice.addDeviceInfo("LIO-AN00", -46f, -3.5f);
         GazeTracker.initGazeTracker(context, this.mGazeDevice, Constants.GAZE_LICENSE_KEY, this);
     }
 
