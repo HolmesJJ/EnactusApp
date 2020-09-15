@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.os.Environment;
 
 import java.io.File;
@@ -87,8 +90,8 @@ public class FileUtils {
             }
             fops = new FileOutputStream(file);
             fops.write(img);
-            fops.flush();
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fops);
+            fops.flush();
             fops.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -111,8 +114,8 @@ public class FileUtils {
                 file.getParentFile().mkdirs();
             }
             fops = new FileOutputStream(file);
-            fops.flush();
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fops);
+            fops.flush();
             fops.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,6 +127,24 @@ public class FileUtils {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    public static void writeYuvToDisk(int width, int height, int quality, byte[] image, String fileName) {
+        FileOutputStream fops = null;
+        try {
+            File file = new File(fileName);
+            if(!file.getParentFile().exists()){
+                file.getParentFile().mkdirs();
+            }
+            fops = new FileOutputStream(file);
+            fops.flush();
+            YuvImage yuvImage = new YuvImage(image, ImageFormat.NV21, width, height, null);
+            yuvImage.compressToJpeg(new Rect(0, 0, width, height), quality, fops);
+            fops.flush();
+            fops.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

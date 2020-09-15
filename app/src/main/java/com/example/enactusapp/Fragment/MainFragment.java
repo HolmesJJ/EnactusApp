@@ -412,7 +412,8 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onGazeImage(long timestamp, byte[] image) {
-        // Log.i(TAG, "onGazeImage");
+        Log.i(TAG, "onGazeImage");
+        // FileUtils.writeYuvToDisk(640, 480, 100, image, Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tensorflow" + File.separator + "GAZE.jpg");
     }
 
     @Override
