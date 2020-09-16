@@ -9,6 +9,8 @@ public class SpUtilKeyConstants {
     public static final String FIREBASE_TOKEN = "firebase_token";
     public static final String IS_CALIBRATED = "is_calibrated";
     public static final String LAST_CALIBRATED_TIME = "last_calibrated_time";
+    public static final String LONGITUDE = "longitude";
+    public static final String LATITUDE = "latitude";
 
     public SpUtilKeyConstants() {
     }

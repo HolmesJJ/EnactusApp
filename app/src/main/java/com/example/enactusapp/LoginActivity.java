@@ -177,6 +177,8 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
             String username = jsonObject.getString("username");
             String name = jsonObject.getString("name");
             String firebaseToken = jsonObject.getString("firebase_token");
+            double longitude = jsonObject.getDouble("longitude");
+            double latitude = jsonObject.getDouble("latitude");
             String message = jsonObject.getString("message");
             if (code == 1) {
                 Config.setIsLogin(true);
@@ -184,6 +186,8 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
                 Config.setUsername(username);
                 Config.setName(name);
                 Config.setFirebaseToken(firebaseToken);
+                Config.setLongitude(longitude);
+                Config.setLatitude(latitude);
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();

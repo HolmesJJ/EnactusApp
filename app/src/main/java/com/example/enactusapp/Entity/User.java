@@ -7,13 +7,17 @@ public class User {
     private String name;
     private String thumbnail;
     private String firebaseToken;
+    private double longitude;
+    private double latitude;
 
-    public User(int id, String username, String name, String thumbnail, String firebaseToken) {
+    public User(int id, String username, String name, String thumbnail, String firebaseToken, double longitude, double latitude) {
         this.id = id;
         this.username = username;
         this.name = name;
         this.thumbnail = thumbnail;
         this.firebaseToken = firebaseToken;
+        this.longitude = longitude;
+        this.latitude = latitude;
     }
 
     public int getId() {
@@ -34,5 +38,21 @@ public class User {
 
     public String getFirebaseToken() {
         return firebaseToken;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
     }
 }

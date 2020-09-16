@@ -1,6 +1,7 @@
 package com.example.enactusapp.Adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,9 +9,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
+import com.example.enactusapp.Utils.CalculateUtils;
 
 import java.util.List;
 
@@ -26,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
  */
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
 
+    private static final String TAG = "ContactAdapter";
     private Context context;
     private List<User> users;
 
@@ -63,6 +67,9 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         String name = users.get(position).getName();
         String thumbnail = users.get(position).getThumbnail();
         holder.mNameTextView.setText(name);
+        double distance = CalculateUtils.getDistance(Config.sLatitude, Config.sLongitude, users.get(position).getLatitude(), users.get(position).getLongitude());
+        Log.i(TAG, "user distance lat1: " + Config.sLatitude + ", lng1: " + Config.sLongitude + ", lat2: " + users.get(position).getLatitude() + ", lng2: " + users.get(position).getLongitude() + ", distance: " + distance);
+        holder.mDistanceTextView.setText(String.format("%.2f", distance) + "km");
         Glide.with(context).load(thumbnail).into(holder.mThumbnailImageView);
     }
 
@@ -74,11 +81,13 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
     public class ContactViewHolder extends RecyclerView.ViewHolder {
 
         private TextView mNameTextView;
+        private TextView mDistanceTextView;
         private ImageView mThumbnailImageView;
 
         public ContactViewHolder(View itemView) {
             super(itemView);
             mNameTextView = itemView.findViewById(R.id.name_tv);
+            mDistanceTextView = itemView.findViewById(R.id.distance_tv);
             mThumbnailImageView = itemView.findViewById(R.id.thumbnail_iv);
         }
     }

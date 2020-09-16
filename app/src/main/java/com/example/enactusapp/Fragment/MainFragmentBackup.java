@@ -281,8 +281,10 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
             String username = intent.getStringExtra("username");
             String name = intent.getStringExtra("name");
             String firebaseToken = intent.getStringExtra("firebaseToken");
+            double longitude = intent.getDoubleExtra("longitude", 9999);
+            double latitude = intent.getDoubleExtra("latitude", 9999);
             String message = intent.getStringExtra("message");
-            startBrotherFragment(NotificationFragment.newInstance(id, username, name, firebaseToken, message));
+            startBrotherFragment(NotificationFragment.newInstance(id, username, name, firebaseToken, message, longitude, latitude));
         }
     };
 
@@ -293,9 +295,11 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
             String username = intent.getStringExtra("username");
             String name = intent.getStringExtra("name");
             String firebaseToken = intent.getStringExtra("firebaseToken");
+            double longitude = intent.getDoubleExtra("longitude", 9999);
+            double latitude = intent.getDoubleExtra("latitude", 9999);
             String message = intent.getStringExtra("message");
             String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
-            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(new User(id, username, name, thumbnail, firebaseToken), message));
+            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
             if (mBottomBar.getCurrentItemPosition() == 0) {
                 showHideFragment(mFragments[1], mFragments[0]);
                 mBottomBar.setCurrentItem(1);

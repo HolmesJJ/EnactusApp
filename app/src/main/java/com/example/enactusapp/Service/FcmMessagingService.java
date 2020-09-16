@@ -25,6 +25,8 @@ public class FcmMessagingService extends FirebaseMessagingService {
     private String username;
     private String name;
     private String firebaseToken;
+    private double longitude;
+    private double latitude;
     private String message;
     private String body;
     private String type;
@@ -47,6 +49,8 @@ public class FcmMessagingService extends FirebaseMessagingService {
                     notificationIntent.putExtra("username", username);
                     notificationIntent.putExtra("name", name);
                     notificationIntent.putExtra("firebaseToken", firebaseToken);
+                    notificationIntent.putExtra("longitude", longitude);
+                    notificationIntent.putExtra("latitude", latitude);
                     notificationIntent.putExtra("message", message);
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
                 } else {
@@ -55,6 +59,8 @@ public class FcmMessagingService extends FirebaseMessagingService {
                     notificationIntent.putExtra("username", username);
                     notificationIntent.putExtra("name", name);
                     notificationIntent.putExtra("firebaseToken", firebaseToken);
+                    notificationIntent.putExtra("longitude", longitude);
+                    notificationIntent.putExtra("latitude", latitude);
                     notificationIntent.putExtra("message", message);
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
                 }
@@ -72,6 +78,8 @@ public class FcmMessagingService extends FirebaseMessagingService {
             username = jsonFromObject.getString("username");
             name = jsonFromObject.getString("name");
             firebaseToken = jsonFromObject.getString("firebaseToken");
+            longitude = jsonFromObject.getDouble("longitude");
+            latitude = jsonFromObject.getDouble("latitude");
             return true;
         } catch (Exception e) {
             e.printStackTrace();

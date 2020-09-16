@@ -36,6 +36,8 @@ public class NotificationFragment extends SupportFragment {
     public static final String NAME = "name";
     public static final String FIREBASE_TOKEN = "firebaseToken";
     public static final String MESSAGE = "message";
+    public static final String LONGITUDE = "longitude";
+    public static final String LATITUDE = "latitude";
 
     private Toolbar mToolbar;
     private ImageView mIvThumbnail;
@@ -49,8 +51,10 @@ public class NotificationFragment extends SupportFragment {
     private String name;
     private String firebaseToken;
     private String message;
+    private double longitude;
+    private double latitude;
 
-    public static NotificationFragment newInstance(int id, String username, String name, String firebaseToken, String message) {
+    public static NotificationFragment newInstance(int id, String username, String name, String firebaseToken, String message, double longitude, double latitude) {
         NotificationFragment fragment = new NotificationFragment();
         Bundle bundle = new Bundle();
         bundle.putInt(ID, id);
@@ -58,6 +62,8 @@ public class NotificationFragment extends SupportFragment {
         bundle.putString(NAME, name);
         bundle.putString(FIREBASE_TOKEN, firebaseToken);
         bundle.putString(MESSAGE, message);
+        bundle.putDouble(LONGITUDE, longitude);
+        bundle.putDouble(LATITUDE, latitude);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -89,6 +95,8 @@ public class NotificationFragment extends SupportFragment {
             name = bundle.getString(NAME);
             firebaseToken = bundle.getString(FIREBASE_TOKEN);
             message = bundle.getString(MESSAGE);
+            longitude = bundle.getDouble(LONGITUDE);
+            latitude = bundle.getDouble(LATITUDE);
         }
     }
 
@@ -108,7 +116,7 @@ public class NotificationFragment extends SupportFragment {
             @Override
             public void onClick(View view) {
                 String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
-                EventBusActivityScope.getDefault(_mActivity).post(new StartChatEvent(new User(id, username, name, thumbnail, firebaseToken)));
+                EventBusActivityScope.getDefault(_mActivity).post(new StartChatEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude)));
                 _mActivity.pop();
             }
         });

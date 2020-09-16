@@ -11,6 +11,8 @@ public class Config {
     public static String sUsername;
     public static String sName;
     public static String sFirebaseToken;
+    public static double sLongitude;
+    public static double sLatitude;
     public static boolean sIsCalibrated;
     public static long sLastCalibratedTime;
 
@@ -42,6 +44,16 @@ public class Config {
     public static void setFirebaseToken(String firebaseToken) {
         sSp.put(SpUtilKeyConstants.FIREBASE_TOKEN, firebaseToken);
         sFirebaseToken = firebaseToken;
+    }
+
+    public static void setLongitude(double longitude) {
+        sSp.put(SpUtilKeyConstants.LONGITUDE, longitude);
+        sLongitude = longitude;
+    }
+
+    public static void setLatitude(double latitude) {
+        sSp.put(SpUtilKeyConstants.LATITUDE, latitude);
+        sLatitude = latitude;
     }
 
     public static void setIsCalibrated(boolean isCalibrated) {

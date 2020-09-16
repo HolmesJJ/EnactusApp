@@ -10,17 +10,24 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
-public class LocationService extends Service {
+import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Http.HttpAsyncTaskPost;
+import com.example.enactusapp.Listener.OnTaskCompleted;
+
+import org.json.JSONObject;
+
+public class LocationService extends Service implements OnTaskCompleted {
 
     private static final String TAG = "LocationService";
+    private static final int UPDATE_LNG_LAT = 1;
     private static final long MIN_DISTANCE = 0;
-    private static final long LOCATION_REQUEST_INTERVAL = 5000;
+    private static final long LOCATION_REQUEST_INTERVAL = 10000;
     private static final int TWO_MINUTES = 1000 * 60 * 2;
     private LocationManager mLocationManager;
     private LocationListener mGPSListener;  // GPS监听
@@ -53,7 +60,14 @@ public class LocationService extends Service {
             public void onLocationChanged(Location location) {
                 if (isBetterLocation(location, mLocation)) {
                     mLocation = location;
-                    Log.i(TAG, "GPS Lat:" + mLocation.getLatitude() +", Lng:" + mLocation.getLongitude());
+                    Log.i(TAG, "GPS Lat:" + mLocation.getLatitude() + ", Lng:" + mLocation.getLongitude());
+                    HttpAsyncTaskPost task = new HttpAsyncTaskPost(LocationService.this, UPDATE_LNG_LAT);
+                    double longitude = (double) Math.round(mLocation.getLongitude() * 1000) / 1000; // 保留三位小数
+                    double latitude = (double) Math.round(mLocation.getLatitude() * 1000) / 1000; // 保留三位小数
+                    Config.setLongitude(longitude);
+                    Config.setLatitude(latitude);
+                    String jsonData = convertToJSONUpdateLngLat(Config.sUserId, longitude, latitude);
+                    task.execute(Constants.IP_ADDRESS + "update_lng_lat.php", jsonData, null);
                 }
             }
 
@@ -78,7 +92,14 @@ public class LocationService extends Service {
             public void onLocationChanged(Location location) {
                 if (isBetterLocation(location, mLocation)) {
                     mLocation = location;
-                    Log.i(TAG, "Network Lat:" + mLocation.getLatitude() +", Lng:" + mLocation.getLongitude());
+                    Log.i(TAG, "Network Lat:" + mLocation.getLatitude() + ", Lng:" + mLocation.getLongitude());
+                    HttpAsyncTaskPost task = new HttpAsyncTaskPost(LocationService.this, UPDATE_LNG_LAT);
+                    double longitude = (double) Math.round(mLocation.getLongitude() * 1000) / 1000; // 保留三位小数
+                    double latitude = (double) Math.round(mLocation.getLatitude() * 1000) / 1000; // 保留三位小数
+                    Config.setLongitude(longitude);
+                    Config.setLatitude(latitude);
+                    String jsonData = convertToJSONUpdateLngLat(Config.sUserId, longitude, latitude);
+                    task.execute(Constants.IP_ADDRESS + "update_lng_lat.php", jsonData, null);
                 }
             }
 
@@ -198,5 +219,34 @@ public class LocationService extends Service {
             return provider2 == null;
         }
         return provider1.equals(provider2);
+    }
+
+    private String convertToJSONUpdateLngLat(int userId, double longitude, double latitude) {
+        JSONObject jsonMsg = new JSONObject();
+        try {
+            jsonMsg.put("Id", userId);
+            jsonMsg.put("Longitude", longitude);
+            jsonMsg.put("Latitude", latitude);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonMsg.toString();
+    }
+
+    private void retrieveFromJSONUpdateLngLat(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            int code = jsonObject.getInt("code");
+            String message = jsonObject.getString("message");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onTaskCompleted(String response, int requestId) {
+        if (requestId == UPDATE_LNG_LAT) {
+            retrieveFromJSONUpdateLngLat(response);
+        }
     }
 }

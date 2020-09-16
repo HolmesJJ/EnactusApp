@@ -21,6 +21,7 @@ import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Utils.CalculateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 
 import org.json.JSONArray;
@@ -28,6 +29,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import androidx.annotation.Nullable;
@@ -59,7 +62,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     private List<User> users = new ArrayList<>();
 
-    public static ContactFragment newInstance(){
+    public static ContactFragment newInstance() {
         ContactFragment fragment = new ContactFragment();
         Bundle bundle = new Bundle();
         fragment.setArguments(bundle);
@@ -69,7 +72,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_contact,container,false);
+        View view = inflater.inflate(R.layout.fragment_contact, container, false);
         initView(view);
         return view;
     }
@@ -128,13 +131,15 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
         try {
             users.clear();
             JSONArray jsonArray = new JSONArray(response);
-            for(int i = 0; i < jsonArray.length(); i++) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = new JSONObject(jsonArray.getString(i));
                 int id = -1;
                 String username = "";
                 String name = "";
                 String thumbnail = "";
                 String firebaseToken = "";
+                double longitude = 9999;
+                double latitude = 9999;
                 if (jsonObject.has("id")) {
                     id = jsonObject.getInt("id");
                     thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
@@ -148,7 +153,21 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                 if (jsonObject.has("firebase_token")) {
                     firebaseToken = jsonObject.getString("firebase_token");
                 }
-                users.add(new User(id, username, name, thumbnail, firebaseToken));
+                if (jsonObject.has("longitude")) {
+                    longitude = jsonObject.getDouble("longitude");
+                }
+                if (jsonObject.has("latitude")) {
+                    latitude = jsonObject.getDouble("latitude");
+                }
+                users.add(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude));
+                Collections.sort(users, new Comparator<User>() {
+                    @Override
+                    public int compare(User user1, User user2) {
+                        double distance1 = CalculateUtils.getDistance(Config.sLatitude, Config.sLongitude, user1.getLatitude(), user1.getLongitude());
+                        double distance2 = CalculateUtils.getDistance(Config.sLatitude, Config.sLongitude, user2.getLatitude(), user2.getLongitude());
+                        return (int) (distance1 - distance2);
+                    }
+                });
                 mContactAdapter.notifyDataSetChanged();
             }
         } catch (Exception e) {
@@ -238,7 +257,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     @Override
     public void onItemClick(int position) {
         showProgress(true);
-        if(!TextUtils.isEmpty(users.get(position).getFirebaseToken())) {
+        if (!TextUtils.isEmpty(users.get(position).getFirebaseToken())) {
             String firebaseToken = users.get(position).getFirebaseToken();
             HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, SEND_MESSAGE);
             task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(Config.sName + " says hello to you", firebaseToken), Constants.SERVER_KEY);
