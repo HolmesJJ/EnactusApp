@@ -83,7 +83,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 showProgress(true);
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(LoginActivity.this, LOGIN);
-                String jsonData = convertToJSON(mUsername.getText().toString(), mPassword.getText().toString(), Config.sFirebaseToken);
+                String jsonData = convertToJSONLogin(mUsername.getText().toString(), mPassword.getText().toString(), Config.sFirebaseToken);
                 task.execute(Constants.IP_ADDRESS + "login.php", jsonData, null);
             }
         });
@@ -157,7 +157,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         }
     }
 
-    private String convertToJSON(String username, String password, String firebaseToken) {
+    private String convertToJSONLogin(String username, String password, String firebaseToken) {
         JSONObject jsonMsg = new JSONObject();
         try {
             jsonMsg.put("Username", username);
@@ -169,7 +169,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         return jsonMsg.toString();
     }
 
-    private void retrieveFromJSON(String response) {
+    private void retrieveFromJSONLogin(String response) {
         try {
             JSONObject jsonObject = new JSONObject(response);
             int code = jsonObject.getInt("code");
@@ -183,6 +183,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
                 Config.setUserId(id);
                 Config.setUsername(username);
                 Config.setName(name);
+                Config.setFirebaseToken(firebaseToken);
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
@@ -198,7 +199,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
     public void onTaskCompleted(String response, int requestId) {
         showProgress(false);
         if (requestId == LOGIN) {
-            retrieveFromJSON(response);
+            retrieveFromJSONLogin(response);
         }
     }
 }

@@ -203,6 +203,12 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                     EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(true));
                 }
                 if (position != MIDDLE_TAB) {
+                    if (position > 2) {
+                        position = position - 1;
+                    }
+                    if (prePosition > 2) {
+                        prePosition = prePosition - 1;
+                    }
                     showHideFragment(mFragments[position], mFragments[prePosition]);
                 } else {
                     ToastUtils.showShortSafe("Start Speaking");
