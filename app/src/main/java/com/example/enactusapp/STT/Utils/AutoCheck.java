@@ -11,7 +11,6 @@ import android.util.Log;
 import androidx.core.content.ContextCompat;
 
 import com.baidu.speech.asr.SpeechConstant;
-import com.example.enactusapp.Constants.Constants;
 
 import org.json.JSONObject;
 
@@ -242,18 +241,21 @@ public class AutoCheck {
             if (params.get(SpeechConstant.APP_ID) != null) {
                 appId = params.get(SpeechConstant.APP_ID).toString();
             } else {
-                appId = Constants.TTS_STT_APP_ID;
+                int id = metaData.getInt("com.baidu.speech.APP_ID", 0);
+                if (id > 0) {
+                    appId = "" + id;
+                }
             }
             if (params.get(SpeechConstant.APP_KEY) != null) {
                 appKey = params.get(SpeechConstant.APP_KEY).toString();
             } else {
-                appKey = Constants.TTS_STT_APP_KEY;
+                appKey = metaData.getString("com.baidu.speech.API_KEY", "");
             }
 
             if (params.get(SpeechConstant.SECRET) != null) {
                 secretKey = params.get(SpeechConstant.SECRET).toString();
             } else {
-                secretKey = Constants.TTS_STT_SECRET_KEY;
+                secretKey = metaData.getString("com.baidu.speech.SECRET_KEY", "");
             }
         }
 

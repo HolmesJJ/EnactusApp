@@ -206,6 +206,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                     showHideFragment(mFragments[position], mFragments[prePosition]);
                 } else {
                     ToastUtils.showShortSafe("Start Speaking");
+                    STTHelper.getInstance().setSpeaking(true);
                     STTHelper.getInstance().start();
                 }
             }
@@ -220,6 +221,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                 if (position == MIDDLE_TAB) {
                     ToastUtils.showShortSafe("Stop Speaking");
                     STTHelper.getInstance().stop();
+                    STTHelper.getInstance().setSpeaking(false);
                 }
             }
         });
@@ -508,7 +510,6 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onSTTAsrReady() {
         Log.i(TAG, "onSTTAsrReady");
-        ToastUtils.showShortSafe("onSTTAsrReady");
     }
 
     @Override
@@ -534,6 +535,17 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onSTTAsrFinalResult(String[] results, RecogResult recogResult) {
         Log.i(TAG, "onSTTAsrFinalResult results: " + Arrays.toString(results) + ", recogResult: " + recogResult.toString());
+        EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(null, results[0]));
+        if (mBottomBar.getCurrentItemPosition() == 0) {
+            showHideFragment(mFragments[1], mFragments[0]);
+            mBottomBar.setCurrentItem(1);
+        } else if (mBottomBar.getCurrentItemPosition() == 2) {
+            showHideFragment(mFragments[1], mFragments[2]);
+            mBottomBar.setCurrentItem(1);
+        } else if (mBottomBar.getCurrentItemPosition() == 3) {
+            showHideFragment(mFragments[1], mFragments[3]);
+            mBottomBar.setCurrentItem(1);
+        }
     }
 
     @Override
@@ -561,9 +573,13 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         Log.i(TAG, "onSTTAsrAudio 音频数据回调, length:" + data.length);
     }
 
+    // 结束识别
     @Override
     public void onSTTAsrExit() {
         Log.i(TAG, "onSTTAsrExit");
+        if (STTHelper.getInstance().isSpeaking()) {
+            mBottomBar.setCurrentItem(MIDDLE_TAB);
+        }
     }
 
     @Override

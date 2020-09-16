@@ -31,6 +31,8 @@ public class STTHelper implements IRecogListener {
     private SDKRecognizer mSDKRecognizer;
     private STTListener mSTTListener;
 
+    private boolean isSpeaking = false;
+
     private Map<String, Object> mParams;
 
     private STTHelper() {
@@ -148,6 +150,16 @@ public class STTHelper implements IRecogListener {
     public void cancel() {
         if (mSDKRecognizer != null) {
             mSDKRecognizer.cancel();
+        }
+    }
+
+    public boolean isSpeaking() {
+        return isSpeaking;
+    }
+
+    public void setSpeaking(boolean speaking) {
+        if (mSDKRecognizer != null) {
+            isSpeaking = speaking;
         }
     }
 
