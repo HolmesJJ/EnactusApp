@@ -72,7 +72,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     }
 
     private void initDelayView() {
-        if (user != null && !TextUtils.isEmpty(message)) {
+        if (!TextUtils.isEmpty(message)) {
             qnaAnswers(message);
         }
         EventBusActivityScope.getDefault(_mActivity).post(new RequireMessageEvent());

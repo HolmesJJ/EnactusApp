@@ -203,7 +203,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Subscribe
     public void onRequireMessageEvent(RequireMessageEvent event) {
-        if (user != null && !TextUtils.isEmpty(message)) {
+        if (!TextUtils.isEmpty(message)) {
             EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message));
         }
     }
