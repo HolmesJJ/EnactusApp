@@ -3,7 +3,8 @@
 
     <string name="contact">Contact</string>
     <string name="dialog">Dialog</string>
-    <string name="objectDetection">Object Detection</string>
+    <string name="speak">Speak</string>
+    <string name="objectDetection">Detection</string>
     <string name="profile">Profile</string>
     <string name="login">Login</string>
     <string name="notification">Notification</string>

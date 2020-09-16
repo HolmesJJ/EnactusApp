@@ -38,8 +38,11 @@ import com.example.enactusapp.Fragment.Notification.NotificationFragment;
 import com.example.enactusapp.Fragment.ObjectDetection.ObjectDetectionFragment;
 import com.example.enactusapp.Fragment.Profile.ProfileFragment;
 import com.example.enactusapp.R;
+import com.example.enactusapp.STT.Listener.STTListener;
+import com.example.enactusapp.STT.RecogResult;
+import com.example.enactusapp.STT.STTHelper;
 import com.example.enactusapp.TTS.TTSHelper;
-import com.example.enactusapp.TTS.TTSListener;
+import com.example.enactusapp.TTS.Listener.TTSListener;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
@@ -52,6 +55,7 @@ import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Comparator;
 
 import camp.visual.gazetracker.GazeTracker;
@@ -71,9 +75,12 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener {
+public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener {
 
     private static final String TAG = "MainFragment";
+
+    private static final int MIDDLE_TAB = 2;
+    private static final int OBJECT_DETECTION_TAB = 3;
 
     private static final int FIRST = 0;
     private static final int SECOND = 1;
@@ -178,23 +185,29 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
         mBottomBar.addItem(new BottomBarTab(_mActivity, R.drawable.ic_contact, getString(R.string.contact)))
                 .addItem(new BottomBarTab(_mActivity, R.drawable.ic_dialog, getString(R.string.dialog)))
+                .addItem(new BottomBarTab(_mActivity, R.drawable.ic_mic, getString(R.string.speak)))
                 .addItem(new BottomBarTab(_mActivity, R.drawable.ic_object_detection, getString(R.string.objectDetection)))
                 .addItem(new BottomBarTab(_mActivity, R.drawable.ic_profile, getString(R.string.profile)));
 
         mBottomBar.setOnTabSelectedListener(new BottomBar.OnTabSelectedListener() {
             @Override
             public void onTabSelected(int position, int prePosition) {
-                if (prePosition == 2 && position != 2) {
+                if (prePosition == OBJECT_DETECTION_TAB && position != OBJECT_DETECTION_TAB) {
                     EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(false));
                     GazeHelper.getInstance().initGaze(_mActivity, MainFragment.this);
                     setOffsetOfView();
-                } else if (prePosition != 2 && position == 2) {
+                } else if (prePosition != OBJECT_DETECTION_TAB && position == OBJECT_DETECTION_TAB) {
                     GazeHelper.getInstance().stopTracking();
                     GazeHelper.getInstance().removeCameraPreview();
                     GazeHelper.getInstance().releaseGaze();
                     EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(true));
                 }
-                showHideFragment(mFragments[position], mFragments[prePosition]);
+                if (position != MIDDLE_TAB) {
+                    showHideFragment(mFragments[position], mFragments[prePosition]);
+                } else {
+                    ToastUtils.showShortSafe("Start Speaking");
+                    STTHelper.getInstance().start();
+                }
             }
 
             @Override
@@ -204,7 +217,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
             @Override
             public void onTabReselected(int position) {
-
+                if (position == MIDDLE_TAB) {
+                    ToastUtils.showShortSafe("Stop Speaking");
+                    STTHelper.getInstance().stop();
+                }
             }
         });
 
@@ -287,6 +303,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         Log.i(TAG, "Gaze Version: " + GazeTracker.getVersionName());
         GazeHelper.getInstance().initGaze(_mActivity, this);
         TTSHelper.getInstance().initTTS(this);
+        STTHelper.getInstance().initSTT(this);
     }
 
     @Override
@@ -486,6 +503,79 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         ToastUtils.showShortSafe("错误发生: " + speechError.description + ", 错误编码: " + speechError.code + ", 序列号: " + utteranceId);
     }
 
+    // STT
+    // 引擎准备完毕
+    @Override
+    public void onSTTAsrReady() {
+        Log.i(TAG, "onSTTAsrReady");
+        ToastUtils.showShortSafe("onSTTAsrReady");
+    }
+
+    @Override
+    public void onSTTAsrBegin() {
+        Log.i(TAG, "onSTTAsrBegin");
+    }
+
+    @Override
+    public void onSTTAsrEnd() {
+        Log.i(TAG, "onSTTAsrEnd");
+    }
+
+    @Override
+    public void onSTTAsrPartialResult(String[] results, RecogResult recogResult) {
+        Log.i(TAG, "onSTTAsrPartialResult results: " + Arrays.toString(results) + ", recogResult: " + recogResult.toString());
+    }
+
+    @Override
+    public void onSTTAsrOnlineNluResult(String nluResult) {
+        Log.i(TAG, "onSTTAsrOnlineNluResult nluResult: " + nluResult);
+    }
+
+    @Override
+    public void onSTTAsrFinalResult(String[] results, RecogResult recogResult) {
+        Log.i(TAG, "onSTTAsrFinalResult results: " + Arrays.toString(results) + ", recogResult: " + recogResult.toString());
+    }
+
+    @Override
+    public void onSTTAsrFinish(RecogResult recogResult) {
+        Log.i(TAG, "onSTTAsrFinish recogResult: " + recogResult.toString());
+    }
+
+    @Override
+    public void onSTTAsrFinishError(int errorCode, int subErrorCode, String descMessage, RecogResult recogResult) {
+        Log.i(TAG, "onSTTAsrFinishError errorCode: "+ errorCode + ", subErrorCode: " + subErrorCode + ", " + descMessage +", recogResult: " + recogResult.toString());
+    }
+
+    @Override
+    public void onSTTAsrLongFinish() {
+        Log.i(TAG, "onSTTAsrLongFinish");
+    }
+
+    @Override
+    public void onSTTAsrVolume(int volumePercent, int volume) {
+        Log.i(TAG, "onSTTAsrVolume 音量百分比" + volumePercent + " ; 音量" + volume);
+    }
+
+    @Override
+    public void onSTTAsrAudio(byte[] data, int offset, int length) {
+        Log.i(TAG, "onSTTAsrAudio 音频数据回调, length:" + data.length);
+    }
+
+    @Override
+    public void onSTTAsrExit() {
+        Log.i(TAG, "onSTTAsrExit");
+    }
+
+    @Override
+    public void onSTTOfflineLoaded() {
+        Log.i(TAG, "onSTTOfflineLoaded");
+    }
+
+    @Override
+    public void onSTTOfflineUnLoaded() {
+        Log.i(TAG, "onSTTOfflineUnLoaded");
+    }
+
     public void startBrotherFragment(SupportFragment targetFragment) {
         start(targetFragment);
     }
@@ -568,6 +658,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (viewLayoutChecker != null) {
             viewLayoutChecker.releaseChecker();
         }
+        STTHelper.getInstance().releaseSTT();
         TTSHelper.getInstance().releaseTTS();
         GazeHelper.getInstance().stopTracking();
         GazeHelper.getInstance().releaseGaze();

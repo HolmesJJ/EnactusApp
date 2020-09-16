@@ -1,5 +1,6 @@
 package com.example.enactusapp;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -51,6 +52,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
             android.Manifest.permission.ACCESS_COARSE_LOCATION,
             android.Manifest.permission.CAMERA,
             android.Manifest.permission.MODIFY_AUDIO_SETTINGS,
+            android.Manifest.permission.RECORD_AUDIO,
     };
 
     private LinearLayout loginForm;

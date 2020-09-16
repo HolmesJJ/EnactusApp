@@ -123,4 +123,9 @@ public class BottomBarTab extends FrameLayout {
     private int dip2px(Context context, float dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
+
+    public void setTabColor(int color) {
+        mIcon.setColorFilter(color);
+        mTvTitle.setTextColor(color);
+    }
 }

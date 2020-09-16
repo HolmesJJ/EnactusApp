@@ -5,7 +5,8 @@ import com.baidu.tts.client.TtsMode;
 
 public interface IOfflineResourceConst {
 
-    TtsMode DEFAULT_SDK_TTS_MODE = TtsMode.OFFLINE;
+    // 在此切换在线或离线
+    TtsMode DEFAULT_SDK_TTS_MODE = TtsMode.ONLINE;
 
     String VOICE_FEMALE = "F";
 

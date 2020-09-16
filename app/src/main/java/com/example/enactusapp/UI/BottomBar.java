@@ -15,7 +15,11 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
+
+import com.example.enactusapp.R;
+import com.example.enactusapp.Utils.ContextUtils;
 
 /**
  * @author Administrator
@@ -26,9 +30,11 @@ import androidx.core.view.ViewCompat;
  */
 public class BottomBar extends LinearLayout {
     private static final int TRANSLATE_DURATION_MILLIS = 200;
+    private static final int MIDDLE_TAB = 2;
 
     private final Interpolator mInterpolator = new AccelerateDecelerateInterpolator();
     private boolean mVisible = true;
+    private boolean mIsMiddleTabClicked = false;
 
     private List<BottomBarTab> mTabs = new ArrayList<>();
 
@@ -70,6 +76,17 @@ public class BottomBar extends LinearLayout {
                 if (mListener == null) return;
 
                 int pos = tab.getTabPosition();
+                if (pos == MIDDLE_TAB) {
+                    if (mIsMiddleTabClicked) {
+                        mListener.onTabReselected(pos);
+                        tab.setTabColor(ContextCompat.getColor(ContextUtils.getContext(), R.color.tab_unselect));
+                    } else {
+                        mListener.onTabSelected(pos, mCurrentPosition);
+                        tab.setTabColor(Color.RED);
+                    }
+                    mIsMiddleTabClicked = !mIsMiddleTabClicked;
+                    return;
+                }
                 if (mCurrentPosition == pos) {
                     mListener.onTabReselected(pos);
                 } else {

@@ -13,6 +13,7 @@ import com.baidu.tts.client.SynthesizerTool;
 import com.baidu.tts.client.TtsMode;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.TTS.Config.TTSConfig;
+import com.example.enactusapp.TTS.Listener.TTSListener;
 import com.example.enactusapp.TTS.Utils.AutoCheck;
 import com.example.enactusapp.TTS.Utils.IOfflineResourceConst;
 import com.example.enactusapp.TTS.Utils.OfflineResource;
@@ -116,8 +117,8 @@ public class TTSHelper implements SpeechSynthesizerListener {
                 if (msg.what == 100) {
                     AutoCheck autoCheck = (AutoCheck) msg.obj;
                     synchronized (autoCheck) {
-                        String message = autoCheck.obtainDebugMessage();
-                        Log.w(TAG, "AutoCheckMessage:" + message);
+                        String message = autoCheck.obtainAllMessage();
+                        Log.w(TAG, "AutoCheckMessage: " + message);
                     }
                 }
             }
@@ -145,9 +146,9 @@ public class TTSHelper implements SpeechSynthesizerListener {
         Map<String, String> params = getParams();
         // appId appKey secretKey 网站上您申请的应用获取。注意使用离线合成功能的话，需要应用中填写您app的包名。包名在build.gradle中获取。
         if (isOnlineSDK) {
-            mTTSConfig = new TTSConfig(Constants.TTS_APP_ID, Constants.TTS_API_KEY, Constants.TTS_SECRET_KEY, ttsMode, params, this);
+            mTTSConfig = new TTSConfig(Constants.TTS_STT_APP_ID, Constants.TTS_STT_APP_KEY, Constants.TTS_STT_SECRET_KEY, ttsMode, params, this);
         } else {
-            mTTSConfig = new TTSConfig(Constants.TTS_APP_ID, Constants.TTS_API_KEY, Constants.TTS_SECRET_KEY, Constants.TTS_REDMI_10X_SN, ttsMode, params, this);
+            mTTSConfig = new TTSConfig(Constants.TTS_STT_APP_ID, Constants.TTS_STT_APP_KEY, Constants.TTS_STT_SECRET_KEY, Constants.TTS_STT_REDMI_10X_SN, ttsMode, params, this);
         }
         autoCheck();
         initEngine();
@@ -165,8 +166,8 @@ public class TTSHelper implements SpeechSynthesizerListener {
 
         // AppID, AppKey, SecretKey
         mSpeechSynthesizer.setAppId(mTTSConfig.getAppId());
-        mSpeechSynthesizer.setApiKey(Constants.TTS_API_KEY, Constants.TTS_SECRET_KEY);
-        Log.i(TAG, "AppID: " + mTTSConfig.getAppId() + ", AppKey: " + Constants.TTS_API_KEY + "SecretKey: " + Constants.TTS_SECRET_KEY);
+        mSpeechSynthesizer.setApiKey(Constants.TTS_STT_APP_KEY, Constants.TTS_STT_SECRET_KEY);
+        Log.i(TAG, "AppID: " + mTTSConfig.getAppId() + ", AppKey: " + Constants.TTS_STT_APP_KEY + "SecretKey: " + Constants.TTS_STT_SECRET_KEY);
 
         for (Map.Entry<String, String> e : mTTSConfig.getParams().entrySet()) {
             mSpeechSynthesizer.setParam(e.getKey(), e.getValue());
@@ -194,7 +195,9 @@ public class TTSHelper implements SpeechSynthesizerListener {
     }
 
     public void releaseTTS() {
-
+        releaseEngine();
+        mTTSListener = null;
+        mTTSConfig = null;
     }
 
     /**
