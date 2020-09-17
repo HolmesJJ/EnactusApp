@@ -1,12 +1,15 @@
 package com.example.enactusapp.Fragment;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -46,6 +49,7 @@ import com.example.enactusapp.TTS.Listener.TTSListener;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Utils.GPSUtils;
 import com.example.enactusapp.Utils.SimulateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 
@@ -78,6 +82,8 @@ import me.yokeyword.fragmentation.SupportFragment;
 public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener {
 
     private static final String TAG = "MainFragment";
+
+    private static final int START_LOCATION_ACTIVITY = 99;
 
     private static final int MIDDLE_TAB = 2;
     private static final int OBJECT_DETECTION_TAB = 3;
@@ -308,6 +314,9 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onEnterAnimationEnd(Bundle savedInstanceState) {
+        if (!GPSUtils.isOpenGPS(_mActivity)) {
+            startLocation();
+        }
         Log.i(TAG, "Gaze Version: " + GazeTracker.getVersionName());
         GazeHelper.getInstance().initGaze(_mActivity, this);
         TTSHelper.getInstance().initTTS(this);
@@ -640,6 +649,30 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             }
         }
     };
+
+    //开启位置权限
+    private void startLocation() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(_mActivity);
+        builder.setTitle("Tips")
+                .setMessage("Please turn on your GPS")
+                .setCancelable(false)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivityForResult(intent, START_LOCATION_ACTIVITY);
+                    }
+                }).show();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode,Intent data) {
+        if (requestCode == START_LOCATION_ACTIVITY) {
+            if (!GPSUtils.isOpenGPS(_mActivity)) {
+                startLocation();
+            }
+        }
+    }
 
     @Subscribe
     public void onStartChatEvent(StartChatEvent event) {

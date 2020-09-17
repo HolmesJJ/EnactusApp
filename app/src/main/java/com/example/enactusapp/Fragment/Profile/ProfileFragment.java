@@ -18,6 +18,8 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Event.CalibrationEvent;
+import com.example.enactusapp.Fragment.Bluetooth.BluetoothFragment;
+import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
@@ -55,6 +57,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     private TextView profileNameTv;
     private EditText profileNameEt;
     private Button startCalibrationBtn;
+    private Button muscleSensorBtn;
     private Button logoutBtn;
 
     public static ProfileFragment newInstance() {
@@ -84,6 +87,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         profileNameEt = (EditText) view.findViewById(R.id.profile_name_et);
         profileNameEt.setVisibility(View.GONE);
         startCalibrationBtn = (Button) view.findViewById(R.id.start_calibration_btn);
+        muscleSensorBtn = (Button) view.findViewById(R.id.muscle_sensor_btn);
         logoutBtn = (Button) view.findViewById(R.id.logout_btn);
     }
 
@@ -134,6 +138,13 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
             public void onClick(View view) {
                 resetConfig();
                 _mActivity.finish();
+            }
+        });
+
+        muscleSensorBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((MainFragment) getParentFragment()).startBrotherFragment(BluetoothFragment.newInstance());
             }
         });
     }

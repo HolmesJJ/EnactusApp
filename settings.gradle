@@ -1,3 +1,4 @@
+include ':bluetoothlibrary'
 include ':gazetracker-release'
 include ':libgaze-release'
 include ':app'

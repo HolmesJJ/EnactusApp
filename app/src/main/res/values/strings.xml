@@ -8,6 +8,7 @@
     <string name="profile">Profile</string>
     <string name="login">Login</string>
     <string name="notification">Notification</string>
+    <string name="bluetooth">Bluetooth</string>
 
     <string name="rationale_init">APP Needs some Permission</string>
     <string name="permissions_denied_content_str">Permission Denied \nOpen Setting to Modify APP Permission</string>
