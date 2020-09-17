@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -20,6 +21,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.enactusapp.Adapter.BluetoothAdapter;
 import com.example.enactusapp.Bluetooth.BluetoothHelper;
+import com.example.enactusapp.Bluetooth.BluetoothHelper.UpdateList;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Utils.GPSUtils;
@@ -31,15 +33,17 @@ import java.util.List;
 
 import me.yokeyword.fragmentation.SupportFragment;
 
-public class BluetoothFragment extends SupportFragment implements OnItemClickListener {
+public class BluetoothFragment extends SupportFragment implements OnItemClickListener, UpdateList {
 
     private static final String TAG = "BluetoothFragment";
 
     private static final int START_LOCATION_ACTIVITY = 99;
+    private static final byte[] STATE_DATA = new byte[] {0x00};;
 
     private BluetoothHelper mBluetoothHelper;
 
     private Toolbar mToolbar;
+    private TextView mTvConnectedDevice;
     private SwipeRefreshLayout mSrlRefresh;
     private RecyclerView mRvBluetooth;
     private BluetoothAdapter mBluetoothAdapter;
@@ -64,6 +68,7 @@ public class BluetoothFragment extends SupportFragment implements OnItemClickLis
     private void initView(View view) {
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.bluetooth);
+        mTvConnectedDevice = (TextView) view.findViewById(R.id.tv_connected_device);
         mSrlRefresh = (SwipeRefreshLayout) view.findViewById(R.id.srl_refresh);
         mRvBluetooth = (RecyclerView) view.findViewById(R.id.rv_bluetooth);
         mBluetoothAdapter = new BluetoothAdapter(_mActivity, deviceModules);
@@ -93,31 +98,7 @@ public class BluetoothFragment extends SupportFragment implements OnItemClickLis
 
     private void initBluetooth() {
         mBluetoothHelper = BluetoothHelper.getInstance();
-        final BluetoothHelper.UpdateList updateList = new BluetoothHelper.UpdateList() {
-            @Override
-            public void update(boolean isStart, DeviceModule deviceModule) {
-                if (isStart) {
-                    deviceModule.isCollectName(_mActivity);
-                    deviceModules.add(deviceModule);
-                    mBluetoothAdapter.notifyDataSetChanged();
-                } else {
-                    Log.i(TAG, "Done..");
-                }
-            }
-
-            @Override
-            public void updateMessyCode(boolean isStart, DeviceModule deviceModule) {
-                for (int i = 0; i < deviceModules.size(); i++) {
-                    if (deviceModules.get(i).getMac().equals(deviceModule.getMac())) {
-                        deviceModules.remove(deviceModules.get(i));
-                        deviceModules.add(i, deviceModule);
-                        mBluetoothAdapter.notifyDataSetChanged();
-                        break;
-                    }
-                }
-            }
-        };
-        mBluetoothHelper.initBluetooth(_mActivity, updateList);
+        mBluetoothHelper.setOnUpdateListListener(this);
         refresh();
     }
 
@@ -137,7 +118,7 @@ public class BluetoothFragment extends SupportFragment implements OnItemClickLis
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode,Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == START_LOCATION_ACTIVITY) {
             if (!GPSUtils.isOpenGPS(_mActivity)) {
                 startLocation();
@@ -146,19 +127,25 @@ public class BluetoothFragment extends SupportFragment implements OnItemClickLis
     }
 
     //刷新的具体实现
-    private void refresh(){
-        if (mBluetoothHelper.scan(false)){
+    private void refresh() {
+        if (mBluetoothHelper.getConnectedDeviceModules().size() > 0) {
+            mBluetoothHelper.sendData(mBluetoothHelper.getConnectedDeviceModules().get(0), STATE_DATA);
+        }
+        if (mBluetoothHelper.scan(false)) {
             deviceModules.clear();
         }
     }
 
     @Override
     public void onItemClick(int position) {
-        ToastUtils.showShortSafe(deviceModules.get(position).getName());
-        if (deviceModules.get(position).isBeenConnected()) {
-            mBluetoothHelper.disconnect(deviceModules.get(position));
+        if (mBluetoothHelper.getConnectedDeviceModules().size() > 0 && deviceModules.get(position).getMac().equals(mBluetoothHelper.getConnectedDeviceModules().get(0).getMac())) {
+            mBluetoothHelper.disconnectAll();
+            mTvConnectedDevice.setText("");
+            ToastUtils.showShortSafe("Disconnected: " + deviceModules.get(position).getName());
         } else {
+            mBluetoothHelper.disconnectAll();
             mBluetoothHelper.connect(deviceModules.get(position));
+            ToastUtils.showShortSafe("Connected: " + deviceModules.get(position).getName());
         }
     }
 
@@ -177,7 +164,7 @@ public class BluetoothFragment extends SupportFragment implements OnItemClickLis
                     }
                 }
             }
-        },1000);
+        }, 1000);
     }
 
     @Override
@@ -192,8 +179,44 @@ public class BluetoothFragment extends SupportFragment implements OnItemClickLis
     public void onDestroyView() {
         if (mBluetoothHelper != null) {
             mBluetoothHelper.stopScan();
+            mBluetoothHelper.setOnUpdateListListener(null);
             mBluetoothHelper = null;
         }
         super.onDestroyView();
+    }
+
+    @Override
+    public void update(boolean isStart, DeviceModule deviceModule) {
+        if (isStart) {
+            deviceModule.isCollectName(_mActivity);
+            deviceModules.add(deviceModule);
+            mBluetoothAdapter.notifyDataSetChanged();
+        } else {
+            Log.i(TAG, "Done..");
+        }
+    }
+
+    @Override
+    public void updateMessyCode(boolean isStart, DeviceModule deviceModule) {
+        for (int i = 0; i < deviceModules.size(); i++) {
+            if (deviceModules.get(i).getMac().equals(deviceModule.getMac())) {
+                deviceModules.remove(deviceModules.get(i));
+                deviceModules.add(i, deviceModule);
+                mBluetoothAdapter.notifyDataSetChanged();
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void connectSucceed() {
+        if (mBluetoothHelper.getConnectedDeviceModules().size() > 0) {
+            mTvConnectedDevice.setText(mBluetoothHelper.getConnectedDeviceModules().get(0).getName() + " " + mBluetoothHelper.getConnectedDeviceModules().get(0).getMac());
+        }
+    }
+
+    @Override
+    public void errorDisconnect(DeviceModule deviceModule) {
+        mTvConnectedDevice.setText("");
     }
 }

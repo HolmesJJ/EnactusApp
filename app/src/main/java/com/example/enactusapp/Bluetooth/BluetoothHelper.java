@@ -15,9 +15,10 @@ public class BluetoothHelper {
     private final static String TAG = "BluetoothHelper";
 
     private AllBluetoothManage mAllBluetoothManage;
-    private List<DeviceModule> mConnectedArray = new ArrayList<>(); // 成功连接了的模块（可扩展多连接）
+    private List<DeviceModule> connectedDeviceModules = new ArrayList<>(); // 成功连接了的模块（可扩展多连接）
 
-    private OnReadDataListener mDataListener;
+    private OnReadDataListener mReadDataListener;
+    private UpdateList mUpdateListListener;
 
     private BluetoothHelper() {
     }
@@ -30,67 +31,80 @@ public class BluetoothHelper {
         return BluetoothHelper.SingleInstance.INSTANCE;
     }
 
-    public void initBluetooth(final Context context, final UpdateList updateList) {
-
+    public void initBluetooth(final Context context, OnReadDataListener readDataListener) {
+        this.mReadDataListener = readDataListener;
         //接口里都有注释
         mAllBluetoothManage = new AllBluetoothManage(context, new IBluetooth() {
             @Override
             public void updateList(DeviceModule deviceModule) {
-                if (updateList != null)
-                    updateList.update(true, deviceModule);
-            }
-
-            @Override
-            public void connectSucceed(DeviceModule deviceModule) {
-                mConnectedArray.clear();//多连接的话这里要优化
-                mConnectedArray.add(deviceModule);
-                if (mDataListener != null)
-                    mDataListener.connectSucceed();
-                log("连接成功; " + deviceModule.getName(), "w");
+                if (mUpdateListListener != null)
+                    mUpdateListListener.update(true, deviceModule);
             }
 
             @Override
             public void updateEnd() {
-                if (updateList != null)
-                    updateList.update(false, null);
+                if (mUpdateListListener != null)
+                    mUpdateListListener.update(false, null);
             }
 
             @Override
             public void updateMessyCode(DeviceModule deviceModule) {
-                if (updateList != null)
-                    updateList.updateMessyCode(true, deviceModule);
+                if (mUpdateListListener != null)
+                    mUpdateListListener.updateMessyCode(true, deviceModule);
             }
 
             @Override
-            public void readData(String mac, byte[] data) {
-                if (mDataListener != null)
-                    mDataListener.readData(mac, data);
-            }
-
-            @Override
-            public void reading(boolean isStart) {
-                if (mDataListener != null)
-                    mDataListener.reading(isStart);
+            public void connectSucceed(DeviceModule deviceModule) {
+                connectedDeviceModules.add(deviceModule);
+                if (mReadDataListener != null)
+                    mReadDataListener.connectSucceed();
+                if (mUpdateListListener != null)
+                    mUpdateListListener.connectSucceed();
+                Log.i(TAG, "连接成功: " + deviceModule.getName());
             }
 
             @Override
             public void errorDisconnect(DeviceModule deviceModule) {
-                if (mDataListener != null)
-                    mDataListener.errorDisconnect(deviceModule);
+                disconnectAll();
+                if (mReadDataListener != null)
+                    mReadDataListener.errorDisconnect(deviceModule);
+                if (mUpdateListListener != null)
+                    mUpdateListListener.errorDisconnect(deviceModule);
+                Log.i(TAG, "蓝牙断线: " + deviceModule.getName());
+            }
+
+            @Override
+            public void readData(String mac, byte[] data) {
+                if (mReadDataListener != null)
+                    mReadDataListener.readData(mac, data);
+            }
+
+            @Override
+            public void reading(boolean isStart) {
+                if (mReadDataListener != null)
+                    mReadDataListener.reading(isStart);
             }
 
             @Override
             public void readNumber(int number) {
-                if (mDataListener != null)
-                    mDataListener.readNumber(number);
+                if (mReadDataListener != null)
+                    mReadDataListener.readNumber(number);
             }
 
             @Override
             public void readLog(String className, String data, String lv) {
-                if (mDataListener != null)
-                    mDataListener.readLog(className, data, lv);
+                if (mReadDataListener != null)
+                    mReadDataListener.readLog(className, data, lv);
             }
         });
+    }
+
+    public void releaseBluetooth() {
+        stopScan();
+        mAllBluetoothManage = null;
+        connectedDeviceModules = null;
+        mReadDataListener = null;
+        mUpdateListListener = null;
     }
 
     public boolean bluetoothState() {
@@ -123,9 +137,18 @@ public class BluetoothHelper {
 
     //断开连接
     public void disconnect(DeviceModule deviceModule) {
-        mConnectedArray.remove(deviceModule);
+        connectedDeviceModules.remove(deviceModule);
         mAllBluetoothManage.disconnect(deviceModule);
         Log.i(TAG, "断开连接: " + deviceModule.getName());
+    }
+
+    //断开连接
+    public void disconnectAll() {
+        for (int i = connectedDeviceModules.size() - 1; i >= 0; i--) {
+            mAllBluetoothManage.disconnect(connectedDeviceModules.get(i));
+            Log.i(TAG, "断开连接: " + connectedDeviceModules.get(i).getName());
+        }
+        connectedDeviceModules.clear();
     }
 
     public void tempDisconnect(DeviceModule deviceModule) {
@@ -133,18 +156,22 @@ public class BluetoothHelper {
     }
 
     //获取已连接的模块组
-    public List<DeviceModule> getConnectedArray() {
-        return mConnectedArray;
+    public List<DeviceModule> getConnectedDeviceModules() {
+        return connectedDeviceModules;
     }
 
-    public void setOnReadListener(OnReadDataListener listener) {
-        this.mDataListener = listener;
+    public void setOnUpdateListListener(UpdateList updateListListener) {
+        this.mUpdateListListener = updateListListener;
     }
 
     public interface UpdateList {
         void update(boolean isStart, DeviceModule deviceModule);
 
         void updateMessyCode(boolean isStart, DeviceModule deviceModule);
+
+        void connectSucceed();
+
+        void errorDisconnect(DeviceModule deviceModule);
     }
 
     public interface OnReadDataListener {
@@ -178,7 +205,7 @@ public class BluetoothHelper {
         } else {
             Log.w(TAG, log);
         }
-        if (mDataListener != null)
-            mDataListener.readLog(getClass().getSimpleName(), log, lv);
+        if (mReadDataListener != null)
+            mReadDataListener.readLog(getClass().getSimpleName(), log, lv);
     }
 }

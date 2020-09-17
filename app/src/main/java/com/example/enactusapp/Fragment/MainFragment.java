@@ -27,6 +27,8 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.baidu.tts.client.SpeechError;
+import com.example.enactusapp.Bluetooth.BluetoothHelper;
+import com.example.enactusapp.Bluetooth.BluetoothHelper.OnReadDataListener;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
 import com.example.enactusapp.Entity.User;
@@ -63,6 +65,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.hc.bluetoothlibrary.DeviceModule;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
@@ -92,7 +95,7 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener, OnTaskCompleted {
+public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener, OnTaskCompleted, OnReadDataListener {
 
     private static final String TAG = "MainFragment";
 
@@ -406,6 +409,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         GazeHelper.getInstance().initGaze(_mActivity, this);
         TTSHelper.getInstance().initTTS(this);
         STTHelper.getInstance().initSTT(this);
+        BluetoothHelper.getInstance().initBluetooth(_mActivity, this);
     }
 
     @Override
@@ -692,6 +696,37 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         Log.i(TAG, "onSTTOfflineUnLoaded");
     }
 
+    // Bluetooth
+    @Override
+    public void readData(String mac, byte[] data) {
+        Log.i(TAG, "Bluetooth readData mac: " + mac +", data: " + Arrays.toString(data));
+    }
+
+    @Override
+    public void reading(boolean isStart) {
+        Log.i(TAG, "Bluetooth reading isStart: " + isStart);
+    }
+
+    @Override
+    public void connectSucceed() {
+        Log.i(TAG, "Bluetooth connectSucceed");
+    }
+
+    @Override
+    public void errorDisconnect(DeviceModule deviceModule) {
+        Log.i(TAG, "Bluetooth errorDisconnect: ");
+    }
+
+    @Override
+    public void readNumber(int number) {
+        Log.i(TAG, "Bluetooth readNumber number: " + number);
+    }
+
+    @Override
+    public void readLog(String className, String data, String lv) {
+        Log.i(TAG, "Bluetooth readLog className: " + className + ", data: " + data + ", lv: " + lv);
+    }
+
     @Override
     public void onTaskCompleted(String response, int requestId) {
         if (requestId == UPDATE_TOKEN) {
@@ -812,6 +847,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (viewLayoutChecker != null) {
             viewLayoutChecker.releaseChecker();
         }
+        BluetoothHelper.getInstance().releaseBluetooth();
         STTHelper.getInstance().releaseSTT();
         TTSHelper.getInstance().releaseTTS();
         GazeHelper.getInstance().stopTracking();
