@@ -92,10 +92,11 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private static final int SECOND = 1;
     private static final int THIRD = 2;
     private static final int FOURTH = 3;
+    private static final int FIFTH = 4;
 
     private static final boolean IS_USE_GAZE_FILER = true;
 
-    private SupportFragment[] mFragments = new SupportFragment[4];
+    private SupportFragment[] mFragments = new SupportFragment[5];
 
     private TextureView mTvFrontCamera;
     private ProgressBar mPbGaze;
@@ -156,18 +157,21 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             mFragments[SECOND] = DialogFragment.newInstance();
             mFragments[THIRD] = ObjectDetectionFragment.newInstance();
             mFragments[FOURTH] = ProfileFragment.newInstance();
+            mFragments[FIFTH] = NotificationFragment.newInstance();
 
             loadMultipleRootFragment(R.id.fl_main_container, FIRST,
                     mFragments[FIRST],
                     mFragments[SECOND],
                     mFragments[THIRD],
-                    mFragments[FOURTH]
+                    mFragments[FOURTH],
+                    mFragments[FIFTH]
             );
         } else {
             mFragments[FIRST] = firstFragment;
             mFragments[SECOND] = findFragment(DialogFragment.class);
             mFragments[THIRD] = findFragment(ObjectDetectionFragment.class);
             mFragments[FOURTH] = findFragment(ProfileFragment.class);
+            mFragments[FIFTH] = findFragment(NotificationFragment.class);
         }
     }
 
@@ -310,6 +314,16 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             backgroundHandler = null;
         }
         backgroundThread.quitSafely();
+    }
+
+    public void showNotificationFragment() {
+        showHideFragment(mFragments[FIFTH], mFragments[mBottomBar.getCurrentItemPosition() > 2 ? mBottomBar.getCurrentItemPosition() - 1 : mBottomBar.getCurrentItemPosition()]);
+        mBottomBar.setVisibility(View.GONE);
+    }
+
+    public void hideNotificationFragment() {
+        showHideFragment(mFragments[mBottomBar.getCurrentItemPosition() > 2 ? mBottomBar.getCurrentItemPosition() - 1 : mBottomBar.getCurrentItemPosition()], mFragments[FIFTH]);
+        mBottomBar.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -554,10 +568,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (mBottomBar.getCurrentItemPosition() == 0) {
             showHideFragment(mFragments[1], mFragments[0]);
             mBottomBar.setCurrentItem(1);
-        } else if (mBottomBar.getCurrentItemPosition() == 2) {
+        } else if (mBottomBar.getCurrentItemPosition() == 3) {
             showHideFragment(mFragments[1], mFragments[2]);
             mBottomBar.setCurrentItem(1);
-        } else if (mBottomBar.getCurrentItemPosition() == 3) {
+        } else if (mBottomBar.getCurrentItemPosition() == 4) {
             showHideFragment(mFragments[1], mFragments[3]);
             mBottomBar.setCurrentItem(1);
         }
@@ -621,7 +635,9 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             double longitude = intent.getDoubleExtra("longitude", 9999);
             double latitude = intent.getDoubleExtra("latitude", 9999);
             String message = intent.getStringExtra("message");
-            startBrotherFragment(NotificationFragment.newInstance(id, username, name, firebaseToken, message, longitude, latitude));
+            String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
+            showNotificationFragment();
+            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
         }
     };
 
@@ -640,10 +656,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             if (mBottomBar.getCurrentItemPosition() == 0) {
                 showHideFragment(mFragments[1], mFragments[0]);
                 mBottomBar.setCurrentItem(1);
-            } else if (mBottomBar.getCurrentItemPosition() == 2) {
+            } else if (mBottomBar.getCurrentItemPosition() == 3) {
                 showHideFragment(mFragments[1], mFragments[2]);
                 mBottomBar.setCurrentItem(1);
-            } else if (mBottomBar.getCurrentItemPosition() == 3) {
+            } else if (mBottomBar.getCurrentItemPosition() == 4) {
                 showHideFragment(mFragments[1], mFragments[3]);
                 mBottomBar.setCurrentItem(1);
             }
@@ -677,13 +693,14 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Subscribe
     public void onStartChatEvent(StartChatEvent event) {
         EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(event.getUser(), "Hi, " + Config.sName + ", How are you?"));
+        hideNotificationFragment();
         if (mBottomBar.getCurrentItemPosition() == 0) {
             showHideFragment(mFragments[1], mFragments[0]);
             mBottomBar.setCurrentItem(1);
-        } else if (mBottomBar.getCurrentItemPosition() == 2) {
+        } else if (mBottomBar.getCurrentItemPosition() == 3) {
             showHideFragment(mFragments[1], mFragments[2]);
             mBottomBar.setCurrentItem(1);
-        } else if (mBottomBar.getCurrentItemPosition() == 3) {
+        } else if (mBottomBar.getCurrentItemPosition() == 4) {
             showHideFragment(mFragments[1], mFragments[3]);
             mBottomBar.setCurrentItem(1);
         }

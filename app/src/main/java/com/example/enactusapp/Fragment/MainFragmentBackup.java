@@ -1,13 +1,16 @@
 package com.example.enactusapp.Fragment;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +37,7 @@ import com.example.enactusapp.R;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Utils.GPSUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -79,6 +83,8 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateDes ${TODO}
  */
 public class MainFragmentBackup extends SupportFragment implements CameraBridgeViewBase.CvCameraViewListener2 {
+
+    private static final int START_LOCATION_ACTIVITY = 99;
 
     private static final int FIRST = 0;
     private static final int SECOND = 1;
@@ -235,6 +241,10 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
                 startCamera();
             }
         }, 1000);
+
+        if (!GPSUtils.isOpenGPS(_mActivity)) {
+            startLocation();
+        }
     }
 
     public void startBrotherFragment(SupportFragment targetFragment) {
@@ -284,7 +294,7 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
             double longitude = intent.getDoubleExtra("longitude", 9999);
             double latitude = intent.getDoubleExtra("latitude", 9999);
             String message = intent.getStringExtra("message");
-            startBrotherFragment(NotificationFragment.newInstance(id, username, name, firebaseToken, message, longitude, latitude));
+            // startBrotherFragment(NotificationFragment.newInstance(id, username, name, firebaseToken, message, longitude, latitude));
         }
     };
 
@@ -600,6 +610,30 @@ public class MainFragmentBackup extends SupportFragment implements CameraBridgeV
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    //开启位置权限
+    private void startLocation() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(_mActivity);
+        builder.setTitle("Tips")
+                .setMessage("Please turn on your GPS")
+                .setCancelable(false)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivityForResult(intent, START_LOCATION_ACTIVITY);
+                    }
+                }).show();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode,Intent data) {
+        if (requestCode == START_LOCATION_ACTIVITY) {
+            if (!GPSUtils.isOpenGPS(_mActivity)) {
+                startLocation();
             }
         }
     }

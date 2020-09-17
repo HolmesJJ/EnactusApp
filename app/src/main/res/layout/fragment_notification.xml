@@ -55,7 +55,7 @@
             android:layout_centerHorizontal="true" />
 
         <Button
-            android:id="@+id/cancel_btn"
+            android:id="@+id/start_chat_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
@@ -66,10 +66,10 @@
             android:paddingBottom="20dp"
             android:layout_marginBottom="10dp"
             android:textSize="20dp"
-            android:text="Cancel"/>
+            android:text="Start Chat"/>
 
         <Button
-            android:id="@+id/start_chatting_btn"
+            android:id="@+id/cancel_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
@@ -80,7 +80,7 @@
             android:paddingBottom="20dp"
             android:layout_marginBottom="10dp"
             android:textSize="20dp"
-            android:text="Start Chatting"/>
+            android:text="Cancel"/>
 
     </RelativeLayout>
 
