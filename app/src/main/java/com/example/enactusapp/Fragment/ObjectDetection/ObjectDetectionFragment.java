@@ -105,6 +105,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     private RecyclerView mRvSentences;
     private SentencesAdapter mSentencesAdapter;
     private TextView mTvInferenceTimeView;
+    private TextView mTvCurrentKeyword;
     private Button btnNext;
 
     // RGBCamera是否就绪
@@ -139,6 +140,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     private String currentObject;
     // Sentences
     private List<String> sentences = new ArrayList<>();
+    private List<String> keywords = new ArrayList<>();
     private int keywordCounter = 0;
 
     // YuvToRGB
@@ -204,6 +206,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
         mIvPreview = (ImageView) view.findViewById(R.id.iv_preview);
         mRvSentences = (RecyclerView) view.findViewById(R.id.rv_sentences);
         mTvInferenceTimeView = (TextView) view.findViewById(R.id.tv_inference_time);
+        mTvCurrentKeyword = (TextView) view.findViewById(R.id.tv_current_keyword);
         btnNext = (Button) view.findViewById(R.id.btn_next);
         mSentencesAdapter = new SentencesAdapter(_mActivity, sentences);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
@@ -223,41 +226,42 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (keywordCounter > 3) {
-                    keywordCounter = 0;
-                }
-                if (keywordCounter == 0) {
-                    initData("pen");
-                } else if (keywordCounter == 1) {
-                    initData("wallet");
-                } else if (keywordCounter == 2) {
-                    initData("glasses");
-                } else if (keywordCounter == 3) {
+                try {
+                    if (keywordCounter < keywords.size()) {
+                        final String currentKeyword = keywords.get(keywordCounter);
+                        mTvCurrentKeyword.setText(currentKeyword);
+                        initData(currentKeyword);
+                        keywordCounter++;
+                    } else {
+                        keywordCounter = 0;
+                    }
+                } catch (Exception e) {
+                    e.fillInStackTrace();
+                    mTvCurrentKeyword.setText("");
                     initData("");
                 }
-                keywordCounter++;
                 mSentencesAdapter.notifyDataSetChanged();
             }
         });
     }
 
-    private void initData(String keyword) {
+    private void initData(final String keyword) {
         sentences.clear();
-        if (keyword.equals("pen")) {
-            sentences.add("That is a ink pen.");
-            sentences.add("This is a very beautiful pen.");
-            sentences.add("My pen is out of ink.");
-            sentences.add("Shall I buy a pen as a gift for someone?");
-        } else if (keyword.equals("wallet")) {
-            sentences.add("I forgot my wallet.");
-            sentences.add("This wallet looks beautiful.");
-            sentences.add("I wish i can have this wallet.");
-            sentences.add("The wallet was a gift from a friend.");
-        } else if (keyword.equals("glasses")) {
-            sentences.add("I need my glasses.");
-            sentences.add("Pick up my glasses for me please?");
-            sentences.add("My glasses are damaged.");
-            sentences.add("My glasses look unfashionable.");
+        if (keyword.equals("mouse")) {
+            sentences.add("That is my mouse.");
+            sentences.add("Can you pass me my mouse?");
+            sentences.add("How much is this mouse?");
+            sentences.add("How long has this mouse been used?");
+        } else if (keyword.equals("laptop")) {
+            sentences.add("This is my laptop.");
+            sentences.add("This laptop is very expensive.");
+            sentences.add("Can I use this laptop?");
+            sentences.add("How much is this laptop?");
+        } else if (keyword.equals("keyboard")) {
+            sentences.add("This keyboard is very beautiful.");
+            sentences.add("Can I use this keyboard?");
+            sentences.add("Is this keyboard comfortable for typing?");
+            sentences.add("How much is this keyboard?");
         }
     }
 
@@ -392,6 +396,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
 
             final List<Classifier.Recognition> mappedRecognitions = new LinkedList<Classifier.Recognition>();
 
+            keywords.clear();
             for (final Classifier.Recognition result : results) {
                 final RectF location = result.getLocation();
                 if (location != null && result.getConfidence() >= minimumConfidence) {
@@ -403,6 +408,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
                     mappedRecognitions.add(result);
 
                     Log.i(TAG, "Object Detection result title: " + result.getTitle() + ", top: " + result.getLocation().top + ", bottom: " + result.getLocation().bottom + ", left: " + result.getLocation().left + ", right: " + result.getLocation().right);
+                    keywords.add(result.getTitle());
                 }
             }
 
@@ -482,6 +488,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
         if(event.isEnabled()) {
             initCamera();
             mIsRGBCameraReady = false;
+            mTvCurrentKeyword.setText("");
             initData("");
         }
         else {

@@ -34,12 +34,26 @@
             android:layout_height="200dp"
             android:scaleType="fitCenter"/>
 
-        <Button
-            android:id="@+id/btn_next"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/rv_sentences"
-            android:text="Next"/>
+            android:orientation="horizontal"
+            android:layout_above="@+id/rv_sentences">
+
+            <Button
+                android:id="@+id/btn_next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Next"/>
+
+            <TextView
+                android:id="@+id/tv_current_keyword"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorAccent"
+                android:textStyle="bold" />
+
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_sentences"
