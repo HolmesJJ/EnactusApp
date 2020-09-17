@@ -192,6 +192,8 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             from.put("username", Config.sUsername);
             from.put("name", Config.sName);
             from.put("firebaseToken", Config.sFirebaseToken);
+            from.put("longitude", Config.sLongitude);
+            from.put("latitude", Config.sLatitude);
             body.put("from", from);
             body.put("message", message);
             content.put("title", MessageType.GREETING.getValue());
