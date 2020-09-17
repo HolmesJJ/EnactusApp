@@ -22,12 +22,7 @@ import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.Utils.PermissionsUtils;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 
 import org.json.JSONObject;
@@ -83,7 +78,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 showProgress(true);
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(LoginActivity.this, LOGIN);
-                String jsonData = convertToJSONLogin(mUsername.getText().toString(), mPassword.getText().toString(), Config.sFirebaseToken);
+                String jsonData = convertToJSONLogin(mUsername.getText().toString(), mPassword.getText().toString());
                 task.execute(Constants.IP_ADDRESS + "login.php", jsonData, null);
             }
         });
@@ -104,26 +99,6 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         mBtnSignIn.setEnabled(false);
         PermissionsUtils.doSomeThingWithPermission(this, () -> {
             mBtnSignIn.setEnabled(true);
-            showProgress(true);
-            FirebaseInstanceId.getInstance().getInstanceId()
-                    .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                            if (!task.isSuccessful()) {
-                                ToastUtils.showShortSafe("FireBase Token Error!");
-                                return;
-                            }
-                            try {
-                                // Get new Instance ID token
-                                String fireBaseToken = task.getResult().getToken();
-                                Log.i(TAG, "fireBaseToken: " + fireBaseToken);
-                                Config.setFirebaseToken(fireBaseToken);
-                            } catch (Exception e) {
-                                ToastUtils.showShortSafe("FireBase Token Error!");
-                            }
-                            showProgress(false);
-                        }
-                    });
         }, PERMISSIONS, REC_PERMISSION, R.string.rationale_init);
     }
 
@@ -157,12 +132,11 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         }
     }
 
-    private String convertToJSONLogin(String username, String password, String firebaseToken) {
+    private String convertToJSONLogin(String username, String password) {
         JSONObject jsonMsg = new JSONObject();
         try {
             jsonMsg.put("Username", username);
             jsonMsg.put("Password", password);
-            jsonMsg.put("FirebaseToken", firebaseToken);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -176,7 +150,6 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
             int id = jsonObject.getInt("id");
             String username = jsonObject.getString("username");
             String name = jsonObject.getString("name");
-            String firebaseToken = jsonObject.getString("firebase_token");
             double longitude = jsonObject.getDouble("longitude");
             double latitude = jsonObject.getDouble("latitude");
             String message = jsonObject.getString("message");
@@ -185,7 +158,6 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
                 Config.setUserId(id);
                 Config.setUsername(username);
                 Config.setName(name);
-                Config.setFirebaseToken(firebaseToken);
                 Config.setLongitude(longitude);
                 Config.setLatitude(latitude);
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);

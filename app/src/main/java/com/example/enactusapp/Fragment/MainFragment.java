@@ -1,11 +1,15 @@
 package com.example.enactusapp.Fragment;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -40,21 +44,30 @@ import com.example.enactusapp.Fragment.Dialog.DialogFragment;
 import com.example.enactusapp.Fragment.Notification.NotificationFragment;
 import com.example.enactusapp.Fragment.ObjectDetection.ObjectDetectionFragment;
 import com.example.enactusapp.Fragment.Profile.ProfileFragment;
+import com.example.enactusapp.Http.HttpAsyncTaskPost;
+import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.STT.Listener.STTListener;
 import com.example.enactusapp.STT.RecogResult;
 import com.example.enactusapp.STT.STTHelper;
 import com.example.enactusapp.TTS.TTSHelper;
 import com.example.enactusapp.TTS.Listener.TTSListener;
+import com.example.enactusapp.Thread.CustomThreadPool;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.GPSUtils;
 import com.example.enactusapp.Utils.SimulateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 import org.greenrobot.eventbus.Subscribe;
+import org.json.JSONObject;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -79,11 +92,12 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener {
+public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener, OnTaskCompleted {
 
     private static final String TAG = "MainFragment";
 
     private static final int START_LOCATION_ACTIVITY = 99;
+    private static final int UPDATE_TOKEN = 1;
 
     private static final int MIDDLE_TAB = 2;
     private static final int OBJECT_DETECTION_TAB = 3;
@@ -112,6 +126,8 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private Handler backgroundHandler;
     private HandlerThread backgroundThread = new HandlerThread("background");
     private ViewLayoutChecker viewLayoutChecker = new ViewLayoutChecker();
+
+    private static CustomThreadPool sThreadPoolFirebase = new CustomThreadPool(Thread.NORM_PRIORITY);
 
     private static SparseIntArray ORIENTATIONS = new SparseIntArray();
 
@@ -326,8 +342,63 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         mBottomBar.setVisibility(View.VISIBLE);
     }
 
+    private String convertToJSONUpdateToken(int userId, String firebaseToken) {
+        JSONObject jsonMsg = new JSONObject();
+        try {
+            jsonMsg.put("Id", userId);
+            jsonMsg.put("FirebaseToken", firebaseToken);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonMsg.toString();
+    }
+
+    private void retrieveFromJSONUpdateToken(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            int code = jsonObject.getInt("code");
+            String message = jsonObject.getString("message");
+            if (code == 1) {
+
+            } else {
+                ToastUtils.showShortSafe(message);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onEnterAnimationEnd(Bundle savedInstanceState) {
+        sThreadPoolFirebase.execute(() -> {
+            // APP多次重启后token就失效，因此每次启动都直接删除旧的token，重新刷新新的token
+            try {
+                FirebaseInstanceId.getInstance().deleteInstanceId();
+            } catch (Exception e) {
+                e.fillInStackTrace();
+            }
+            FirebaseInstanceId.getInstance().getInstanceId()
+                    .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                            if (!task.isSuccessful()) {
+                                ToastUtils.showShortSafe("FireBase Token Error!");
+                                return;
+                            }
+                            try {
+                                // Get new Instance ID token
+                                String fireBaseToken = task.getResult().getToken();
+                                Log.i(TAG, "fireBaseToken: " + fireBaseToken);
+                                Config.setFirebaseToken(fireBaseToken);
+                                HttpAsyncTaskPost updateTokenTask = new HttpAsyncTaskPost(MainFragment.this, UPDATE_TOKEN);
+                                String jsonData = convertToJSONUpdateToken(Config.sUserId, fireBaseToken);
+                                updateTokenTask.execute(Constants.IP_ADDRESS + "update_token.php", jsonData, null);
+                            } catch (Exception e) {
+                                ToastUtils.showShortSafe("FireBase Token Error!");
+                            }
+                        }
+                    });
+        });
         if (!GPSUtils.isOpenGPS(_mActivity)) {
             startLocation();
         }
@@ -619,6 +690,13 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onSTTOfflineUnLoaded() {
         Log.i(TAG, "onSTTOfflineUnLoaded");
+    }
+
+    @Override
+    public void onTaskCompleted(String response, int requestId) {
+        if (requestId == UPDATE_TOKEN) {
+            retrieveFromJSONUpdateToken(response);
+        }
     }
 
     public void startBrotherFragment(SupportFragment targetFragment) {

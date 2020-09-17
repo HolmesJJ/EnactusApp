@@ -166,7 +166,6 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
             int code = jsonObject.getInt("code");
             String message = jsonObject.getString("message");
             if (code == 1) {
-                Config.setIsLogin(true);
                 Config.setName(profileNameEt.getText().toString());
             } else {
                 ToastUtils.showShortSafe(message);
