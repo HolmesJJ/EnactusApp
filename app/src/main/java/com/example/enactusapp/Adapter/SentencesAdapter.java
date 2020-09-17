@@ -21,10 +21,10 @@ import androidx.recyclerview.widget.RecyclerView;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class ObjectDetectionSentencesAdapter extends RecyclerView.Adapter<ObjectDetectionSentencesAdapter.ObjectDetectionSentencesViewHolder> {
+public class SentencesAdapter extends RecyclerView.Adapter<SentencesAdapter.SentencesViewHolder> {
 
     private Context context;
-    private List<String> objectDetectionSentencesList;
+    private List<String> sentences;
 
     private LayoutInflater mInflater = null;
     private OnItemClickListener mOnItemClickListener;
@@ -33,18 +33,18 @@ public class ObjectDetectionSentencesAdapter extends RecyclerView.Adapter<Object
         this.mOnItemClickListener = mOnItemClickListener;
     }
 
-    public ObjectDetectionSentencesAdapter(Context context, List<String> objectDetectionSentencesList) {
+    public SentencesAdapter(Context context, List<String> sentences) {
         this.mInflater = LayoutInflater.from(context);
         this.context = context;
-        this.objectDetectionSentencesList = objectDetectionSentencesList;
+        this.sentences = sentences;
     }
 
 
     @NonNull
     @Override
-    public ObjectDetectionSentencesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.item_object_detection_sentence, parent, false);
-        final ObjectDetectionSentencesViewHolder holder = new ObjectDetectionSentencesViewHolder(view);
+    public SentencesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = mInflater.inflate(R.layout.item_sentence, parent, false);
+        final SentencesViewHolder holder = new SentencesViewHolder(view);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -56,21 +56,21 @@ public class ObjectDetectionSentencesAdapter extends RecyclerView.Adapter<Object
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ObjectDetectionSentencesViewHolder holder, int position) {
-        String possibleAnswer = objectDetectionSentencesList.get(position);
+    public void onBindViewHolder(@NonNull SentencesViewHolder holder, int position) {
+        String possibleAnswer = sentences.get(position);
         holder.mSentenceTextView.setText(possibleAnswer);
     }
 
     @Override
     public int getItemCount() {
-        return objectDetectionSentencesList.size();
+        return sentences.size();
     }
 
-    public class ObjectDetectionSentencesViewHolder extends RecyclerView.ViewHolder {
+    public class SentencesViewHolder extends RecyclerView.ViewHolder {
 
         private TextView mSentenceTextView;
 
-        public ObjectDetectionSentencesViewHolder(View itemView) {
+        public SentencesViewHolder(View itemView) {
             super(itemView);
             mSentenceTextView = itemView.findViewById(R.id.sentence_tv);
         }

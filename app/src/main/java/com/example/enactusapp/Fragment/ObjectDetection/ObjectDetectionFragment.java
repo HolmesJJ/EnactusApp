@@ -25,15 +25,19 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.enactusapp.Adapter.SentencesAdapter;
 import com.example.enactusapp.Camera2.Camera2Helper;
 import com.example.enactusapp.Camera2.Camera2Listener;
 import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
 import com.example.enactusapp.Event.BackCameraEvent;
+import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
+import com.example.enactusapp.TTS.TTSHelper;
 import com.example.enactusapp.TensorFlow.Classifier;
 import com.example.enactusapp.TensorFlow.MultiBoxTracker;
 import com.example.enactusapp.TensorFlow.TFLiteObjectDetectionAPIModel;
@@ -46,9 +50,13 @@ import org.greenrobot.eventbus.Subscribe;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,7 +71,7 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class ObjectDetectionFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, Camera2Listener {
+public class ObjectDetectionFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, Camera2Listener, OnItemClickListener {
 
     private static final String TAG = "ObjectDetectionFragment";
 
@@ -94,7 +102,10 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     private OverlayView trackingOverlay;
     private Camera2Helper camera2Helper;
     private ImageView mIvPreview;
+    private RecyclerView mRvSentences;
+    private SentencesAdapter mSentencesAdapter;
     private TextView mTvInferenceTimeView;
+    private Button btnNext;
 
     // RGBCamera是否就绪
     private boolean mIsRGBCameraReady = false;
@@ -124,6 +135,11 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     private long lastProcessingTimeMs = 0;
     // 时间戳
     private long timestamp = 0;
+    // 当前选中的对象
+    private String currentObject;
+    // Sentences
+    private List<String> sentences = new ArrayList<>();
+    private int keywordCounter = 0;
 
     // YuvToRGB
     private ScriptIntrinsicYuvToRGB mScriptIntrinsicYuvToRGB;
@@ -186,7 +202,16 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
         mTvBackCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
         trackingOverlay = (OverlayView) view.findViewById(R.id.tracking_overlay);
         mIvPreview = (ImageView) view.findViewById(R.id.iv_preview);
+        mRvSentences = (RecyclerView) view.findViewById(R.id.rv_sentences);
         mTvInferenceTimeView = (TextView) view.findViewById(R.id.tv_inference_time);
+        btnNext = (Button) view.findViewById(R.id.btn_next);
+        mSentencesAdapter = new SentencesAdapter(_mActivity, sentences);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRvSentences.getContext(), linearLayoutManager.getOrientation());
+        mRvSentences.setLayoutManager(linearLayoutManager);
+        mRvSentences.addItemDecoration(dividerItemDecoration);
+        mRvSentences.setAdapter(mSentencesAdapter);
+        mSentencesAdapter.setOnItemClickListener(this);
     }
 
     @Override
@@ -195,7 +220,45 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     }
 
     private void initDelayView() {
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (keywordCounter > 3) {
+                    keywordCounter = 0;
+                }
+                if (keywordCounter == 0) {
+                    initData("pen");
+                } else if (keywordCounter == 1) {
+                    initData("wallet");
+                } else if (keywordCounter == 2) {
+                    initData("glasses");
+                } else if (keywordCounter == 3) {
+                    initData("");
+                }
+                keywordCounter++;
+                mSentencesAdapter.notifyDataSetChanged();
+            }
+        });
+    }
 
+    private void initData(String keyword) {
+        sentences.clear();
+        if (keyword.equals("pen")) {
+            sentences.add("That is a ink pen.");
+            sentences.add("This is a very beautiful pen.");
+            sentences.add("My pen is out of ink.");
+            sentences.add("Shall I buy a pen as a gift for someone?");
+        } else if (keyword.equals("wallet")) {
+            sentences.add("I forgot my wallet.");
+            sentences.add("This wallet looks beautiful.");
+            sentences.add("I wish i can have this wallet.");
+            sentences.add("The wallet was a gift from a friend.");
+        } else if (keyword.equals("glasses")) {
+            sentences.add("I need my glasses.");
+            sentences.add("Pick up my glasses for me please?");
+            sentences.add("My glasses are damaged.");
+            sentences.add("My glasses look unfashionable.");
+        }
     }
 
     private void initCamera() {
@@ -338,6 +401,8 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
 
                     result.setLocation(location);
                     mappedRecognitions.add(result);
+
+                    Log.i(TAG, "Object Detection result title: " + result.getTitle() + ", top: " + result.getLocation().top + ", bottom: " + result.getLocation().bottom + ", left: " + result.getLocation().left + ", right: " + result.getLocation().right);
                 }
             }
 
@@ -353,6 +418,11 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
 
             mIsRGBCameraObjectReady = false;
         });
+    }
+
+    @Override
+    public void onItemClick(int position) {
+        TTSHelper.getInstance().speak(sentences.get(position));
     }
 
     @Override
@@ -412,6 +482,7 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
         if(event.isEnabled()) {
             initCamera();
             mIsRGBCameraReady = false;
+            initData("");
         }
         else {
             if (camera2Helper != null) {
