@@ -8,7 +8,8 @@ android {
     defaultConfig {
         applicationId "com.example.enactusapp"
         minSdkVersion 23
-        targetSdkVersion 29
+        // UVCCamera需要27以下
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -92,6 +93,8 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.12.12'
     // TensorFlow
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
+    // USB Camera
+    implementation 'com.github.jiangdongguo:AndroidUSBCamera:2.3.4'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

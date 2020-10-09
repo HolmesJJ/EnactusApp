@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:FixedAspectRatioRelativeLayout="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <FrameLayout
@@ -13,7 +14,9 @@
     <com.example.enactusapp.UI.FixedAspectRatioRelativeLayout
         android:layout_width="60dp"
         android:layout_height="match_parent"
-        android:layout_gravity="end">
+        android:layout_gravity="end"
+        FixedAspectRatioRelativeLayout:aspect_ratio_width="480"
+        FixedAspectRatioRelativeLayout:aspect_ratio_height="640">
 
         <TextureView
             android:id="@+id/tv_front_camera"

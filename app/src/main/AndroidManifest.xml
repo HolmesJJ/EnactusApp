@@ -34,6 +34,9 @@
         android:name="android.hardware.camera.front.autofocus"
         android:required="false" />
 
+    <!-- UVCCamera -->
+    <uses-feature android:name="android.hardware.usb.host"/>
+
     <application
         android:name=".BaseApplication"
         android:allowBackup="true"

@@ -223,12 +223,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             public void onTabSelected(int position, int prePosition) {
                 if (prePosition == OBJECT_DETECTION_TAB && position != OBJECT_DETECTION_TAB) {
                     EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(false));
-                    GazeHelper.getInstance().initGaze(_mActivity, MainFragment.this);
-                    setOffsetOfView();
                 } else if (prePosition != OBJECT_DETECTION_TAB && position == OBJECT_DETECTION_TAB) {
-                    GazeHelper.getInstance().stopTracking();
-                    GazeHelper.getInstance().removeCameraPreview();
-                    GazeHelper.getInstance().releaseGaze();
                     EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(true));
                 }
                 if (position != MIDDLE_TAB) {
@@ -736,6 +731,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     public void startBrotherFragment(SupportFragment targetFragment) {
         start(targetFragment);
+    }
+
+    public int getCurrentItemPosition() {
+        return mBottomBar.getCurrentItemPosition();
     }
 
     private BroadcastReceiver mGreetingBroadcastReceiver = new BroadcastReceiver() {

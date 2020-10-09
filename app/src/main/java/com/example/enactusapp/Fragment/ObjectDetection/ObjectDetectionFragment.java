@@ -5,11 +5,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.RectF;
-import android.hardware.camera2.CameraDevice;
+import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.renderscript.Allocation;
 import android.renderscript.Element;
@@ -24,17 +24,16 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.SentencesAdapter;
-import com.example.enactusapp.Camera2.Camera2Helper;
-import com.example.enactusapp.Camera2.Camera2Listener;
 import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
 import com.example.enactusapp.Event.BackCameraEvent;
+import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
 import com.example.enactusapp.TTS.TTSHelper;
@@ -45,6 +44,10 @@ import com.example.enactusapp.Thread.CustomThreadPool;
 import com.example.enactusapp.Utils.FileUtils;
 import com.example.enactusapp.Utils.ImageUtils;
 import com.example.enactusapp.Utils.ToastUtils;
+import com.jiangdg.usbcamera.UVCCameraHelper;
+import com.jiangdg.usbcamera.UVCCameraHelper.OnMyDevConnectListener;
+import com.serenegiant.usb.common.AbstractUVCCameraHandler.OnPreViewResultListener;
+import com.serenegiant.usb.widget.CameraViewInterface;
 
 import org.greenrobot.eventbus.Subscribe;
 
@@ -71,12 +74,9 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class ObjectDetectionFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, Camera2Listener, OnItemClickListener {
+public class ObjectDetectionFragment extends SupportFragment implements OnItemClickListener, CameraViewInterface.Callback, OnMyDevConnectListener, OnPreViewResultListener {
 
     private static final String TAG = "ObjectDetectionFragment";
-
-    // 默认打开的CAMERA
-    private static final String BACK_CAMERA_ID = Camera2Helper.CAMERA_ID_BACK;
 
     // Configuration values for the prepackaged SSD model.
     private static final int TF_OD_API_INPUT_SIZE = 300;
@@ -99,14 +99,23 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
 
     private Toolbar mToolbar;
     private TextureView mTvBackCamera;
+    private CameraViewInterface mCviBackCamera;
+    private SeekBar mSbBrightness;
+    private SeekBar mSbContrast;
     private OverlayView trackingOverlay;
-    private Camera2Helper camera2Helper;
     private ImageView mIvPreview;
     private RecyclerView mRvSentences;
     private SentencesAdapter mSentencesAdapter;
     private TextView mTvInferenceTimeView;
     private TextView mTvCurrentKeyword;
     private Button btnNext;
+
+    // UVCCamera
+    private UVCCameraHelper mUVCCameraHelper;
+    // 是否连接USB
+    private boolean isAttached;
+    // 是否预览
+    private boolean isPreview;
 
     // RGBCamera是否就绪
     private boolean mIsRGBCameraReady = false;
@@ -191,9 +200,10 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_object_detection,container,false);
+        View view = inflater.inflate(R.layout.fragment_object_detection, container, false);
         EventBusActivityScope.getDefault(_mActivity).register(this);
         initView(view);
+        initCamera();
         return view;
     }
 
@@ -201,7 +211,10 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.objectDetection);
         mTvBackCamera = (TextureView) view.findViewById(R.id.tv_back_camera);
-        mTvBackCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
+        mCviBackCamera = (CameraViewInterface) mTvBackCamera;
+        mCviBackCamera.setCallback(this);
+        mSbBrightness = (SeekBar) view.findViewById(R.id.sb_brightness);
+        mSbContrast = (SeekBar) view.findViewById(R.id.sb_contrast);
         trackingOverlay = (OverlayView) view.findViewById(R.id.tracking_overlay);
         mIvPreview = (ImageView) view.findViewById(R.id.iv_preview);
         mRvSentences = (RecyclerView) view.findViewById(R.id.rv_sentences);
@@ -223,6 +236,44 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     }
 
     private void initDelayView() {
+        mSbBrightness.setMax(100);
+        mSbBrightness.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(mUVCCameraHelper != null && mUVCCameraHelper.isCameraOpened()) {
+                    mUVCCameraHelper.setModelValue(UVCCameraHelper.MODE_BRIGHTNESS, progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        mSbContrast.setMax(100);
+        mSbContrast.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(mUVCCameraHelper != null && mUVCCameraHelper.isCameraOpened()) {
+                    mUVCCameraHelper.setModelValue(UVCCameraHelper.MODE_CONTRAST, progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -266,27 +317,25 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
     }
 
     private void initCamera() {
-        if (camera2Helper != null) {
+        // step.1 initialize UVCCameraHelper
+        if (mUVCCameraHelper != null) {
             return;
         }
-        camera2Helper = new Camera2Helper.Builder()
-                .cameraListener(this)
-                .maxPreviewSize(new Point(640, 480))
-                .minPreviewSize(new Point(640, 480))
-                .specificCameraId(BACK_CAMERA_ID)
-                .context(_mActivity)
-                .previewOn(mTvBackCamera)
-                .previewViewSize(new Point(mTvBackCamera.getWidth(), mTvBackCamera.getHeight()))
-                .rotation(_mActivity.getWindowManager().getDefaultDisplay().getRotation())
-                .build();
-        camera2Helper.start();
+        mUVCCameraHelper = UVCCameraHelper.getInstance();
+        // set default preview size
+        mUVCCameraHelper.setDefaultPreviewSize(640, 480);
+        // set default frame format，defalut is UVCCameraHelper.Frame_FORMAT_MPEG
+        // if using mpeg can not record mp4,please try yuv
+        // mCameraHelper.setDefaultFrameFormat(UVCCameraHelper.FRAME_FORMAT_YUYV);
+        mUVCCameraHelper.initUSBMonitor(_mActivity, mCviBackCamera, this);
+        mUVCCameraHelper.setOnPreviewFrameListener(this);
     }
 
     private void releaseCamera() {
-        if (camera2Helper != null) {
-            camera2Helper.stop();
-            camera2Helper.release();
-            camera2Helper = null;
+        // step.4 release uvc camera resources
+        if (mUVCCameraHelper != null) {
+            mUVCCameraHelper.release();
+            mUVCCameraHelper = null;
         }
     }
 
@@ -431,90 +480,207 @@ public class ObjectDetectionFragment extends SupportFragment implements ViewTree
         TTSHelper.getInstance().speak(sentences.get(position));
     }
 
+//    @Override
+//    public void onGlobalLayout() {
+//        mTvBackCamera.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+//    }
+
+//    @Override
+//    public void onCameraOpened(CameraDevice cameraDevice, String cameraId, final Size previewSize, final int displayOrientation, boolean isMirror) {
+//        Log.i(TAG, "onCameraOpened: previewSize = " + previewSize.getWidth() + "x" + previewSize.getHeight());
+//        this.displayOrientation = displayOrientation;
+//        this.isMirrorPreview = isMirror;
+//        this.openedCameraId = cameraId;
+//    }
+
+//    @Override
+//    public void onPreview(final byte[] y, final byte[] u, final byte[] v, final Size previewSize, final int stride) {
+//
+//        if (mRGBCameraTrackNv21 == null) {
+//            mRGBCameraTrackNv21 = new byte[stride * previewSize.getHeight() * 3 / 2];
+//        }
+//
+//        if (mRGBCameraVerifyNv21 == null) {
+//            mRGBCameraVerifyNv21 = new byte[stride * previewSize.getHeight() * 3 / 2];
+//        }
+//
+//        if (!mIsRGBCameraReady) {
+//            mIsRGBCameraReady = true;
+//            mPreviewW = previewSize.getWidth();
+//            mPreviewH = previewSize.getHeight();
+//            Log.i(TAG, "mPreviewW: " + mPreviewW + ", mPreviewH: " + mPreviewH);
+//            this.y = y;
+//            this.u = u;
+//            this.v = v;
+//            this.stride = stride;
+//            initClassifier();
+//        }
+//
+//        if (!mIsRGBCameraNv21Ready) {
+//            mIsRGBCameraNv21Ready = true;
+//            startTrackRGBTask();
+//        }
+//    }
+
+//    @Override
+//    public void onCameraClosed() {
+//        Log.i(TAG, "onCameraClosed: ");
+//    }
+
+//    @Override
+//    public void onCameraError(Exception e) {
+//        e.printStackTrace();
+//    }
+
+    // OnMyDevConnectListener
     @Override
-    public void onGlobalLayout() {
-        mTvBackCamera.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+    public void onAttachDev(UsbDevice device) {
+        // request open permission
+        if (!isAttached) {
+            isAttached = true;
+            ToastUtils.showShortSafe(device.getDeviceName() + " is attached");
+            if (((MainFragment) getParentFragment()).getCurrentItemPosition() == 3 && mUVCCameraHelper != null) {
+                mUVCCameraHelper.requestPermission(0);
+            }
+        }
     }
 
     @Override
-    public void onCameraOpened(CameraDevice cameraDevice, String cameraId, final Size previewSize, final int displayOrientation, boolean isMirror) {
-        Log.i(TAG, "onCameraOpened: previewSize = " + previewSize.getWidth() + "x" + previewSize.getHeight());
-        this.displayOrientation = displayOrientation;
-        this.isMirrorPreview = isMirror;
-        this.openedCameraId = cameraId;
-    }
-
-    @Override
-    public void onPreview(final byte[] y, final byte[] u, final byte[] v, final Size previewSize, final int stride) {
-
-        if (mRGBCameraTrackNv21 == null) {
-            mRGBCameraTrackNv21 = new byte[stride * previewSize.getHeight() * 3 / 2];
-        }
-
-        if (mRGBCameraVerifyNv21 == null) {
-            mRGBCameraVerifyNv21 = new byte[stride * previewSize.getHeight() * 3 / 2];
-        }
-
-        if (!mIsRGBCameraReady) {
-            mIsRGBCameraReady = true;
-            mPreviewW = previewSize.getWidth();
-            mPreviewH = previewSize.getHeight();
-            Log.i(TAG, "mPreviewW: " + mPreviewW + ", mPreviewH: " + mPreviewH);
-            this.y = y;
-            this.u = u;
-            this.v = v;
-            this.stride = stride;
-            initClassifier();
-        }
-
-        if (!mIsRGBCameraNv21Ready) {
-            mIsRGBCameraNv21Ready = true;
-            startTrackRGBTask();
+    public void onDettachDev(UsbDevice device) {
+        // close camera
+        if (isAttached) {
+            isAttached = false;
+            if (mUVCCameraHelper != null) {
+                mUVCCameraHelper.stopPreview();
+                mUVCCameraHelper.closeCamera();
+            }
+            ToastUtils.showShortSafe(device.getDeviceName() + " is detached");
         }
     }
 
     @Override
-    public void onCameraClosed() {
-        Log.i(TAG, "onCameraClosed: ");
+    public void onConnectDev(UsbDevice device, boolean isConnected) {
+        ToastUtils.showShortSafe(device.getDeviceName() + " is connected " + isConnected);
+        if (isConnected) {
+            // Start preview
+            // need to wait UVCCamera initialize over
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(2500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    Looper.prepare();
+                    if (mUVCCameraHelper != null && mUVCCameraHelper.isCameraOpened()) {
+                        mUVCCameraHelper.setModelValue(UVCCameraHelper.MODE_BRIGHTNESS, 30);
+                        mUVCCameraHelper.setModelValue(UVCCameraHelper.MODE_CONTRAST, 30);
+                        _mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSbBrightness.setProgress(30);
+                                mSbContrast.setProgress(30);
+                            }
+                        });
+                        isPreview = true;
+                    }
+                    Looper.loop();
+                }
+            }).start();
+        } else {
+            isPreview = false;
+        }
     }
 
     @Override
-    public void onCameraError(Exception e) {
-        e.printStackTrace();
+    public void onDisConnectDev(UsbDevice device) {
+        ToastUtils.showShortSafe(device.getDeviceName() + " is disconnected");
+    }
+
+    // CameraViewInterface
+    @Override
+    public void onSurfaceCreated(CameraViewInterface view, Surface surface) {
+        // if (mUVCCameraHelper != null && mUVCCameraHelper.isCameraOpened()) {
+        //     mUVCCameraHelper.startPreview(mCviBackCamera);
+        //     isPreview = true;
+        // }
+    }
+
+    @Override
+    public void onSurfaceChanged(CameraViewInterface view, Surface surface, int width, int height) {
+
+    }
+
+    @Override
+    public void onSurfaceDestroy(CameraViewInterface view, Surface surface) {
+        if (mUVCCameraHelper != null && mUVCCameraHelper.isCameraOpened()) {
+            mUVCCameraHelper.stopPreview();
+            isPreview = false;
+        }
+    }
+
+    @Override
+    public void onPreviewResult(byte[] data) {
+
     }
 
     @Subscribe
     public void onBackCameraEvent(BackCameraEvent event) {
         if(event.isEnabled()) {
-            initCamera();
+            if (mUVCCameraHelper != null && isAttached) {
+                mUVCCameraHelper.requestPermission(0);
+            }
             mIsRGBCameraReady = false;
             mTvCurrentKeyword.setText("");
             initData("");
         }
         else {
-            if (camera2Helper != null) {
-                camera2Helper.stop();
-                camera2Helper.release();
-                camera2Helper = null;
+            if (mUVCCameraHelper != null && isAttached) {
+                if (mUVCCameraHelper.isCameraOpened()) {
+                    mUVCCameraHelper.stopPreview();
+                    isPreview = false;
+                }
+                mUVCCameraHelper.closeCamera();
             }
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // step.2 register USB event broadcast
+        if (mUVCCameraHelper != null) {
+            mUVCCameraHelper.registerUSB();
         }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (camera2Helper != null) {
-            camera2Helper.start();
+        if (mUVCCameraHelper != null && mUVCCameraHelper.isCameraOpened()) {
+            mUVCCameraHelper.startPreview(mCviBackCamera);
+            isPreview = true;
         }
         mIsRGBCameraReady = false;
     }
 
     @Override
     public void onPause() {
-        if (camera2Helper != null) {
-            camera2Helper.stop();
+        if (mUVCCameraHelper != null && mUVCCameraHelper.isCameraOpened()) {
+            mUVCCameraHelper.stopPreview();
+            isPreview = false;
         }
         super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // step.3 unregister USB event broadcast
+        if (mUVCCameraHelper != null) {
+            mUVCCameraHelper.unregisterUSB();
+        }
     }
 
     @Override
