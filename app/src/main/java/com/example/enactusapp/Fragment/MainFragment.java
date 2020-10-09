@@ -1,15 +1,11 @@
 package com.example.enactusapp.Fragment;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -31,9 +27,11 @@ import com.example.enactusapp.Bluetooth.BluetoothHelper;
 import com.example.enactusapp.Bluetooth.BluetoothHelper.OnReadDataListener;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Entity.GazePoint;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.BackCameraEvent;
 import com.example.enactusapp.Event.CalibrationEvent;
+import com.example.enactusapp.Event.GazePointEvent;
 import com.example.enactusapp.Event.MessageEvent;
 import com.example.enactusapp.Event.StartChatEvent;
 import com.example.enactusapp.EyeTracker.CalibrationViewer;
@@ -125,6 +123,8 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     // 眼睛是在凝视或在移动
     private int fixationCounter = 0;
     private int currentEyeMovementState = EyeMovementState.FIXATION;
+
+    private GazePoint mGazePoint;
 
     private Handler backgroundHandler;
     private HandlerThread backgroundThread = new HandlerThread("background");
@@ -260,6 +260,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mNormalBroadcastReceiver, new IntentFilter(MessageType.NORMAL.getValue()));
 
         setOffsetOfView();
+    }
+
+    public GazePoint getGazePoint() {
+        return mGazePoint;
     }
 
     private void setCalibrationPoint(final float x, final float y) {
@@ -440,6 +444,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     public void onGazeCoord(long timestamp, float x, float y, int state) {
         if (!IS_USE_GAZE_FILER) {
             if (state == TrackingState.TRACKING) {
+                mGazePoint = new GazePoint(x, y);
                 showGazePoint(x, y, state);
             } else {
                 fixationCounter = 0;
@@ -458,6 +463,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (IS_USE_GAZE_FILER) {
             if (state == TrackingState.TRACKING) {
                 Log.i(TAG, "showGazePoint: (" + x + "x" + y + ")");
+                mGazePoint = new GazePoint(x, y);
                 showGazePoint(x, y, state);
             } else {
                 fixationCounter = 0;
@@ -501,15 +507,18 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (state == EyeMovementState.FIXATION) {
             if (currentEyeMovementState == EyeMovementState.FIXATION) {
                 fixationCounter++;
-                if (fixationCounter <= 50) {
+                if (fixationCounter <= 25) {
                     _mActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mPbGaze.setProgress(fixationCounter * 2);
+                            mPbGaze.setProgress(fixationCounter * 4);
                         }
                     });
-                    if (fixationCounter == 50) {
+                    if (fixationCounter == 25) {
                         SimulateUtils.simulateClick(_mActivity, (int)x, (int)y);
+                        if (mBottomBar.getCurrentItemPosition() == 3 && getGazePoint() != null) {
+                            EventBusActivityScope.getDefault(_mActivity).post(new GazePointEvent(getGazePoint()));
+                        }
                     }
                 } else {
                     fixationCounter = 0;

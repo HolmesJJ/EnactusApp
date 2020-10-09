@@ -16,6 +16,7 @@ import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.renderscript.Type;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -32,7 +33,9 @@ import android.widget.TextView;
 import com.example.enactusapp.Adapter.SentencesAdapter;
 import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
+import com.example.enactusapp.Entity.GazePoint;
 import com.example.enactusapp.Event.BackCameraEvent;
+import com.example.enactusapp.Event.GazePointEvent;
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
@@ -110,6 +113,9 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private TextView mTvCurrentKeyword;
     private Button btnNext;
 
+    private int screenHeight;
+    private int screenWidth;
+
     // UVCCamera
     private UVCCameraHelper mUVCCameraHelper;
     // 是否连接USB
@@ -123,18 +129,6 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private int mPreviewW = -1;
     // 预览高度
     private int mPreviewH = -1;
-    // 颜色通道
-    private byte[] y;
-    private byte[] u;
-    private byte[] v;
-    // 步长
-    private int stride;
-    // 显示的旋转角度
-    private int displayOrientation;
-    // 是否手动镜像预览
-    private boolean isMirrorPreview;
-    // 实际打开的cameraId
-    private String openedCameraId;
     // 图像帧数据，全局变量避免反复创建，降低gc频率
     private byte[] mRGBCameraTrackNv21, mRGBCameraVerifyNv21;
     // 帧处理
@@ -147,9 +141,17 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private long timestamp = 0;
     // 当前选中的对象
     private String currentObject;
-    // Sentences
+    // Detected Objects
     private List<String> sentences = new ArrayList<>();
     private List<String> keywords = new ArrayList<>();
+    private List<Classifier.Recognition> detectedObjects = new LinkedList<>();
+    private GazePoint mGazePoint;
+    // 是否正在搜索物体
+    private boolean isSearchingObject = false;
+    // 是否正在等待搜索物体
+    private boolean isWaitingSearch = false;
+    // 是否正在更新识别物体
+    private boolean isUpdatingRecognitionObjects = false;
     private int keywordCounter = 0;
 
     // YuvToRGB
@@ -228,6 +230,15 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         mRvSentences.addItemDecoration(dividerItemDecoration);
         mRvSentences.setAdapter(mSentencesAdapter);
         mSentencesAdapter.setOnItemClickListener(this);
+        getScreenSize();
+    }
+
+    private void getScreenSize() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        _mActivity.getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
+        screenHeight = displayMetrics.heightPixels;
+        screenWidth = displayMetrics.widthPixels;
+        Log.i(TAG, "getScreenSize: screenHeight " + screenHeight + ", screenWidth " + screenWidth);
     }
 
     @Override
@@ -325,8 +336,8 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         // set default preview size
         mUVCCameraHelper.setDefaultPreviewSize(640, 480);
         // set default frame format，defalut is UVCCameraHelper.Frame_FORMAT_MPEG
-        // if using mpeg can not record mp4,please try yuv
-        // mCameraHelper.setDefaultFrameFormat(UVCCameraHelper.FRAME_FORMAT_YUYV);
+        // if using mpeg can not record mp4, please try yuv
+        mUVCCameraHelper.setDefaultFrameFormat(UVCCameraHelper.FRAME_FORMAT_YUYV);
         mUVCCameraHelper.initUSBMonitor(_mActivity, mCviBackCamera, this);
         mUVCCameraHelper.setOnPreviewFrameListener(this);
     }
@@ -360,7 +371,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         frameToCropTransform = ImageUtils.getTransformationMatrix(
                 mPreviewW, mPreviewH,
                 TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE,
-                ORIENTATIONS.get(Surface.ROTATION_90), MAINTAIN_ASPECT);
+                ORIENTATIONS.get(Surface.ROTATION_0), MAINTAIN_ASPECT);
 
         cropToFrameTransform = new Matrix();
         frameToCropTransform.invert(cropToFrameTransform);
@@ -374,21 +385,12 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                     }
                 });
 
-        tracker.setFrameConfiguration(mPreviewW, mPreviewH, ORIENTATIONS.get(Surface.ROTATION_90));
+        tracker.setFrameConfiguration(mPreviewW, mPreviewH, ORIENTATIONS.get(Surface.ROTATION_0));
     }
 
     private void startTrackRGBTask() {
         sThreadPoolRGBTrack.execute(() -> {
             if (mIsRGBCameraNv21Ready) {
-
-                // 回传数据是YUV422
-                if (y.length / u.length == 2) {
-                    ImageUtils.yuv422ToYuv420sp(y, u, v, mRGBCameraTrackNv21, stride, mPreviewH);
-                }
-                // 回传数据是YUV420
-                else if (y.length / u.length == 4) {
-                    ImageUtils.yuv420ToYuv420sp(y, u, v, mRGBCameraTrackNv21, stride, mPreviewH);
-                }
 
                 rgbFrameBitmap = getSceneBtm(mRGBCameraTrackNv21, mPreviewW, mPreviewH);
 
@@ -401,12 +403,12 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                     FileUtils.writeBitmapToDisk(croppedBitmap, Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tensorflow" + File.separator + "preview.png");
                 }
 
-                // _mActivity.runOnUiThread(new Runnable() {
-                //     @Override
-                //     public void run() {
-                //         mIvPreview.setImageBitmap(rgbFrameBitmap);
-                //     }
-                // });
+                 // _mActivity.runOnUiThread(new Runnable() {
+                 //     @Override
+                 //     public void run() {
+                 //         mIvPreview.setImageBitmap(rgbFrameBitmap);
+                 //     }
+                 // });
 
                 if (!mIsRGBCameraObjectReady) {
                     System.arraycopy(mRGBCameraTrackNv21, 0, mRGBCameraVerifyNv21, 0, mRGBCameraTrackNv21.length);
@@ -445,6 +447,31 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
             final List<Classifier.Recognition> mappedRecognitions = new LinkedList<Classifier.Recognition>();
 
+            if (!isSearchingObject) {
+                isUpdatingRecognitionObjects = true;
+                detectedObjects.clear();
+                for (final Classifier.Recognition result : results) {
+                    final RectF location = result.getLocation();
+                    if (location != null && result.getConfidence() >= minimumConfidence) {
+                        detectedObjects.add(result);
+                    }
+                }
+                isUpdatingRecognitionObjects = false;
+                if (isWaitingSearch && mGazePoint != null) {
+                    Classifier.Recognition searchObject = searchObject(this.mGazePoint);
+                    if (searchObject != null) {
+                        mTvCurrentKeyword.setText(searchObject.getTitle());
+                        initData(searchObject.getTitle());
+                    }
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSentencesAdapter.notifyDataSetChanged();
+                        }
+                    });
+                    isWaitingSearch = false;
+                }
+            }
             keywords.clear();
             for (final Classifier.Recognition result : results) {
                 final RectF location = result.getLocation();
@@ -475,62 +502,28 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         });
     }
 
+    private Classifier.Recognition searchObject(GazePoint gazePoint) {
+        Log.i(TAG, "searchObject: " + gazePoint.getGazePointX() + " " + gazePoint.getGazePointY());
+        double convertX = (mPreviewW * 1.0) / screenWidth * gazePoint.getGazePointX();
+        double convertY = (mPreviewH * 1.0) / (screenWidth / (mPreviewW * 1.0) * (mPreviewH * 1.0)) * gazePoint.getGazePointY();
+        Log.i(TAG, "convertXY: " + convertX + " " + convertY);
+        for (int i = 0; i < detectedObjects.size(); i++) {
+            Log.i(TAG, "detectedObjects: " + i + " " + detectedObjects.get(i).getLocation().left + " " + detectedObjects.get(i).getLocation().right
+                    + " " + detectedObjects.get(i).getLocation().top + " " + detectedObjects.get(i).getLocation().bottom);
+            if (detectedObjects.get(i).getLocation().left <= convertX &&
+                    detectedObjects.get(i).getLocation().right >= convertX &&
+                    detectedObjects.get(i).getLocation().top <= convertY &&
+                    detectedObjects.get(i).getLocation().bottom >= convertY) {
+                return detectedObjects.get(i);
+            }
+        }
+        return null;
+    }
+
     @Override
     public void onItemClick(int position) {
         TTSHelper.getInstance().speak(sentences.get(position));
     }
-
-//    @Override
-//    public void onGlobalLayout() {
-//        mTvBackCamera.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-//    }
-
-//    @Override
-//    public void onCameraOpened(CameraDevice cameraDevice, String cameraId, final Size previewSize, final int displayOrientation, boolean isMirror) {
-//        Log.i(TAG, "onCameraOpened: previewSize = " + previewSize.getWidth() + "x" + previewSize.getHeight());
-//        this.displayOrientation = displayOrientation;
-//        this.isMirrorPreview = isMirror;
-//        this.openedCameraId = cameraId;
-//    }
-
-//    @Override
-//    public void onPreview(final byte[] y, final byte[] u, final byte[] v, final Size previewSize, final int stride) {
-//
-//        if (mRGBCameraTrackNv21 == null) {
-//            mRGBCameraTrackNv21 = new byte[stride * previewSize.getHeight() * 3 / 2];
-//        }
-//
-//        if (mRGBCameraVerifyNv21 == null) {
-//            mRGBCameraVerifyNv21 = new byte[stride * previewSize.getHeight() * 3 / 2];
-//        }
-//
-//        if (!mIsRGBCameraReady) {
-//            mIsRGBCameraReady = true;
-//            mPreviewW = previewSize.getWidth();
-//            mPreviewH = previewSize.getHeight();
-//            Log.i(TAG, "mPreviewW: " + mPreviewW + ", mPreviewH: " + mPreviewH);
-//            this.y = y;
-//            this.u = u;
-//            this.v = v;
-//            this.stride = stride;
-//            initClassifier();
-//        }
-//
-//        if (!mIsRGBCameraNv21Ready) {
-//            mIsRGBCameraNv21Ready = true;
-//            startTrackRGBTask();
-//        }
-//    }
-
-//    @Override
-//    public void onCameraClosed() {
-//        Log.i(TAG, "onCameraClosed: ");
-//    }
-
-//    @Override
-//    public void onCameraError(Exception e) {
-//        e.printStackTrace();
-//    }
 
     // OnMyDevConnectListener
     @Override
@@ -622,7 +615,24 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
     @Override
     public void onPreviewResult(byte[] data) {
-
+        if (mRGBCameraTrackNv21 == null) {
+            mRGBCameraTrackNv21 = new byte[data.length];
+        }
+        if (mRGBCameraVerifyNv21 == null) {
+            mRGBCameraVerifyNv21 = new byte[data.length];
+        }
+        if (!mIsRGBCameraReady) {
+            mIsRGBCameraReady = true;
+            mPreviewW = 640;
+            mPreviewH = 480;
+            Log.i(TAG, "mPreviewW: " + mPreviewW + ", mPreviewH: " + mPreviewH);
+            initClassifier();
+        }
+        if (!mIsRGBCameraNv21Ready) {
+            System.arraycopy(data, 0, mRGBCameraTrackNv21, 0, data.length);
+            mIsRGBCameraNv21Ready = true;
+            startTrackRGBTask();
+        }
     }
 
     @Subscribe
@@ -642,6 +652,26 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                     isPreview = false;
                 }
                 mUVCCameraHelper.closeCamera();
+            }
+        }
+    }
+
+    @Subscribe
+    public void onGazePointEvent(GazePointEvent gazePointEvent) {
+        this.mGazePoint = gazePointEvent.getGazePoint();
+        if (isUpdatingRecognitionObjects) {
+            isWaitingSearch = true;
+        } else {
+            Classifier.Recognition searchObject = searchObject(this.mGazePoint);
+            if (searchObject != null) {
+                mTvCurrentKeyword.setText(searchObject.getTitle());
+                initData(searchObject.getTitle());
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSentencesAdapter.notifyDataSetChanged();
+                    }
+                });
             }
         }
     }
