@@ -30,6 +30,7 @@ import com.example.enactusapp.Constants.MessageType;
 import com.example.enactusapp.Entity.GazePoint;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.BackCameraEvent;
+import com.example.enactusapp.Event.BluetoothEvent;
 import com.example.enactusapp.Event.CalibrationEvent;
 import com.example.enactusapp.Event.GazePointEvent;
 import com.example.enactusapp.Event.MessageEvent;
@@ -704,6 +705,18 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void readData(String mac, byte[] data) {
         Log.i(TAG, "Bluetooth readData mac: " + mac +", data: " + Arrays.toString(data));
+        // A运动，B放松
+        // [-23, -128, -102, -23, -127, -109, 49, -17, -68, -102, 66, 13, 10, -23, -128, -102, -23, -127, -109, 50, -17, -68, -102, 65, 13, 10]
+        String channel1 = "B";
+        String channel2 = "B";
+        if (data[10] == 65) {
+            channel1 = "A";
+        }
+        if (data[23] == 65) {
+            channel2 = "A";
+        }
+        Log.i(TAG, "BluetoothEvent: channel1 " + channel1 +", channel2: " + channel2);
+        EventBusActivityScope.getDefault(_mActivity).post(new BluetoothEvent(channel1, channel2, getCurrentItemPosition()));
     }
 
     @Override

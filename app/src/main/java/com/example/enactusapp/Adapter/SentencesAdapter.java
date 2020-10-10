@@ -29,7 +29,7 @@ public class SentencesAdapter extends RecyclerView.Adapter<SentencesAdapter.Sent
     private LayoutInflater mInflater = null;
     private OnItemClickListener mOnItemClickListener;
 
-    public void setOnItemClickListener(OnItemClickListener mOnItemClickListener){
+    public void setOnItemClickListener(OnItemClickListener mOnItemClickListener) {
         this.mOnItemClickListener = mOnItemClickListener;
     }
 
@@ -38,7 +38,6 @@ public class SentencesAdapter extends RecyclerView.Adapter<SentencesAdapter.Sent
         this.context = context;
         this.sentences = sentences;
     }
-
 
     @NonNull
     @Override

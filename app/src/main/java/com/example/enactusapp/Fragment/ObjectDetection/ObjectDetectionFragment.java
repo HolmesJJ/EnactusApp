@@ -35,6 +35,7 @@ import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
 import com.example.enactusapp.Entity.GazePoint;
 import com.example.enactusapp.Event.BackCameraEvent;
+import com.example.enactusapp.Event.BluetoothEvent;
 import com.example.enactusapp.Event.GazePointEvent;
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Listener.OnItemClickListener;
@@ -49,6 +50,7 @@ import com.example.enactusapp.Utils.ImageUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 import com.jiangdg.usbcamera.UVCCameraHelper;
 import com.jiangdg.usbcamera.UVCCameraHelper.OnMyDevConnectListener;
+import com.serenegiant.usb.IFrameCallback;
 import com.serenegiant.usb.common.AbstractUVCCameraHandler.OnPreViewResultListener;
 import com.serenegiant.usb.widget.CameraViewInterface;
 
@@ -153,6 +155,17 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     // 是否正在更新识别物体
     private boolean isUpdatingRecognitionObjects = false;
     private int keywordCounter = 0;
+
+    // 选中Next按钮的次数
+    private int countBtnNext = 0;
+    // 选中一个句子的次数
+    private int countSentenceNext = 0;
+    // 选中发音的次数
+    private int countSpeak = 0;
+    // 上一次选中的位置
+    private int lastSelectedPosition = -1;
+    // 上一次选中的句子
+    private String lastSelectedSentence = "";
 
     // YuvToRGB
     private ScriptIntrinsicYuvToRGB mScriptIntrinsicYuvToRGB;
@@ -309,6 +322,8 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
     private void initData(final String keyword) {
         sentences.clear();
+        lastSelectedPosition = -1;
+        lastSelectedSentence = "";
         if (keyword.equals("mouse")) {
             sentences.add("That is my mouse.");
             sentences.add("Can you pass me my mouse?");
@@ -522,6 +537,13 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
     @Override
     public void onItemClick(int position) {
+        if (lastSelectedPosition != -1) {
+            sentences.set(lastSelectedPosition, lastSelectedSentence);
+        }
+        lastSelectedPosition = position;
+        lastSelectedSentence = sentences.get(position);
+        sentences.set(position, sentences.get(position) + " *");
+        mSentencesAdapter.notifyDataSetChanged();
         TTSHelper.getInstance().speak(sentences.get(position));
     }
 
@@ -672,6 +694,54 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                         mSentencesAdapter.notifyDataSetChanged();
                     }
                 });
+            }
+        }
+    }
+
+    @Subscribe
+    public void onBluetoothEvent(BluetoothEvent bluetoothEvent) {
+        if (bluetoothEvent.getCurrentPosition() == 3) {
+            if (bluetoothEvent.getChannel1().equals("A") && bluetoothEvent.getChannel2().equals("A")) {
+                countSpeak++;
+                // 3次代表点击发送
+                if (countSpeak == 3 && lastSelectedPosition != -1) {
+                    TTSHelper.getInstance().speak(lastSelectedSentence);
+                }
+            } else {
+                countSpeak = 0;
+            }
+            if (bluetoothEvent.getChannel1().equals("A") && bluetoothEvent.getChannel2().equals("B")) {
+                countBtnNext++;
+                if (countBtnNext == 3) {
+                    btnNext.performClick();
+                }
+            } else {
+                countBtnNext = 0;
+            }
+            if (bluetoothEvent.getChannel2().equals("A") && bluetoothEvent.getChannel1().equals("B")) {
+                countSentenceNext++;
+                if (countSentenceNext == 3) {
+                    if (sentences.size() > 0) {
+                        if (lastSelectedPosition != -1 && lastSelectedPosition < sentences.size()) {
+                            sentences.set(lastSelectedPosition, lastSelectedSentence);
+                        }
+                        if (lastSelectedPosition < sentences.size() - 1) {
+                            lastSelectedPosition = lastSelectedPosition + 1;
+                        } else {
+                            lastSelectedPosition = 0;
+                        }
+                        lastSelectedSentence = sentences.get(lastSelectedPosition);
+                        sentences.set(lastSelectedPosition, sentences.get(lastSelectedPosition) + " *");
+                        _mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSentencesAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                }
+            } else {
+                countSentenceNext = 0;
             }
         }
     }
