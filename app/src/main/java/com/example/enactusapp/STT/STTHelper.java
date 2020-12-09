@@ -23,7 +23,7 @@ public class STTHelper implements IRecogListener {
     private static final String DIR_PATH = "baiduSTT";
 
     // 是否需要调用离线命令词功能
-    private static final boolean ENABLE_OFFLINE = false;
+    private static final boolean ENABLE_OFFLINE = false; 
 
     /**
      * 识别控制器，使用SDKRecognizer控制识别的流程

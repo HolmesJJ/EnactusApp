@@ -110,6 +110,24 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/ll_hide_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/ll_contrast">
+
+            <Button
+                android:id="@+id/btn_hide_next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hide Next"
+                android:textColor="@android:color/transparent"
+                android:background="@android:color/transparent"/>
+
+        </LinearLayout>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_sentences"
             android:layout_width="match_parent"

@@ -114,6 +114,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private TextView mTvInferenceTimeView;
     private TextView mTvCurrentKeyword;
     private Button btnNext;
+    private Button btnHideNext;
 
     private int screenHeight;
     private int screenWidth;
@@ -236,6 +237,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         mTvInferenceTimeView = (TextView) view.findViewById(R.id.tv_inference_time);
         mTvCurrentKeyword = (TextView) view.findViewById(R.id.tv_current_keyword);
         btnNext = (Button) view.findViewById(R.id.btn_next);
+        btnHideNext = (Button) view.findViewById(R.id.btn_hide_next);
         mSentencesAdapter = new SentencesAdapter(_mActivity, sentences);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRvSentences.getContext(), linearLayoutManager.getOrientation());
@@ -316,6 +318,29 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                     initData("");
                 }
                 mSentencesAdapter.notifyDataSetChanged();
+            }
+        });
+        btnHideNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (sentences.size() > 0) {
+                    if (lastSelectedPosition != -1 && lastSelectedPosition < sentences.size()) {
+                        sentences.set(lastSelectedPosition, lastSelectedSentence);
+                    }
+                    if (lastSelectedPosition < sentences.size() - 1) {
+                        lastSelectedPosition = lastSelectedPosition + 1;
+                    } else {
+                        lastSelectedPosition = 0;
+                    }
+                    lastSelectedSentence = sentences.get(lastSelectedPosition);
+                    sentences.set(lastSelectedPosition, sentences.get(lastSelectedPosition) + " *");
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSentencesAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
             }
         });
     }
