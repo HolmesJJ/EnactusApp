@@ -119,7 +119,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
                     showProgress(true);
                     HttpAsyncTaskPost task = new HttpAsyncTaskPost(ProfileFragment.this, UPDATE_USER);
                     String jsonData = convertToJSONUpdateUser(Config.sUserId, profileNameEt.getText().toString());
-                    task.execute(Constants.IP_ADDRESS + "api/Account/EditName", jsonData, null);
+                    task.execute(Constants.IP_ADDRESS + "api/Account/EditName.php", jsonData, null);
                 } else {
                     ToastUtils.showShortSafe("Please enter valid name");
                 }

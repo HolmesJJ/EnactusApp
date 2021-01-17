@@ -396,7 +396,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                                 Config.setFirebaseToken(fireBaseToken);
                                 HttpAsyncTaskPost updateTokenTask = new HttpAsyncTaskPost(MainFragment.this, UPDATE_TOKEN);
                                 String jsonData = convertToJSONUpdateToken(Config.sUserId, fireBaseToken);
-                                updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken", jsonData, null);
+                                updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken.php", jsonData, null);
                             } catch (Exception e) {
                                 ToastUtils.showShortSafe("FireBase Token Error!");
                             }

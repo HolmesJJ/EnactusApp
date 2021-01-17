@@ -105,13 +105,13 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             public void onRefresh() {
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
                 String jsonData = convertToJSONGetUsers(Config.sUserId);
-                task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
+                task.execute(Constants.IP_ADDRESS + "api/Account/Users.php", jsonData, null);
             }
         });
         showProgress(true);
         HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
         String jsonData = convertToJSONGetUsers(Config.sUserId);
-        task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
+        task.execute(Constants.IP_ADDRESS + "api/Account/Users.php", jsonData, null);
     }
 
     @Override

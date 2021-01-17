@@ -81,7 +81,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
                 showProgress(true);
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(LoginActivity.this, LOGIN);
                 String jsonData = convertToJSONLogin(mUsername.getText().toString(), mPassword.getText().toString());
-                task.execute(Constants.IP_ADDRESS + "api/Account/Login", jsonData, null);
+                task.execute(Constants.IP_ADDRESS + "api/Account/Login.php", jsonData, null);
             }
         });
     }
