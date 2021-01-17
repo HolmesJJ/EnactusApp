@@ -34,6 +34,7 @@ import com.example.enactusapp.Event.BluetoothEvent;
 import com.example.enactusapp.Event.CalibrationEvent;
 import com.example.enactusapp.Event.GazePointEvent;
 import com.example.enactusapp.Event.MessageEvent;
+import com.example.enactusapp.Event.NotificationEvent;
 import com.example.enactusapp.Event.StartChatEvent;
 import com.example.enactusapp.EyeTracker.CalibrationViewer;
 import com.example.enactusapp.EyeTracker.GazeDevice;
@@ -771,7 +772,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             String message = intent.getStringExtra("message");
             String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
             showNotificationFragment();
-            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
+            EventBusActivityScope.getDefault(_mActivity).post(new NotificationEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
         }
     };
 

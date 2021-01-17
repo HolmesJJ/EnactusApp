@@ -8,6 +8,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,8 @@ import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
 import com.example.enactusapp.Entity.User;
+import com.example.enactusapp.Event.ClearChatHistoryEvent;
+import com.example.enactusapp.Event.GreetingEvent;
 import com.example.enactusapp.Event.MessageToPossibleAnswersEvent;
 import com.example.enactusapp.Event.MessageEvent;
 import com.example.enactusapp.Event.PossibleWordEvent;
@@ -34,6 +37,7 @@ import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.TTS.TTSHelper;
 import com.example.enactusapp.Utils.ToastUtils;
+import com.google.firebase.ml.naturallanguage.smartreply.FirebaseTextMessage;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONArray;
@@ -41,6 +45,10 @@ import org.json.JSONObject;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
@@ -68,6 +76,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     private User user;
     private String message;
+    private List<FirebaseTextMessage> chatHistory = new ArrayList<>();
 
     public static DialogFragment newInstance() {
         DialogFragment fragment = new DialogFragment();
@@ -194,17 +203,41 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     }
 
     @Subscribe
+    public void onGreetingEvent(GreetingEvent event) {
+        chatHistory.clear();
+        chatHistory.add(FirebaseTextMessage.createForLocalUser("Hi, How are you?", System.currentTimeMillis()));
+    }
+
+    @Subscribe
+    public void onClearChatHistoryEvent(ClearChatHistoryEvent event) {
+        chatHistory.clear();
+    }
+
+    @Subscribe
     public void onMessageEvent(MessageEvent event) {
+        if (user == null || user.getId() != event.getUser().getId()) {
+            chatHistory.clear();
+        }
         user = event.getUser();
         message = event.getMessage();
         mMessageTextView.setText(message);
-        EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message));
+        // 不是麦克风的信息
+        if (user != null) {
+            if (chatHistory.size() == 0) {
+                chatHistory.add(FirebaseTextMessage.createForRemoteUser("Hi, How are you?", System.currentTimeMillis(), String.valueOf(user.getId())));
+            } else {
+                chatHistory.add(FirebaseTextMessage.createForRemoteUser(message, System.currentTimeMillis(), String.valueOf(user.getId())));
+            }
+        } else {
+            chatHistory.add(FirebaseTextMessage.createForRemoteUser(message, System.currentTimeMillis(), String.valueOf(-1)));
+        }
+        EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message, chatHistory));
     }
 
     @Subscribe
     public void onRequireMessageEvent(RequireMessageEvent event) {
         if (!TextUtils.isEmpty(message)) {
-            EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message));
+            EventBusActivityScope.getDefault(_mActivity).post(new MessageToPossibleAnswersEvent(user, message, chatHistory));
         }
     }
 
@@ -218,8 +251,10 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     @Subscribe
     public void onSpeakPossibleAnswersEvent(SpeakPossibleAnswersEvent event) {
         if (!TextUtils.isEmpty(event.getAnswer())) {
+            chatHistory.add(FirebaseTextMessage.createForLocalUser(event.getAnswer(), System.currentTimeMillis()));
             TTSHelper.getInstance().speak(event.getAnswer());
         } else {
+            chatHistory.add(FirebaseTextMessage.createForLocalUser(mInputEditText.getText().toString(), System.currentTimeMillis()));
             TTSHelper.getInstance().speak(mInputEditText.getText().toString());
         }
         if (user == null) {

@@ -54,6 +54,10 @@ android {
     lintOptions {
         abortOnError false
     }
+    // FireBase Smart Reply
+    aaptOptions {
+        noCompress "tflite"
+    }
 }
 
 // import DownloadModels task
@@ -85,6 +89,9 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     // FireBase
     implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    // FireBase Smart Reply
+    implementation 'com.google.firebase:firebase-ml-natural-language:18.2.0'
+    implementation 'com.google.firebase:firebase-ml-natural-language-smart-reply-model:18.0.0'
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     implementation project(path: ':bluetoothlibrary')

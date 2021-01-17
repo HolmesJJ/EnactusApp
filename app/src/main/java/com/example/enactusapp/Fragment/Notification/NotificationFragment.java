@@ -2,6 +2,7 @@ package com.example.enactusapp.Fragment.Notification;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +13,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Entity.User;
-import com.example.enactusapp.Event.MessageEvent;
-import com.example.enactusapp.Event.MessageToPossibleAnswersEvent;
+import com.example.enactusapp.Event.NotificationEvent;
 import com.example.enactusapp.Event.StartChatEvent;
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.R;
@@ -97,7 +97,7 @@ public class NotificationFragment extends SupportFragment {
     }
 
     @Subscribe
-    public void onMessageEvent(MessageEvent event) {
+    public void onNotificationEvent(NotificationEvent event) {
         user = event.getUser();
         message = event.getMessage();
         if (user != null && !TextUtils.isEmpty(message)) {

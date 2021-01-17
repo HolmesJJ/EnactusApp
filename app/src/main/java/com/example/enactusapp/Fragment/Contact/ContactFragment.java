@@ -16,6 +16,7 @@ import com.example.enactusapp.Adapter.ContactAdapter;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
 import com.example.enactusapp.Entity.User;
+import com.example.enactusapp.Event.GreetingEvent;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
@@ -40,6 +41,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
 /**
@@ -211,6 +213,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             JSONObject jsonObject = new JSONObject(response);
             int id = jsonObject.getInt("success");
             if (id == 1) {
+                EventBusActivityScope.getDefault(_mActivity).post(new GreetingEvent());
                 ToastUtils.showShortSafe("Sent");
             } else {
                 String results = jsonObject.getString("results");
