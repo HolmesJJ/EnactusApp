@@ -42,13 +42,15 @@ public class HttpAsyncTaskGet extends AsyncTask<String, Void, String> {
             InputStream inputStream = null;
             try {
                 urlConnection.setRequestMethod("GET");
-                // receive response as inputStream
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                if (inputStream != null)
+                int code = urlConnection.getResponseCode();
+                if (code == 200) {
+                    // receive response as inputStream
+                    inputStream = new BufferedInputStream(urlConnection.getInputStream());
                     // convert inputstream to string
                     result = convertInputStreamToString(inputStream);
-                else
+                } else {
                     result = "Did not work!";
+                }
             } finally {
                 if (inputStream!=null)
                     inputStream.close();

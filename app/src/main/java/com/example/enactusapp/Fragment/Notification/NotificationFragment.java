@@ -83,7 +83,7 @@ public class NotificationFragment extends SupportFragment {
             @Override
             public void onClick(View view) {
                 if (user != null && !TextUtils.isEmpty(message)) {
-                    String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + user.getId() + ".jpg";
+                    String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + user.getId() + ".jpg";
                     EventBusActivityScope.getDefault(_mActivity).post(new StartChatEvent(user));
                 }
             }
@@ -101,7 +101,7 @@ public class NotificationFragment extends SupportFragment {
         user = event.getUser();
         message = event.getMessage();
         if (user != null && !TextUtils.isEmpty(message)) {
-            String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + user.getId() + ".jpg";
+            String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + user.getId() + ".jpg";
             Glide.with(this).load(thumbnail).into(mIvThumbnail);
             mTvName.setText(user.getName());
             mTvMessage.setText(message);

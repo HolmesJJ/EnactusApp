@@ -396,7 +396,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                                 Config.setFirebaseToken(fireBaseToken);
                                 HttpAsyncTaskPost updateTokenTask = new HttpAsyncTaskPost(MainFragment.this, UPDATE_TOKEN);
                                 String jsonData = convertToJSONUpdateToken(Config.sUserId, fireBaseToken);
-                                updateTokenTask.execute(Constants.IP_ADDRESS + "update_token.php", jsonData, null);
+                                updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken", jsonData, null);
                             } catch (Exception e) {
                                 ToastUtils.showShortSafe("FireBase Token Error!");
                             }
@@ -770,7 +770,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             double longitude = intent.getDoubleExtra("longitude", 9999);
             double latitude = intent.getDoubleExtra("latitude", 9999);
             String message = intent.getStringExtra("message");
-            String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
+            String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + id + ".jpg";
             showNotificationFragment();
             EventBusActivityScope.getDefault(_mActivity).post(new NotificationEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
         }
@@ -786,7 +786,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             double longitude = intent.getDoubleExtra("longitude", 9999);
             double latitude = intent.getDoubleExtra("latitude", 9999);
             String message = intent.getStringExtra("message");
-            String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
+            String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + id + ".jpg";
             EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
             if (mBottomBar.getCurrentItemPosition() == 0) {
                 showHideFragment(mFragments[1], mFragments[0]);

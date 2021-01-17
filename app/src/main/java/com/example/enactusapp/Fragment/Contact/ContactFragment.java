@@ -105,13 +105,13 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             public void onRefresh() {
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
                 String jsonData = convertToJSONGetUsers(Config.sUserId);
-                task.execute(Constants.IP_ADDRESS + "get_users.php", jsonData, null);
+                task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
             }
         });
         showProgress(true);
         HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
         String jsonData = convertToJSONGetUsers(Config.sUserId);
-        task.execute(Constants.IP_ADDRESS + "get_users.php", jsonData, null);
+        task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                 double latitude = 9999;
                 if (jsonObject.has("id")) {
                     id = jsonObject.getInt("id");
-                    thumbnail = Constants.IP_ADDRESS + "img" + File.separator + id + ".jpg";
+                    thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + id + ".jpg";
                 }
                 if (jsonObject.has("username")) {
                     username = jsonObject.getString("username");
@@ -152,8 +152,8 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                 if (jsonObject.has("name")) {
                     name = jsonObject.getString("name");
                 }
-                if (jsonObject.has("firebase_token")) {
-                    firebaseToken = jsonObject.getString("firebase_token");
+                if (jsonObject.has("firebaseToken")) {
+                    firebaseToken = jsonObject.getString("firebaseToken");
                 }
                 if (jsonObject.has("longitude")) {
                     longitude = jsonObject.getDouble("longitude");

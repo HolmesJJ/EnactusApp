@@ -15,9 +15,13 @@ import com.example.enactusapp.Event.PossibleWordEvent;
 import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
+import com.example.enactusapp.Utils.ContextUtils;
 
 import org.greenrobot.eventbus.Subscribe;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +40,12 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateDes ${TODO}
  */
 public class T2KeyboardFragment extends SupportFragment implements OnItemClickListener {
+
+    private static final String DICTIONARY_1 = "dict1.txt";
+    private static final String DICTIONARY_2 = "dict2.txt";
+    private static final String DICTIONARY_3 = "dict3.txt";
+    private static final String DICTIONARY_4 = "dict4.txt";
+    private static final String DICTIONARY_5 = "dict5.txt";
 
     private RecyclerView mDialogPossibleWordsRecyclerView;
     private DialogPossibleWordsAdapter mDialogPossibleWordsAdapter;
@@ -136,76 +146,74 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         });
     }
 
-    private void possibleWords(String word) {
+    private void possibleWords(String keys) {
         possibleWordsList.clear();
-        if(word.equals("L")) {
-            possibleWordsList.add("i");
+        possibleWordsList.addAll(readDictionary(DICTIONARY_5, keys, 20));
+        if (possibleWordsList.size() <= 20) {
+            possibleWordsList.addAll(readDictionary(DICTIONARY_4, keys, 20 - possibleWordsList.size()));
         }
-        if(word.equals("LL")) {
-            possibleWordsList.add("am");
-            possibleWordsList.add("hi");
-            possibleWordsList.add("CD");
-            possibleWordsList.add("ad");
+        if (possibleWordsList.size() <= 20) {
+            possibleWordsList.addAll(readDictionary(DICTIONARY_3, keys, 20 - possibleWordsList.size()));
         }
-        if(word.equals("RR")) {
-            possibleWordsList.add("to");
-            possibleWordsList.add("no");
-            possibleWordsList.add("so");
+        if (possibleWordsList.size() <= 20) {
+            possibleWordsList.addAll(readDictionary(DICTIONARY_2, keys, 20 - possibleWordsList.size()));
         }
-        if(word.equals("RL")) {
-            possibleWordsList.add("of");
-            possibleWordsList.add("we");
-            possibleWordsList.add("om");
-            possibleWordsList.add("Pi");
-        }
-        if(word.equals("LR")) {
-            possibleWordsList.add("go");
-            possibleWordsList.add("do");
-            possibleWordsList.add("an");
-            possibleWordsList.add("by");
-        }
-        if(word.equals("LLL")) {
-            possibleWordsList.add("bad");
-            possibleWordsList.add("bag");
-            possibleWordsList.add("bed");
-            possibleWordsList.add("bid");
-        }
-        if(word.equals("LRL")) {
-            possibleWordsList.add("dug");
-            possibleWordsList.add("awe");
-            possibleWordsList.add("are");
-            possibleWordsList.add("dog");
-        }
-        if(word.equals("LRLR")) {
-            possibleWordsList.add("");
-            possibleWordsList.add("");
-            possibleWordsList.add("");
-            possibleWordsList.add("");
-        }
-        if(word.equals("RRR")) {
-            possibleWordsList.add("not");
-            possibleWordsList.add("too");
-            possibleWordsList.add("son");
-            possibleWordsList.add("zoo");
-        }
-        if(word.equals("RLL")) {
-            possibleWordsList.add("the");
-            possibleWordsList.add("sad");
-            possibleWordsList.add("pig");
-            possibleWordsList.add("yam");
-        }
-        if(word.equals("RLLL")) {
-            possibleWordsList.add("well");
-            possibleWordsList.add("weak");
-            possibleWordsList.add("real");
-            possibleWordsList.add("slim");
-        }
-        if(word.equals("LRLRL")) {
-            possibleWordsList.add("going");
+        if (possibleWordsList.size() <= 20) {
+            possibleWordsList.addAll(readDictionary(DICTIONARY_1, keys, 10 - possibleWordsList.size()));
         }
         mDialogPossibleWordsAdapter = new DialogPossibleWordsAdapter(_mActivity, possibleWordsList);
         mDialogPossibleWordsRecyclerView.setAdapter(mDialogPossibleWordsAdapter);
         mDialogPossibleWordsAdapter.setOnItemClickListener(this);
+    }
+
+    private List<String> readDictionary(String fileName, String keys, int number) {
+        List<String> wordsList = new ArrayList<>();
+        BufferedReader reader = null;
+        String L = "abcdefghijklm";
+        String R = "nopqrstuvwxyz";
+
+        try {
+            reader = new BufferedReader(new InputStreamReader(ContextUtils.getContext().getAssets().open(fileName)));
+            String mLine;
+            while ((mLine = reader.readLine()) != null && wordsList.size() <= number) {
+
+                // 符合长度
+                if (mLine.length() == keys.length()) {
+
+                    // 判断word的每个字母是否符合每一个key
+                    char[] keyArr = keys.toCharArray();
+                    char[] letterArr = mLine.toCharArray();
+
+                    int count = 0;
+                    for (int i = 0; i < keys.length(); i++) {
+                        String key = Character.toString(keyArr[i]).toUpperCase();
+                        String letter = Character.toString(letterArr[i]).toLowerCase();
+
+                        if ((key.equals("L") && L.contains(letter)) || key.equals("R") && R.contains(letter)) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    // 全部字母都符合要求
+                    if (count == keys.length()) {
+                        wordsList.add(mLine);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.fillInStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.fillInStackTrace();
+                }
+            }
+        }
+        return wordsList;
     }
 
     @Override

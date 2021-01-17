@@ -97,7 +97,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     }
 
     private void initDelayView() {
-        String thumbnail = Constants.IP_ADDRESS + "img" + File.separator + Config.sUserId + ".jpg";
+        String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + Config.sUserId + ".jpg";
         Glide.with(this).load(thumbnail).into(profileImageBtn);
         profileNameTv.setText(Config.sName);
 
@@ -119,7 +119,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
                     showProgress(true);
                     HttpAsyncTaskPost task = new HttpAsyncTaskPost(ProfileFragment.this, UPDATE_USER);
                     String jsonData = convertToJSONUpdateUser(Config.sUserId, profileNameEt.getText().toString());
-                    task.execute(Constants.IP_ADDRESS + "update_user.php", jsonData, null);
+                    task.execute(Constants.IP_ADDRESS + "api/Account/EditName", jsonData, null);
                 } else {
                     ToastUtils.showShortSafe("Please enter valid name");
                 }

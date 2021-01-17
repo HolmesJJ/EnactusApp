@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Administrator
@@ -46,22 +47,25 @@ public class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
             try {
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setDoOutput(true);
-                urlConnection.setChunkedStreamingMode(0);
                 urlConnection.setRequestProperty("Content-Type", "application/json");
+                urlConnection.setRequestProperty("Connection", "keep-alive");
+                urlConnection.setRequestProperty("Accept-Charset","UTF-8");
                 if (!TextUtils.isEmpty(authorization)) {
                     urlConnection.setRequestProperty("Authorization", authorization);
                 }
                 DataOutputStream outputStream = new DataOutputStream(urlConnection.getOutputStream());
-                outputStream.write(data.getBytes("UTF-8"));
+                outputStream.write(data.getBytes(StandardCharsets.UTF_8));
                 outputStream.flush();
                 outputStream.close();
-                // receive response as inputStream
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                if (inputStream != null)
+                int code = urlConnection.getResponseCode();
+                if (code == 200) {
+                    // receive response as inputStream
+                    inputStream = new BufferedInputStream(urlConnection.getInputStream());
                     // convert inputstream to string
                     result = convertInputStreamToString(inputStream);
-                else
+                } else {
                     result = "Did not work!";
+                }
             } finally {
                 if (inputStream!=null)
                     inputStream.close();
