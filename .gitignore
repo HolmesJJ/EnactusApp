@@ -1,8 +1,5 @@
 # Built application files
 *.apk
-*.aar
-*.ap_
-*.aab
 
 # Files for the ART/Dalvik VM
 *.dex
@@ -38,30 +35,7 @@ captures/
 
 # IntelliJ
 *.iml
-.idea/.name
-.idea/encodings.xml
-.idea/inspectionProfiles/Project_Default.xml
-.idea/inspectionProfiles/profiles_settings.xml
-.idea/misc.xml
-.idea/runConfigurations.xml
-.idea/codeStyles
-.idea/inspectionProfiles
-.idea/modules.xml
-.idea/scopes/scope_settings.xml
-.idea/vcs.xml
-.idea/caches
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/gradle.xml
-.idea/assetWizardSettings.xml
-.idea/dictionaries
-.idea/libraries
-# Android Studio 3 in .gitignore file.
-.idea/caches
-.idea/modules.xml
-.idea/jarRepositories.xml
-# Comment next line if keeping position of elements in Navigation Editor is relevant for you
-.idea/navEditor.xml
+.idea/
 .externalNativeBuild/
 
 # Keystore files
