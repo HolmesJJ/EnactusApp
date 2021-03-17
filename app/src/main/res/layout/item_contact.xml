@@ -5,7 +5,7 @@
     android:layout_marginStart="16dp"
     android:layout_marginEnd="16dp"
     android:layout_marginTop="16dp"
-    android:background="@drawable/rl_round_corner"
+    android:background="@drawable/rl_contact_item_round_corner"
     android:orientation="horizontal">
 
     <ImageView

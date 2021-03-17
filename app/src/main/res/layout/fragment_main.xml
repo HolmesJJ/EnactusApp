@@ -11,19 +11,30 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/bottom_bar_height" />
 
-    <com.example.enactusapp.UI.FixedAspectRatioRelativeLayout
-        android:layout_width="60dp"
-        android:layout_height="match_parent"
+    <RelativeLayout
+        android:id="@+id/rl_front_camera_container"
+        android:layout_marginTop="32dp"
+        android:layout_width="72dp"
+        android:layout_height="92dp"
         android:layout_gravity="end"
-        FixedAspectRatioRelativeLayout:aspect_ratio_width="480"
-        FixedAspectRatioRelativeLayout:aspect_ratio_height="640">
+        android:elevation="10dp"
+        android:background="@drawable/rl_front_camera_container_round_corner">
 
-        <TextureView
-            android:id="@+id/tv_front_camera"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        <com.example.enactusapp.UI.FixedAspectRatioRelativeLayout
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            FixedAspectRatioRelativeLayout:aspect_ratio_width="480"
+            FixedAspectRatioRelativeLayout:aspect_ratio_height="640">
 
-    </com.example.enactusapp.UI.FixedAspectRatioRelativeLayout>
+            <TextureView
+                android:id="@+id/tv_front_camera"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </com.example.enactusapp.UI.FixedAspectRatioRelativeLayout>
+
+    </RelativeLayout>
 
     <ProgressBar
         android:id="@+id/pb_gaze"

@@ -10,6 +10,7 @@
     <color name="pb_bg">#bac1d3</color>
     <color name="calibration_bg">#645e5e</color>
     <color name="contact_tab_bg">#f2f3f7</color>
+    <color name="front_camera_bg">#e6e8e7</color>
 
     <color name="light_green">#20c793</color>
 </resources>

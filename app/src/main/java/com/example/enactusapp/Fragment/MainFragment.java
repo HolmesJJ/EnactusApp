@@ -25,6 +25,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import com.baidu.tts.client.SpeechError;
 import com.example.enactusapp.Bluetooth.BluetoothHelper;
@@ -62,7 +63,9 @@ import com.example.enactusapp.Thread.CustomThreadPool;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.UI.TextureViewOutlineProvider;
 import com.example.enactusapp.Utils.GPSUtils;
+import com.example.enactusapp.Utils.ImageUtils;
 import com.example.enactusapp.Utils.SimulateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -119,6 +122,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     private SupportFragment[] mFragments = new SupportFragment[5];
 
+    private RelativeLayout mRlFrontCameraContainer;
     private TextureView mTvFrontCamera;
     private ProgressBar mPbGaze;
     private BottomBar mBottomBar;
@@ -202,9 +206,12 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     private void initView(View view) {
 
+        mRlFrontCameraContainer = (RelativeLayout) view.findViewById(R.id.rl_front_camera_container);
         mTvFrontCamera = (TextureView) view.findViewById(R.id.tv_front_camera);
         mPbGaze = (ProgressBar) view.findViewById(R.id.pb_gaze);
         mTvFrontCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
+        mTvFrontCamera.setOutlineProvider(new TextureViewOutlineProvider(ImageUtils.dp2px(_mActivity, 5)));
+        mTvFrontCamera.setClipToOutline(true);
         mPvPoint = (PointView) view.findViewById(R.id.pv_point);
         mVcCalibration = (CalibrationViewer) view.findViewById(R.id.cv_calibration);
         btnStopCalibration = (Button) view.findViewById(R.id.btn_stop_calibration);
@@ -290,6 +297,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             @Override
             public void run() {
                 updateStatusBar(true);
+                mRlFrontCameraContainer.setVisibility(View.INVISIBLE);
                 btnStopCalibration.setVisibility(View.VISIBLE);
                 mVcCalibration.setVisibility(View.VISIBLE);
                 mVcCalibration.changeDraw(true, null);
@@ -314,6 +322,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             public void run() {
                 mVcCalibration.setVisibility(View.GONE);
                 btnStopCalibration.setVisibility(View.GONE);
+                mRlFrontCameraContainer.setVisibility(View.VISIBLE);
                 updateStatusBar(false);
             }
         });
