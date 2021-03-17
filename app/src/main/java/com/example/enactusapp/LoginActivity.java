@@ -1,20 +1,12 @@
 package com.example.enactusapp;
 
-import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
@@ -22,8 +14,6 @@ import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.Utils.PermissionsUtils;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
-
-import androidx.appcompat.widget.Toolbar;
 
 import org.json.JSONObject;
 
@@ -52,9 +42,6 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
             android.Manifest.permission.BLUETOOTH_ADMIN,
     };
 
-    private LinearLayout loginForm;
-    private ProgressBar mPbLoading;
-    private Toolbar mToolbar;
     private EditText mUsername;
     private EditText mPassword;
     private Button mBtnSignIn;
@@ -78,7 +65,6 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
             public void onClick(View view) {
                 InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                showProgress(true);
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(LoginActivity.this, LOGIN);
                 String jsonData = convertToJSONLogin(mUsername.getText().toString(), mPassword.getText().toString());
                 task.execute(Constants.IP_ADDRESS + "api/Account/Login", jsonData, null);
@@ -87,12 +73,8 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
     }
 
     private void initView() {
-        loginForm = (LinearLayout) findViewById(R.id.loginForm);
-        mPbLoading = (ProgressBar) findViewById(R.id.pb_loading);
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        mToolbar.setTitle(R.string.login);
-        mUsername = (EditText) findViewById(R.id.username);
-        mPassword = (EditText) findViewById(R.id.password);
+        mUsername = (EditText) findViewById(R.id.et_username);
+        mPassword = (EditText) findViewById(R.id.et_password);
         mBtnSignIn = (Button) findViewById(R.id.btn_sign_in);
     }
 
@@ -102,36 +84,6 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         PermissionsUtils.doSomeThingWithPermission(this, () -> {
             mBtnSignIn.setEnabled(true);
         }, PERMISSIONS, REC_PERMISSION, R.string.rationale_init);
-    }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            loginForm.setVisibility(show ? View.GONE : View.VISIBLE);
-            loginForm.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    loginForm.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-            mPbLoading.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-            loginForm.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
     }
 
     private String convertToJSONLogin(String username, String password) {
@@ -175,7 +127,6 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
 
     @Override
     public void onTaskCompleted(String response, int requestId) {
-        showProgress(false);
         if (requestId == LOGIN) {
             retrieveFromJSONLogin(response);
         }

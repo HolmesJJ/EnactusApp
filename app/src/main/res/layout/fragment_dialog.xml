@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_centerVertical="true"
-            android:background="@color/Black"
+            android:background="@color/BLACK"
             android:layout_below="@+id/message_tv"/>
 
         <TextView
@@ -66,7 +66,7 @@
             android:layout_below="@+id/split_line1"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_backspace"
-            android:background="@color/transparent"
+            android:background="@color/TRANSPARENT"
             android:layout_marginEnd="10dp"
             android:layout_marginTop="15dp"
             android:visibility="invisible"/>

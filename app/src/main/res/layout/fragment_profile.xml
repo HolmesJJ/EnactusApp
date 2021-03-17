@@ -34,7 +34,7 @@
             android:layout_above="@+id/split_line1"
             android:src="@drawable/ic_change_profile"
             android:scaleType="fitCenter"
-            android:background="@color/transparent"/>
+            android:background="@color/TRANSPARENT"/>
 
         <TextView
             android:id="@+id/profile_name_tv"
@@ -45,7 +45,7 @@
             android:layout_below="@+id/split_line1"
             android:gravity="left"
             android:textSize="30dp"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:textStyle="bold" />
 
         <EditText
@@ -57,7 +57,7 @@
             android:layout_below="@+id/split_line1"
             android:gravity="left"
             android:textSize="30dp"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:textStyle="bold" />
 
         <ImageButton
@@ -70,7 +70,7 @@
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_refresh"
             android:scaleType="fitCenter"
-            android:background="@color/transparent"/>
+            android:background="@color/TRANSPARENT"/>
 
         <ImageButton
             android:id="@+id/profile_confirm_btn"
@@ -82,14 +82,14 @@
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_confirm"
             android:scaleType="fitCenter"
-            android:background="@color/transparent"/>
+            android:background="@color/TRANSPARENT"/>
 
         <Button
             android:id="@+id/start_calibration_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@+id/muscle_sensor_btn"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:textAllCaps="false"
             android:textSize="25dp"
             android:text="Start Calibration"/>
@@ -99,7 +99,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@+id/logout_btn"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:textAllCaps="false"
             android:textSize="25dp"
             android:text="Muscle Sensor"/>
@@ -110,7 +110,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:layout_alignParentBottom="true"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:textAllCaps="false"
             android:textSize="25dp"
             android:text="Logout"/>

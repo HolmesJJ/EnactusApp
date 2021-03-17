@@ -3,6 +3,7 @@ package com.example.enactusapp.Fragment.Contact;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.graphics.Canvas;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,8 +57,6 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     private static final int GET_USERS = 1;
     private static final int SEND_MESSAGE = 2;
 
-    private Toolbar mToolbar;
-    private ProgressBar mPbLoading;
     private SwipeRefreshLayout mSrlRefresh;
     private RecyclerView mContactRecyclerView;
     private ContactAdapter mContactAdapter;
@@ -80,13 +79,10 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     }
 
     private void initView(View view) {
-        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
-        mToolbar.setTitle(R.string.contact);
-        mPbLoading = (ProgressBar) view.findViewById(R.id.pb_loading);
         mSrlRefresh = (SwipeRefreshLayout) view.findViewById(R.id.srl_refresh);
         mContactRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler_view);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mContactRecyclerView.getContext(), linearLayoutManager.getOrientation());
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mContactRecyclerView.getContext(), 0);
         mContactRecyclerView.setLayoutManager(linearLayoutManager);
         mContactRecyclerView.addItemDecoration(dividerItemDecoration);
         mContactAdapter = new ContactAdapter(_mActivity, users);
@@ -108,7 +104,6 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                 task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
             }
         });
-        showProgress(true);
         HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
         String jsonData = convertToJSONGetUsers(Config.sUserId);
         task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
@@ -227,29 +222,8 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-            mPbLoading.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
-    }
-
     @Override
     public void onTaskCompleted(String response, int requestId) {
-        showProgress(false);
         if (requestId == GET_USERS) {
             mSrlRefresh.setRefreshing(false);
             retrieveFromJSONGetUsers(response);
@@ -261,7 +235,6 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     @Override
     public void onItemClick(int position) {
-        showProgress(true);
         if (!TextUtils.isEmpty(users.get(position).getFirebaseToken())) {
             String firebaseToken = users.get(position).getFirebaseToken();
             HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, SEND_MESSAGE);

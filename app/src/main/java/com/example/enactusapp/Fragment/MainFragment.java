@@ -1,11 +1,13 @@
 package com.example.enactusapp.Fragment;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -19,6 +21,8 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
@@ -264,6 +268,19 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         setOffsetOfView();
     }
 
+    @SuppressLint("ResourceType")
+    private void updateStatusBar(boolean isShowed) {
+        Window window = _mActivity.getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        if (isShowed) {
+            window.setStatusBarColor(Color.parseColor(getResources().getString(R.color.calibration_bg)));
+            window.getDecorView().setSystemUiVisibility(0);
+        } else {
+            window.setStatusBarColor(Color.WHITE);
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        }
+    }
+
     public GazePoint getGazePoint() {
         return mGazePoint;
     }
@@ -272,6 +289,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         _mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                updateStatusBar(true);
                 btnStopCalibration.setVisibility(View.VISIBLE);
                 mVcCalibration.setVisibility(View.VISIBLE);
                 mVcCalibration.changeDraw(true, null);
@@ -296,6 +314,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             public void run() {
                 mVcCalibration.setVisibility(View.GONE);
                 btnStopCalibration.setVisibility(View.GONE);
+                updateStatusBar(false);
             }
         });
     }

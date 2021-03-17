@@ -42,7 +42,7 @@
                 android:paddingBottom="7dp"
                 android:paddingTop="7dp"
                 android:text="Brightness"
-                android:textColor="@color/Black" />
+                android:textColor="@color/BLACK" />
 
             <SeekBar
                 android:id="@+id/sb_brightness"
@@ -68,7 +68,7 @@
                 android:paddingBottom="7dp"
                 android:paddingTop="7dp"
                 android:text="Contrast"
-                android:textColor="@color/Black" />
+                android:textColor="@color/BLACK" />
 
             <SeekBar
                 android:id="@+id/sb_contrast"
@@ -123,8 +123,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Hide Next"
-                android:textColor="@android:color/transparent"
-                android:background="@android:color/transparent"/>
+                android:textColor="@color/TRANSPARENT"
+                android:background="@color/TRANSPARENT"/>
 
         </LinearLayout>
 
@@ -140,7 +140,7 @@
             android:id="@+id/tv_inference_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true" />
 

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
-    <color name="bg_app">#F1F1F1</color>
-    <color name="transparent">#00000000</color>
+    <color name="colorPrimary">#ffffff</color>
+    <color name="colorPrimaryDark">#ffffff</color>
+    <color name="colorAccent">#ffffff</color>
 
-    <color name="tab_unselect">#c9c9c9</color>
-    <color name="bg_btn">#dadada</color>
+    <color name="tab_select">#20c793</color>
+    <color name="tab_unselect">#cccccc</color>
 
-    <color name="white">#ffffff</color>
-    <color name="Black">#000000</color>
+    <color name="pb_bg">#bac1d3</color>
+    <color name="calibration_bg">#645e5e</color>
+    <color name="contact_tab_bg">#f2f3f7</color>
+
+    <color name="light_green">#20c793</color>
 </resources>

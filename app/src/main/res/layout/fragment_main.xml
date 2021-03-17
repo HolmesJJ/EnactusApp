@@ -31,7 +31,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_marginBottom="@dimen/bottom_bar_height"
-        style="?android:attr/progressBarStyleHorizontal"/>
+        style="@style/pb_gaze"
+        android:progressDrawable="@drawable/pb_gaze"/>
 
     <com.example.enactusapp.UI.BottomBar
         android:id="@+id/bottomBar"

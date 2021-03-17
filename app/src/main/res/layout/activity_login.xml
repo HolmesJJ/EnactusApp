@@ -4,55 +4,94 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/WHITE"
     tools:context=".LoginActivity">
 
-    <include layout="@layout/toolbar"/>
-
-    <ProgressBar
-        android:id="@+id/pb_loading"
-        android:layout_centerInParent="true"
+    <TextView
+        android:id="@+id/login_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="?android:attr/actionBarSize"
-        android:visibility="gone" />
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="@string/login"
+        android:textColor="@color/BLACK"
+        android:textSize="30sp" />
 
-    <LinearLayout
-        android:id="@+id/loginForm"
+    <ImageView
+        android:id="@+id/iv_username"
+        android:layout_below="@+id/login_title"
+        android:layout_marginTop="32dp"
+        android:layout_marginStart="24dp"
+        android:src="@drawable/ic_username"
+        android:layout_width="24dp"
+        android:layout_height="24dp"/>
+
+    <EditText
+        android:id="@+id/et_username"
+        android:layout_toEndOf="@+id/iv_username"
+        android:layout_marginStart="@dimen/default_margin"
+        android:layout_alignBottom="@+id/iv_username"
+        android:hint="@string/prompt_username"
+        android:background="@color/TRANSPARENT"
+        android:layout_marginEnd="24dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="?android:attr/actionBarSize"
-        android:paddingBottom="@dimen/default_margin"
-        android:paddingLeft="@dimen/default_margin"
-        android:paddingRight="@dimen/default_margin"
-        android:paddingTop="@dimen/default_margin"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:textCursorDrawable="@drawable/et_cursor"/>
 
-        <EditText
-            android:id="@+id/username"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/prompt_username"
-            android:inputType="textEmailAddress"
-            android:maxLines="1"
-            android:singleLine="true" />
+    <View
+        android:id="@+id/v_line1"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="#e0e0e0"
+        android:layout_below="@+id/iv_username"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"/>
 
-        <EditText
-            android:id="@+id/password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/prompt_password"
-            android:inputType="textPassword"
-            android:maxLines="1"
-            android:singleLine="true" />
+    <ImageView
+        android:id="@+id/iv_password"
+        android:layout_below="@+id/v_line1"
+        android:layout_marginTop="32dp"
+        android:layout_marginStart="24dp"
+        android:src="@drawable/ic_password"
+        android:layout_width="24dp"
+        android:layout_height="24dp"/>
 
-        <Button
-            android:id="@+id/btn_sign_in"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/action_sign_in"
-            android:textStyle="bold" />
+    <EditText
+        android:id="@+id/et_password"
+        android:layout_toEndOf="@+id/iv_password"
+        android:layout_marginStart="16dp"
+        android:layout_alignBottom="@+id/iv_password"
+        android:hint="@string/prompt_password"
+        android:background="@color/TRANSPARENT"
+        android:layout_marginEnd="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:textCursorDrawable="@drawable/et_cursor"/>
 
-    </LinearLayout>
+    <View
+        android:id="@+id/v_line2"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="#e0e0e0"
+        android:layout_below="@+id/iv_password"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"/>
+
+    <Button
+        android:id="@+id/btn_sign_in"
+        android:layout_below="@+id/v_line2"
+        android:layout_marginTop="32dp"
+        android:text="@string/action_sign_in"
+        android:textColor="@color/WHITE"
+        android:textSize="19sp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@drawable/btn_round_corner"/>
 
 </RelativeLayout>

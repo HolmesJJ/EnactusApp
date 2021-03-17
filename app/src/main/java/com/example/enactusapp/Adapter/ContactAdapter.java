@@ -9,11 +9,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Utils.CalculateUtils;
+import com.example.enactusapp.Utils.ImageUtils;
 
 import java.util.List;
 
@@ -70,7 +73,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         double distance = CalculateUtils.getDistance(Config.sLatitude, Config.sLongitude, users.get(position).getLatitude(), users.get(position).getLongitude());
         Log.i(TAG, "user distance lat1: " + Config.sLatitude + ", lng1: " + Config.sLongitude + ", lat2: " + users.get(position).getLatitude() + ", lng2: " + users.get(position).getLongitude() + ", distance: " + distance);
         holder.mDistanceTextView.setText(String.format("%.2f", distance) + "km");
-        Glide.with(context).load(thumbnail).into(holder.mThumbnailImageView);
+        Glide.with(context).load(thumbnail).apply(RequestOptions.bitmapTransform(new RoundedCorners(ImageUtils.dp2px(context, 5)))).into(holder.mThumbnailImageView);
     }
 
     @Override
@@ -86,9 +89,9 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
 
         public ContactViewHolder(View itemView) {
             super(itemView);
-            mNameTextView = itemView.findViewById(R.id.name_tv);
-            mDistanceTextView = itemView.findViewById(R.id.distance_tv);
-            mThumbnailImageView = itemView.findViewById(R.id.thumbnail_iv);
+            mNameTextView = itemView.findViewById(R.id.tv_name);
+            mDistanceTextView = itemView.findViewById(R.id.tv_distance);
+            mThumbnailImageView = itemView.findViewById(R.id.iv_thumbnail);
         }
     }
 }

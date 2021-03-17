@@ -34,7 +34,7 @@
             android:layout_below="@+id/split_line1"
             android:gravity="center"
             android:textSize="30dp"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:textStyle="bold" />
 
         <TextView
@@ -46,7 +46,7 @@
             android:gravity="center"
             android:textAlignment="center"
             android:textSize="20dp"
-            android:textColor="@color/Black" />
+            android:textColor="@color/BLACK" />
 
         <View
             android:id="@+id/split_line2"
@@ -60,7 +60,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignEnd="@+id/split_line2"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:textAllCaps="false"
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
@@ -74,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignStart="@+id/split_line2"
-            android:textColor="@color/Black"
+            android:textColor="@color/BLACK"
             android:textAllCaps="false"
             android:paddingTop="20dp"
             android:paddingBottom="20dp"
