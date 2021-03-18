@@ -55,6 +55,8 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
     private Button t2KeyboardRightBtn;
     private Button t2keyboardBackBtn;
     private Button t2KeyboardSendBtn;
+    private Button t2KeyboardPrevBtn;
+    private Button t2keyboardNextBtn;
     private TextView inputTv;
 
     private String inputText = "";
@@ -80,6 +82,8 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         t2KeyboardRightBtn = (Button) view.findViewById(R.id.t2keyboard_right_button);
         t2KeyboardSendBtn = (Button) view.findViewById(R.id.t2keyboard_send_button);
         t2keyboardBackBtn = (Button) view.findViewById(R.id.t2keyboard_back_button);
+        t2KeyboardPrevBtn = (Button) view.findViewById(R.id.t2keyboard_prev_button);
+        t2keyboardNextBtn = (Button) view.findViewById(R.id.t2keyboard_next_button);
         inputTv = (TextView) view.findViewById(R.id.input_tv);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mDialogPossibleWordsRecyclerView.getContext(), linearLayoutManager.getOrientation());
@@ -142,6 +146,18 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
                     inputText = inputText.substring(0, inputText.length()-1);
                     inputTv.setText(inputText);
                 }
+            }
+        });
+
+        t2KeyboardPrevBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            }
+        });
+
+        t2keyboardNextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
             }
         });
     }

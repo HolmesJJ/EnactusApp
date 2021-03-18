@@ -14,7 +14,7 @@
     <string name="permissions_denied_content_str">Permission Denied \nOpen Setting to Modify APP Permission</string>
     <string name="need_permissions_str">Permission Required</string>
 
-    <string name="possibleAnswers">Possible Answers</string>
+    <string name="possible_answer">Possible Answers:</string>
     <string name="t2keyboard">T2 Keyboard</string>
     <string name="t26keyboard">T26 Keyboard</string>
 
@@ -24,6 +24,11 @@
 
     <string name="action_start_chat">Start Chat</string>
     <string name="action_cancel">Cancel</string>
+
+    <string name="action_send">Send</string>
+    <string name="action_back">Back</string>
+    <string name="action_prev">Prev</string>
+    <string name="action_next">Next</string>
 
     <string name="action_start_calibration">Start Calibration</string>
     <string name="action_muscle_sensor">Muscle Sensor</string>

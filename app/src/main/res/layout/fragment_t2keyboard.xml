@@ -2,101 +2,164 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/WHITE">
 
     <View
         android:id="@+id/split_line1"
-        android:layout_width="1dp"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true"
-        android:background="@color/BLACK" />
+        android:background="@color/TRANSPARENT" />
+
+    <TextView
+        android:id="@+id/input_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-40dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginEnd="80dp"
+        android:gravity="center"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:textColor="@color/BLACK" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignRight="@+id/split_line1">
+        android:layout_alignEnd="@+id/split_line1">
 
         <View
             android:id="@+id/split_line2"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_centerHorizontal="true"
-            android:background="@color/BLACK" />
-
-        <TextView
-            android:id="@+id/input_tv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="0dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:text=""
-            android:textSize="25dp"
-            android:textStyle="bold"
-            android:textColor="#000" />
+            android:background="@color/TRANSPARENT" />
 
         <Button
             android:id="@+id/t2keyboard_left_button"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:layout_above="@+id/t2keyboard_send_button"
-            android:layout_alignRight="@+id/split_line2"
+            android:layout_alignEnd="@+id/split_line2"
             android:layout_centerVertical="true"
             android:textAllCaps="false"
-            android:textSize="20dp"
-            android:text="abc\ndef\nghi\njkl\nm"/>
+            android:textSize="22sp"
+            android:background="@drawable/btn_t2_key_shape"
+            android:text="a b c\nd e f\ng h i\nj k l\nm"/>
 
         <Button
             android:id="@+id/t2keyboard_right_button"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
             android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="10dp"
             android:layout_above="@+id/t2keyboard_back_button"
-            android:layout_alignLeft="@+id/split_line2"
+            android:layout_alignStart="@+id/split_line2"
             android:layout_centerVertical="true"
             android:textAllCaps="false"
-            android:textSize="20dp"
-            android:text="nop\nqrs\ntuv\nwxy\nz"/>
+            android:textSize="22sp"
+            android:background="@drawable/btn_t2_key_shape"
+            android:text="n o p\nq r s\nt u v\nw x y\nz"/>
 
         <Button
             android:id="@+id/t2keyboard_send_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="40dp"
-            android:paddingBottom="40dp"
+            android:paddingTop="30dp"
+            android:paddingBottom="30dp"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:layout_alignRight="@+id/split_line2"
+            android:layout_alignEnd="@+id/split_line2"
             android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:textAllCaps="false"
-            android:textSize="15dp"
-            android:text="Send"/>
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="10dp"
+            android:textSize="20sp"
+            android:textColor="@color/WHITE"
+            android:background="@drawable/btn_t2_shape"
+            android:text="@string/action_send"/>
 
         <Button
             android:id="@+id/t2keyboard_back_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="40dp"
-            android:paddingBottom="40dp"
+            android:paddingTop="30dp"
+            android:paddingBottom="30dp"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:layout_alignLeft="@+id/split_line2"
-            android:layout_marginStart="10dp"
+            android:layout_alignStart="@+id/split_line2"
+            android:layout_marginStart="5dp"
             android:layout_marginEnd="10dp"
-            android:textAllCaps="false"
-            android:textSize="15dp"
-            android:text="Back"/>
+            android:layout_marginBottom="10dp"
+            android:textSize="20sp"
+            android:textColor="@color/WHITE"
+            android:background="@drawable/btn_t2_shape"
+            android:text="@string/action_back"/>
 
     </RelativeLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/dialog_possible_words_recycler_view"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignLeft="@+id/split_line1"/>
+        android:layout_alignStart="@+id/split_line1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/dialog_possible_words_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_above="@+id/t2keyboard_prev_button"/>
+
+        <View
+            android:id="@+id/split_line3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:background="@color/TRANSPARENT" />
+
+        <Button
+            android:id="@+id/t2keyboard_prev_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="30dp"
+            android:paddingBottom="30dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_alignEnd="@+id/split_line3"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="10dp"
+            android:textSize="20sp"
+            android:textColor="@color/WHITE"
+            android:background="@drawable/btn_t2_shape"
+            android:text="@string/action_prev"/>
+
+        <Button
+            android:id="@+id/t2keyboard_next_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="30dp"
+            android:paddingBottom="30dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_alignStart="@+id/split_line3"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:textSize="20sp"
+            android:textColor="@color/WHITE"
+            android:background="@drawable/btn_t2_shape"
+            android:text="@string/action_next"/>
+
+    </RelativeLayout>
 
 </RelativeLayout>

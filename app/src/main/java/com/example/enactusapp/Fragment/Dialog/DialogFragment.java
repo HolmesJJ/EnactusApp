@@ -63,8 +63,6 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     private static final int SEND_MESSAGE = 1;
 
-    private Toolbar mToolbar;
-    private ProgressBar mPbLoading;
     private TextView mMessageTextView;
     private TextView mPossibleAnswers;
     private EditText mInputEditText;
@@ -95,17 +93,14 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     }
 
     private void initView(View view) {
-        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
-        mToolbar.setTitle(R.string.dialog);
-        mPbLoading = (ProgressBar) view.findViewById(R.id.pb_loading);
-        mMessageTextView = (TextView) view.findViewById(R.id.message_tv);
+        mMessageTextView = (TextView) view.findViewById(R.id.tv_message);
         mPossibleAnswers = (TextView) view.findViewById(R.id.possible_answers);
-        mInputEditText = (EditText) view.findViewById(R.id.input_et);
+        mInputEditText = (EditText) view.findViewById(R.id.et_keyword);
         dialogAnswerContainerViewPager = (CustomViewPager) view.findViewById(R.id.dialog_answer_container);
         dialogAnswerContainerViewPager.setScanScroll(false);
         mScrollLeftBtn = (ImageView) view.findViewById(R.id.scroll_left_btn);
         mScrollRightBtn = (ImageView) view.findViewById(R.id.scroll_right_btn);
-        inputBackspaceBtn = (ImageButton) view.findViewById(R.id.input_backspace_btn);
+        inputBackspaceBtn = (ImageButton) view.findViewById(R.id.ibtn_input_backspace);
     }
 
     @Override
@@ -118,16 +113,25 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         inputBackspaceBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mInputEditText.length() >= 1) {
-                    String inputEditText = mInputEditText.getText().toString().substring(0, mInputEditText.getText().toString().length()-1);
-                    mInputEditText.setText(inputEditText);
+                String currentInputText = mInputEditText.getText().toString().trim();
+                if(currentInputText.length() > 0) {
+                    String[] inputTexts = currentInputText.trim().split("\\s+");
+                    String newInputText = "";
+                    for (int i = 0; i < inputTexts.length - 1; i++) {
+                        newInputText = String.format("%s%s ", newInputText, inputTexts[i]);
+                    }
+                    mInputEditText.setText(newInputText);
+                    mInputEditText.requestFocus();
                     mInputEditText.setSelection(mInputEditText.length());
+                } else {
+                    mInputEditText.setText("");
+                    mInputEditText.requestFocus();
                 }
             }
         });
 
         dialogAnswerContainerViewPager.setAdapter(new DialogChildAdapter(getChildFragmentManager(),
-                getString(R.string.possibleAnswers),
+                getString(R.string.possible_answer),
                 getString(R.string.t2keyboard),
                 getString(R.string.t26keyboard)));
 
@@ -138,7 +142,12 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
                     dialogAnswerContainerViewPager.setCurrentItem(2);
                     mPossibleAnswers.setVisibility(View.INVISIBLE);
                     mInputEditText.setVisibility(View.VISIBLE);
+                    String currentInputText = mInputEditText.getText().toString();
+                    if (currentInputText.length() > 0 && !currentInputText.substring(currentInputText.length() - 1).equals(" ")) {
+                        mInputEditText.setText(String.format("%s ", currentInputText));
+                    }
                     mInputEditText.requestFocus();
+                    mInputEditText.setSelection(mInputEditText.getText().length());
                     inputBackspaceBtn.setVisibility(View.VISIBLE);
                     InputMethodManager imm = (InputMethodManager) _mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
@@ -156,7 +165,12 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
                     dialogAnswerContainerViewPager.setCurrentItem(1);
                     mPossibleAnswers.setVisibility(View.INVISIBLE);
                     mInputEditText.setVisibility(View.VISIBLE);
+                    String currentInputText = mInputEditText.getText().toString();
+                    if (currentInputText.length() > 0 && !currentInputText.substring(currentInputText.length() - 1).equals(" ")) {
+                        mInputEditText.setText(String.format("%s ", currentInputText));
+                    }
                     mInputEditText.requestFocus();
+                    mInputEditText.setSelection(mInputEditText.getText().length());
                     inputBackspaceBtn.setVisibility(View.VISIBLE);
                     InputMethodManager imm = (InputMethodManager) _mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getWindowToken(),0);
@@ -171,7 +185,12 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
                     dialogAnswerContainerViewPager.setCurrentItem(1);
                     mPossibleAnswers.setVisibility(View.INVISIBLE);
                     mInputEditText.setVisibility(View.VISIBLE);
+                    String currentInputText = mInputEditText.getText().toString();
+                    if (currentInputText.length() > 0 && !currentInputText.substring(currentInputText.length() - 1).equals(" ")) {
+                        mInputEditText.setText(String.format("%s ", currentInputText));
+                    }
                     mInputEditText.requestFocus();
+                    mInputEditText.setSelection(mInputEditText.getText().length());
                     inputBackspaceBtn.setVisibility(View.VISIBLE);
                     InputMethodManager imm = (InputMethodManager) _mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getWindowToken(),0);
@@ -180,7 +199,12 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
                     dialogAnswerContainerViewPager.setCurrentItem(2);
                     mPossibleAnswers.setVisibility(View.INVISIBLE);
                     mInputEditText.setVisibility(View.VISIBLE);
+                    String currentInputText = mInputEditText.getText().toString();
+                    if (currentInputText.length() > 0 && !currentInputText.substring(currentInputText.length() - 1).equals(" ")) {
+                        mInputEditText.setText(String.format("%s ", currentInputText));
+                    }
                     mInputEditText.requestFocus();
+                    mInputEditText.setSelection(mInputEditText.getText().length());
                     inputBackspaceBtn.setVisibility(View.VISIBLE);
                     InputMethodManager imm = (InputMethodManager) _mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
@@ -198,6 +222,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         });
 
         if (user != null && !TextUtils.isEmpty(message)) {
+            mMessageTextView.setVisibility(View.VISIBLE);
             mMessageTextView.setText(message);
         }
     }
@@ -221,6 +246,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         user = event.getUser();
         message = event.getMessage();
         mMessageTextView.setText(message);
+        mMessageTextView.setVisibility(View.VISIBLE);
         // 不是麦克风的信息
         if (user != null) {
             if (chatHistory.size() == 0) {
@@ -260,7 +286,6 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         if (user == null) {
             mInputEditText.setText("");
         } else {
-            showProgress(true);
             HttpAsyncTaskPost task = new HttpAsyncTaskPost(DialogFragment.this, SEND_MESSAGE);
             if(!TextUtils.isEmpty(event.getAnswer())) {
                 task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(event.getAnswer(), user.getFirebaseToken()), Constants.SERVER_KEY);
@@ -321,7 +346,6 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Override
     public void onTaskCompleted(String response, int requestId) {
-        showProgress(false);
         if (requestId == SEND_MESSAGE) {
             retrieveFromJSONSendMessage(response);
         }
@@ -331,25 +355,5 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     public void onDestroyView() {
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
         super.onDestroyView();
-    }
-
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-            mPbLoading.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
     }
 }

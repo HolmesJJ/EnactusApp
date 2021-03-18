@@ -2,79 +2,113 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/WHITE">
 
-    <include layout="@layout/toolbar"/>
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="@string/dialog"
+        android:textColor="@color/BLACK"
+        android:textSize="30sp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?android:attr/actionBarSize">
+        android:layout_below="@+id/tv_title"
+        android:layout_marginTop="32dp">
 
-        <ProgressBar
-            android:id="@+id/pb_loading"
-            android:layout_centerInParent="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="?android:attr/actionBarSize"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/message_tv"
+        <LinearLayout
+            android:id="@+id/ll_message_container"
+            android:layout_marginStart="32dp"
+            android:background="@drawable/ll_dialog_shape"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:layout_margin="20dp"
-            android:textSize="30sp"
-            android:textColor="#000" />
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="90dp"
+            android:elevation="5dp"
+            android:visibility="invisible">
+
+            <TextView
+                android:id="@+id/tv_message"
+                android:layout_width="wrap_content"
+                android:layout_margin="16dp"
+                android:textSize="20sp"
+                android:layout_gravity="center"
+                android:layout_height="wrap_content"
+                android:textColor="@color/BLACK" />
+
+        </LinearLayout>
 
         <View
             android:id="@+id/split_line1"
             android:layout_width="match_parent"
             android:layout_height="1dp"
+            android:layout_marginTop="32dp"
             android:layout_centerVertical="true"
-            android:background="@color/BLACK"
-            android:layout_below="@+id/message_tv"/>
-
-        <TextView
-            android:id="@+id/possible_answers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Possible Answers:"
-            android:layout_below="@+id/split_line1"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:textStyle="italic|bold"
-            android:gravity="center"
-            android:textSize="30sp"
-            android:textColor="#000" />
-
-        <EditText
-            android:id="@+id/input_et"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/split_line1"
-            android:layout_marginEnd="50dp"
-            android:textSize="30sp"
-            android:textColor="#000"
-            android:visibility="invisible"
-            android:saveEnabled="false"/>
-
-        <ImageButton
-            android:id="@+id/input_backspace_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/split_line1"
-            android:layout_alignParentRight="true"
-            android:src="@drawable/ic_backspace"
             android:background="@color/TRANSPARENT"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="15dp"
-            android:visibility="invisible"/>
+            android:layout_below="@+id/ll_message_container"/>
+
+        <RelativeLayout
+            android:id="@+id/rl_possible_answers_keyword_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/split_line1"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:background="@color/possible_answer_keyword_bg">
+
+            <TextView
+                android:id="@+id/possible_answers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="@string/possible_answer"
+                android:textSize="25sp"
+                android:textColor="@color/BLACK"
+                android:background="@color/TRANSPARENT"/>
+
+            <EditText
+                android:id="@+id/et_keyword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:textSize="30sp"
+                android:textColor="@color/BLACK"
+                android:background="@drawable/et_keyword_shape"
+                android:layout_toStartOf="@+id/ibtn_input_backspace"
+                android:layout_centerVertical="true"
+                android:saveEnabled="false"
+                android:padding="5dp"
+                android:visibility="invisible"
+                android:textCursorDrawable="@drawable/et_cursor"/>
+
+            <ImageButton
+                android:id="@+id/ibtn_input_backspace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:src="@drawable/ic_backspace"
+                android:elevation="2dp"
+                android:visibility="invisible"
+                android:background="@drawable/ibtn_backspace_shape" />
+
+        </RelativeLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/possible_answers">
+            android:layout_below="@+id/rl_possible_answers_keyword_container">
 
             <com.example.enactusapp.Adapter.CustomViewPager
                 android:id="@+id/dialog_answer_container"
@@ -85,22 +119,24 @@
 
             <ImageView
                 android:id="@+id/scroll_left_btn"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginLeft="10dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
                 android:src="@drawable/ic_arrow_left"
-                android:clickable="true"/>
+                android:clickable="true"
+                android:focusable="true" />
 
             <ImageView
                 android:id="@+id/scroll_right_btn"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginRight="10dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
                 android:layout_alignParentEnd="true"
                 android:src="@drawable/ic_arrow_right"
-                android:clickable="true"/>
+                android:clickable="true"
+                android:focusable="true" />
 
         </RelativeLayout>
 

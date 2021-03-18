@@ -11,6 +11,8 @@
     <color name="calibration_bg">#645e5e</color>
     <color name="contact_tab_bg">#f2f3f7</color>
     <color name="front_camera_bg">#e6e8e7</color>
-
+    <color name="dialog_bg">#ebecf0</color>
+    <color name="possible_answer_keyword_bg">#f2f3f7</color>
+    <color name="t2_key_bg">#ebecf0</color>
     <color name="light_green">#20c793</color>
 </resources>
