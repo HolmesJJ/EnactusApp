@@ -96,6 +96,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     implementation project(path: ':bluetoothlibrary')
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    // 圆角NiceImageView
+    implementation 'com.github.SheHuan:NiceImageView:1.0.5'
     // TTS sdk依赖于 okhttp 必须外部依赖或导入，否则报错
     implementation 'com.squareup.okhttp3:okhttp:3.12.12'
     // TensorFlow

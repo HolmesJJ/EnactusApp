@@ -1,9 +1,5 @@
 package com.example.enactusapp.Fragment.Profile;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -12,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -25,9 +20,9 @@ import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
+import com.shehuan.niv.NiceImageView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 
 import org.json.JSONObject;
 
@@ -49,9 +44,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
 
     private static final int UPDATE_USER = 1;
 
-    private Toolbar mToolbar;
-    private ProgressBar mPbLoading;
-    private ImageButton profileImageBtn;
+    private NiceImageView mNivProfileImage;
     private ImageButton profileEditBtn;
     private ImageButton profileConfirmBtn;
     private TextView profileNameTv;
@@ -76,19 +69,16 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     }
 
     private void initView(View view) {
-        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
-        mToolbar.setTitle(R.string.profile);
-        mPbLoading = (ProgressBar) view.findViewById(R.id.pb_loading);
-        profileImageBtn = (ImageButton) view.findViewById(R.id.profile_image_btn);
-        profileEditBtn = (ImageButton) view.findViewById(R.id.profile_edit_btn);
-        profileConfirmBtn = (ImageButton) view.findViewById(R.id.profile_confirm_btn);
+        mNivProfileImage = (NiceImageView) view.findViewById(R.id.niv_profile_image);
+        profileEditBtn = (ImageButton) view.findViewById(R.id.btn_profile_edit);
+        profileConfirmBtn = (ImageButton) view.findViewById(R.id.btn_profile_confirm);
         profileConfirmBtn.setVisibility(View.GONE);
         profileNameTv = (TextView) view.findViewById(R.id.profile_name_tv);
         profileNameEt = (EditText) view.findViewById(R.id.profile_name_et);
         profileNameEt.setVisibility(View.GONE);
-        startCalibrationBtn = (Button) view.findViewById(R.id.start_calibration_btn);
-        muscleSensorBtn = (Button) view.findViewById(R.id.muscle_sensor_btn);
-        logoutBtn = (Button) view.findViewById(R.id.logout_btn);
+        startCalibrationBtn = (Button) view.findViewById(R.id.btn_start_calibration);
+        muscleSensorBtn = (Button) view.findViewById(R.id.btn_muscle_sensor);
+        logoutBtn = (Button) view.findViewById(R.id.btn_logout);
     }
 
     @Override
@@ -98,7 +88,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
 
     private void initDelayView() {
         String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + Config.sUserId + ".jpg";
-        Glide.with(this).load(thumbnail).into(profileImageBtn);
+        Glide.with(this).load(thumbnail).circleCrop().into(mNivProfileImage);
         profileNameTv.setText(Config.sName);
 
         profileEditBtn.setOnClickListener(new View.OnClickListener() {
@@ -116,7 +106,6 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
             @Override
             public void onClick(View view) {
                 if (!TextUtils.isEmpty(profileNameEt.getText().toString())) {
-                    showProgress(true);
                     HttpAsyncTaskPost task = new HttpAsyncTaskPost(ProfileFragment.this, UPDATE_USER);
                     String jsonData = convertToJSONUpdateUser(Config.sUserId, profileNameEt.getText().toString());
                     task.execute(Constants.IP_ADDRESS + "api/Account/EditName", jsonData, null);
@@ -186,29 +175,8 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         });
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-            mPbLoading.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mPbLoading.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
-    }
-
     @Override
     public void onTaskCompleted(String response, int requestId) {
-        showProgress(false);
         if (requestId == UPDATE_USER) {
             retrieveFromJSONUpdateUser(response);
         }

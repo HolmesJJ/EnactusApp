@@ -1,10 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/WHITE"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <include layout="@layout/toolbar"/>
+    <TextView
+        android:id="@+id/login_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="@string/notification"
+        android:textColor="@color/BLACK"
+        android:textSize="30sp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -17,71 +27,90 @@
             android:layout_height="0dp"
             android:layout_centerVertical="true" />
 
-        <ImageView
+        <com.shehuan.niv.NiceImageView
             android:id="@+id/iv_thumbnail"
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="30dp"
             android:layout_above="@+id/split_line1"
-            android:scaleType="fitCenter" />
+            app:border_color="@color/light_green"
+            app:border_width="5dp"
+            app:is_circle="true" />
 
-        <TextView
-            android:id="@+id/tv_name"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:layout_below="@+id/split_line1"
-            android:gravity="center"
-            android:textSize="30dp"
-            android:textColor="@color/BLACK"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            android:layout_below="@+id/split_line1">
 
-        <TextView
-            android:id="@+id/tv_message"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:layout_below="@+id/tv_name"
-            android:gravity="center"
-            android:textAlignment="center"
-            android:textSize="20dp"
-            android:textColor="@color/BLACK" />
+            <TextView
+                android:id="@+id/tv_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="30sp"
+                android:textColor="@color/BLACK"
+                android:textStyle="bold" />
 
-        <View
-            android:id="@+id/split_line2"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_centerHorizontal="true" />
+            <RelativeLayout
+                android:id="@+id/chat_line"
+                android:layout_marginTop="16dp"
+                android:layout_gravity="center"
+                android:background="@drawable/rl_dialog_shape"
+                android:layout_width="match_parent"
+                android:layout_marginStart="32dp"
+                android:layout_marginEnd="32dp"
+                android:layout_height="56dp">
 
-        <Button
-            android:id="@+id/start_chat_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignEnd="@+id/split_line2"
-            android:textColor="@color/BLACK"
-            android:textAllCaps="false"
-            android:paddingTop="20dp"
-            android:paddingBottom="20dp"
-            android:layout_marginBottom="10dp"
-            android:textSize="20dp"
-            android:text="Start Chat"/>
+                <TextView
+                    android:id="@+id/tv_message"
+                    android:layout_width="wrap_content"
+                    android:layout_margin="16dp"
+                    android:textSize="20sp"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/BLACK" />
 
-        <Button
-            android:id="@+id/cancel_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignStart="@+id/split_line2"
-            android:textColor="@color/BLACK"
-            android:textAllCaps="false"
-            android:paddingTop="20dp"
-            android:paddingBottom="20dp"
-            android:layout_marginBottom="10dp"
-            android:textSize="20dp"
-            android:text="Cancel"/>
+            </RelativeLayout>
+
+        </LinearLayout>
 
     </RelativeLayout>
+
+    <LinearLayout
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="32dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_start_chat"
+            android:background="@drawable/btn_round_corner"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:text="@string/action_start_chat"
+            android:textColor="@color/WHITE"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:background="@drawable/btn_round_corner"
+            android:layout_marginStart="8dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:text="@string/action_cancel"
+            android:textColor="@color/WHITE"
+            android:textSize="20sp" />
+
+    </LinearLayout>
 
 </RelativeLayout>

@@ -17,6 +17,7 @@ import com.example.enactusapp.Event.NotificationEvent;
 import com.example.enactusapp.Event.StartChatEvent;
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.R;
+import com.shehuan.niv.NiceImageView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -37,8 +38,7 @@ import me.yokeyword.fragmentation.SupportFragment;
  */
 public class NotificationFragment extends SupportFragment {
 
-    private Toolbar mToolbar;
-    private ImageView mIvThumbnail;
+    private NiceImageView mNivThumbnail;
     private TextView mTvName;
     private TextView mTvMessage;
     private Button startChatBtn;
@@ -64,13 +64,11 @@ public class NotificationFragment extends SupportFragment {
     }
 
     private void initView(View view) {
-        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
-        mToolbar.setTitle(R.string.notification);
-        mIvThumbnail = (ImageView) view.findViewById(R.id.iv_thumbnail);
+        mNivThumbnail = (NiceImageView) view.findViewById(R.id.iv_thumbnail);
         mTvName = (TextView) view.findViewById(R.id.tv_name);
         mTvMessage = (TextView) view.findViewById(R.id.tv_message);
-        startChatBtn = (Button) view.findViewById(R.id.start_chat_btn);
-        cancelBtn = (Button) view.findViewById(R.id.cancel_btn);
+        startChatBtn = (Button) view.findViewById(R.id.btn_start_chat);
+        cancelBtn = (Button) view.findViewById(R.id.btn_cancel);
     }
 
     @Override
@@ -102,7 +100,7 @@ public class NotificationFragment extends SupportFragment {
         message = event.getMessage();
         if (user != null && !TextUtils.isEmpty(message)) {
             String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + user.getId() + ".jpg";
-            Glide.with(this).load(thumbnail).into(mIvThumbnail);
+            Glide.with(this).load(thumbnail).circleCrop().into(mNivThumbnail);
             mTvName.setText(user.getName());
             mTvMessage.setText(message);
         }

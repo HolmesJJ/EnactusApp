@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/WHITE"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <include layout="@layout/toolbar"/>
-
-    <ProgressBar
-        android:id="@+id/pb_loading"
-        android:layout_centerInParent="true"
+    <TextView
+        android:id="@+id/login_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="?android:attr/actionBarSize"
-        android:visibility="gone" />
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="@string/profile"
+        android:textColor="@color/BLACK"
+        android:textSize="30sp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -25,96 +27,114 @@
             android:layout_height="0dp"
             android:layout_centerVertical="true" />
 
-        <ImageButton
-            android:id="@+id/profile_image_btn"
+        <com.shehuan.niv.NiceImageView
+            android:id="@+id/niv_profile_image"
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="30dp"
             android:layout_above="@+id/split_line1"
-            android:src="@drawable/ic_change_profile"
-            android:scaleType="fitCenter"
-            android:background="@color/TRANSPARENT"/>
+            app:border_color="@color/light_green"
+            app:border_width="5dp"
+            app:is_circle="true" />
 
-        <TextView
-            android:id="@+id/profile_name_tv"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:layout_marginStart="55dp"
-            android:layout_below="@+id/split_line1"
-            android:gravity="left"
-            android:textSize="30dp"
-            android:textColor="@color/BLACK"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/profile_name_et"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginStart="50dp"
-            android:layout_below="@+id/split_line1"
-            android:gravity="left"
-            android:textSize="30dp"
-            android:textColor="@color/BLACK"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/profile_edit_btn"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_marginEnd="55dp"
-            android:layout_marginTop="45dp"
-            android:layout_below="@+id/split_line1"
-            android:layout_alignParentRight="true"
-            android:src="@drawable/ic_refresh"
-            android:scaleType="fitCenter"
-            android:background="@color/TRANSPARENT"/>
-
-        <ImageButton
-            android:id="@+id/profile_confirm_btn"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_marginEnd="55dp"
-            android:layout_marginTop="45dp"
-            android:layout_below="@+id/split_line1"
-            android:layout_alignParentRight="true"
-            android:src="@drawable/ic_confirm"
-            android:scaleType="fitCenter"
-            android:background="@color/TRANSPARENT"/>
-
-        <Button
-            android:id="@+id/start_calibration_btn"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/muscle_sensor_btn"
-            android:textColor="@color/BLACK"
-            android:textAllCaps="false"
-            android:textSize="25dp"
-            android:text="Start Calibration"/>
+            android:layout_below="@+id/split_line1">
 
-        <Button
-            android:id="@+id/muscle_sensor_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/logout_btn"
-            android:textColor="@color/BLACK"
-            android:textAllCaps="false"
-            android:textSize="25dp"
-            android:text="Muscle Sensor"/>
+            <TextView
+                android:id="@+id/profile_name_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:textSize="30sp"
+                android:textColor="@color/BLACK"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/logout_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_alignParentBottom="true"
-            android:textColor="@color/BLACK"
-            android:textAllCaps="false"
-            android:textSize="25dp"
-            android:text="Logout"/>
+            <EditText
+                android:id="@+id/profile_name_et"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:textSize="30sp"
+                android:textColor="@color/BLACK"
+                android:textStyle="bold"
+                android:textCursorDrawable="@drawable/et_cursor" />
+
+            <ImageButton
+                android:id="@+id/btn_profile_edit"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="50dp"
+                android:layout_toStartOf="@+id/profile_name_tv"
+                android:src="@drawable/ic_edit"
+                android:scaleType="fitCenter"
+                android:background="@color/TRANSPARENT"/>
+
+            <ImageButton
+                android:id="@+id/btn_profile_confirm"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="50dp"
+                android:src="@drawable/ic_confirm"
+                android:scaleType="fitCenter"
+                android:background="@color/TRANSPARENT"/>
+
+        </RelativeLayout>
 
     </RelativeLayout>
+
+    <LinearLayout
+        android:layout_marginTop="16dp"
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="32dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_start_calibration"
+            android:text="@string/action_start_calibration"
+            android:textColor="@color/WHITE"
+            android:textSize="20sp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@drawable/btn_round_corner"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btn_muscle_sensor"
+            android:text="@string/action_muscle_sensor"
+            android:textColor="@color/WHITE"
+            android:textSize="20sp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@drawable/btn_round_corner"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btn_logout"
+            android:text="@string/action_logout"
+            android:textColor="@color/WHITE"
+            android:textSize="20sp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@drawable/btn_round_corner"
+            android:gravity="center" />
+
+    </LinearLayout>
 
 </RelativeLayout>

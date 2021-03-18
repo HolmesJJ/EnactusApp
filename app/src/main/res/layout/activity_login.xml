@@ -87,7 +87,7 @@
         android:layout_marginTop="32dp"
         android:text="@string/action_sign_in"
         android:textColor="@color/WHITE"
-        android:textSize="19sp"
+        android:textSize="20sp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:layout_width="match_parent"
