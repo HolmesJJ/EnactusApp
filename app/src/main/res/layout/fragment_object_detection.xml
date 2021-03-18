@@ -2,14 +2,25 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/WHITE"
     xmlns:FixedAspectRatioRelativeLayout="http://schemas.android.com/apk/res-auto">
 
-    <include layout="@layout/toolbar"/>
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="@string/objectDetection"
+        android:textColor="@color/BLACK"
+        android:textSize="30sp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?android:attr/actionBarSize">
+        android:layout_below="@+id/tv_title"
+        android:layout_marginTop="16dp">
 
         <com.example.enactusapp.UI.FixedAspectRatioRelativeLayout
             android:id="@+id/farrl_container"
@@ -26,13 +37,20 @@
         </com.example.enactusapp.UI.FixedAspectRatioRelativeLayout>
 
         <LinearLayout
+            android:id="@+id/ll_cover"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_above="@id/ll_brightness"
+            android:orientation="horizontal"
+            android:background="@drawable/ll_object_detection_bg"/>
+
+        <LinearLayout
             android:id="@+id/ll_brightness"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/farrl_container"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:orientation="horizontal">
 
             <TextView
@@ -41,14 +59,17 @@
                 android:layout_weight="1"
                 android:paddingBottom="7dp"
                 android:paddingTop="7dp"
-                android:text="Brightness"
+                android:text="@string/brightness"
+                android:textSize="18sp"
                 android:textColor="@color/BLACK" />
 
             <SeekBar
                 android:id="@+id/sb_brightness"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="2" />
+                android:layout_weight="2"
+                android:progressDrawable="@drawable/sbar_object_detection"
+                android:thumb="@drawable/sthumb_object_detection"/>
         </LinearLayout>
 
         <LinearLayout
@@ -57,8 +78,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/ll_brightness"
             android:layout_marginBottom="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:orientation="horizontal">
 
             <TextView
@@ -67,14 +88,18 @@
                 android:layout_weight="1"
                 android:paddingBottom="7dp"
                 android:paddingTop="7dp"
-                android:text="Contrast"
+                android:text="@string/contrast"
+                android:textSize="18sp"
                 android:textColor="@color/BLACK" />
 
             <SeekBar
                 android:id="@+id/sb_contrast"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="2" />
+                android:layout_weight="2"
+                android:progressDrawable="@drawable/sbar_object_detection"
+                android:thumb="@drawable/sthumb_object_detection"/>
+
         </LinearLayout>
 
         <com.example.enactusapp.CustomView.OverlayView
@@ -99,14 +124,24 @@
                 android:id="@+id/btn_next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Next"/>
+                android:text="@string/action_next"
+                android:textSize="20sp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:paddingTop="5dp"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="5dp"
+                android:textColor="@color/WHITE"
+                android:background="@drawable/btn_round_corner"/>
 
             <TextView
                 android:id="@+id/tv_current_keyword"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/colorAccent"
-                android:textStyle="bold" />
+                android:textColor="@color/light_green"
+                android:textStyle="bold"
+                android:textSize="20sp" />
 
         </LinearLayout>
 
@@ -133,8 +168,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/ll_next_container"
+            android:layout_marginTop="10dp"
             android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp" />
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="10dp"/>
 
         <TextView
             android:id="@+id/tv_inference_time"

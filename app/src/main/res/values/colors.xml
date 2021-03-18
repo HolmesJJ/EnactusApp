@@ -15,5 +15,7 @@
     <color name="possible_answer_keyword_bg">#f2f3f7</color>
     <color name="t2_key_bg">#ebecf0</color>
     <color name="bluetooth_split_line_bg">#f2f3f7</color>
+    <color name="seek_bar_bg">#d3d6dd</color>
+
     <color name="light_green">#20c793</color>
 </resources>

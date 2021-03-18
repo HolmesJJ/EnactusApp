@@ -10,10 +10,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,7 +36,6 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
     private static final String TAG = "BluetoothFragment";
 
     private static final int START_LOCATION_ACTIVITY = 99;
-    private static final byte[] STATE_DATA = new byte[] {0x00};;
 
     private BluetoothHelper mBluetoothHelper;
 
@@ -93,19 +90,8 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
         mPairedBluetoothAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                boolean isFound = false;
-                for (int i = 0; i < mBluetoothHelper.getConnectedDeviceModules().size(); i++) {
-                    if (pairedDeviceModules.get(position).getMac().equals(mBluetoothHelper.getConnectedDeviceModules().get(i).getMac())) {
-                        ToastUtils.showShortSafe("Disconnecting " + pairedDeviceModules.get(position).getName());
-                        mBluetoothHelper.disconnect(pairedDeviceModules.get(position));
-                        isFound = true;
-                        break;
-                    }
-                }
-                if (!isFound) {
-                    ToastUtils.showShortSafe("Connecting " + pairedDeviceModules.get(position).getName());
-                    mBluetoothHelper.connect(pairedDeviceModules.get(position));
-                }
+                ToastUtils.showShortSafe("Connecting " + pairedDeviceModules.get(position).getName());
+                mBluetoothHelper.connect(pairedDeviceModules.get(position));
             }
         });
 
@@ -114,7 +100,6 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
             public void onItemClick(int position) {
                 ToastUtils.showShortSafe("Pairing " + unpairedDeviceModules.get(position).getName());
                 mBluetoothHelper.connect(unpairedDeviceModules.get(position));
-                refresh();
             }
         });
 
@@ -134,7 +119,7 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
         refresh();
     }
 
-    //开启位置权限
+    // 开启位置权限
     private void startLocation() {
         AlertDialog.Builder builder = new AlertDialog.Builder(_mActivity);
         builder.setTitle("Tips")
@@ -160,9 +145,6 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
 
     //刷新的具体实现
     private void refresh() {
-        if (mBluetoothHelper.getConnectedDeviceModules().size() > 0) {
-            mBluetoothHelper.sendData(mBluetoothHelper.getConnectedDeviceModules().get(0), STATE_DATA);
-        }
         if (mBluetoothHelper.scan(false)) {
             pairedDeviceModules.clear();
             unpairedDeviceModules.clear();

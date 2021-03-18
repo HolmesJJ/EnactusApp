@@ -102,7 +102,6 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         TF_OD_API;
     }
 
-    private Toolbar mToolbar;
     private TextureView mTvBackCamera;
     private CameraViewInterface mCviBackCamera;
     private SeekBar mSbBrightness;
@@ -224,8 +223,6 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     }
 
     private void initView(View view) {
-        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
-        mToolbar.setTitle(R.string.objectDetection);
         mTvBackCamera = (TextureView) view.findViewById(R.id.tv_back_camera);
         mCviBackCamera = (CameraViewInterface) mTvBackCamera;
         mCviBackCamera.setCallback(this);
@@ -349,6 +346,12 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         sentences.clear();
         lastSelectedPosition = -1;
         lastSelectedSentence = "";
+        sentences.add("That is my mouse.");
+        sentences.add("Can you pass me my mouse?");
+        sentences.add("How much is this mouse?");
+        sentences.add("How long has this mouse been used mouse been use?");
+        sentences.add("Can you pass me my mouse?");
+        sentences.add("How much is this mouse?");
         if (keyword.equals("mouse")) {
             sentences.add("That is my mouse.");
             sentences.add("Can you pass me my mouse?");

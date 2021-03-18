@@ -30,6 +30,9 @@
     <string name="action_prev">Prev</string>
     <string name="action_next">Next</string>
 
+    <string name="brightness">Brightness</string>
+    <string name="contrast">Contrast</string>
+
     <string name="action_start_calibration">Start Calibration</string>
     <string name="action_muscle_sensor">Muscle Sensor</string>
     <string name="action_logout">Logout</string>
