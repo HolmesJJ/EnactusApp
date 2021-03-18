@@ -1,38 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/WHITE">
 
-    <include layout="@layout/toolbar"/>
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="@string/bluetooth"
+        android:textColor="@color/BLACK"
+        android:textSize="30sp" />
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?android:attr/actionBarSize">
+        android:layout_below="@+id/tv_title"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp">
 
-        <TextView
-            android:id="@+id/tv_connected_device"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_paired_bluetooth"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/BLACK"
-            android:textAlignment="center"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"/>
+            android:layout_height="160dp" />
+
+        <View
+            android:id="@+id/v_line"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:background="@color/bluetooth_split_line_bg"/>
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/srl_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/tv_connected_device">
+            android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_bluetooth"
+                android:id="@+id/rv_unpaired_bluetooth"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:visibility="visible"/>
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    </RelativeLayout>
+    </LinearLayout>
 
 </RelativeLayout>

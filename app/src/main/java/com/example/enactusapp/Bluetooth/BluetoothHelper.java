@@ -3,6 +3,7 @@ package com.example.enactusapp.Bluetooth;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.enactusapp.Utils.ToastUtils;
 import com.hc.bluetoothlibrary.AllBluetoothManage;
 import com.hc.bluetoothlibrary.DeviceModule;
 import com.hc.bluetoothlibrary.IBluetooth;
@@ -60,7 +61,7 @@ public class BluetoothHelper {
                     mReadDataListener.connectSucceed();
                 if (mUpdateListListener != null)
                     mUpdateListListener.connectSucceed();
-                Log.i(TAG, "连接成功: " + deviceModule.getName());
+                ToastUtils.showShortSafe("Connected " + deviceModule.getName() + " " + deviceModule.toString());
             }
 
             @Override
@@ -70,7 +71,6 @@ public class BluetoothHelper {
                     mReadDataListener.errorDisconnect(deviceModule);
                 if (mUpdateListListener != null)
                     mUpdateListListener.errorDisconnect(deviceModule);
-                Log.i(TAG, "蓝牙断线: " + deviceModule.getName());
             }
 
             @Override
@@ -137,16 +137,15 @@ public class BluetoothHelper {
 
     //断开连接
     public void disconnect(DeviceModule deviceModule) {
+        ToastUtils.showShortSafe("DISCONNECT " + deviceModule.getName() + " " + deviceModule.toString());
         connectedDeviceModules.remove(deviceModule);
         mAllBluetoothManage.disconnect(deviceModule);
-        Log.i(TAG, "断开连接: " + deviceModule.getName());
     }
 
     //断开连接
     public void disconnectAll() {
         for (int i = connectedDeviceModules.size() - 1; i >= 0; i--) {
             mAllBluetoothManage.disconnect(connectedDeviceModules.get(i));
-            Log.i(TAG, "断开连接: " + connectedDeviceModules.get(i).getName());
         }
         connectedDeviceModules.clear();
     }
