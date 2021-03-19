@@ -1,14 +1,8 @@
 package com.example.enactusapp.Fragment.Dialog;
 
-
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +10,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.CustomViewPager;
@@ -44,13 +37,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
+import pl.droidsonroids.gif.GifImageView;
 
 /**
  * @author Administrator
@@ -69,6 +62,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     private ImageView mScrollLeftBtn;
     private ImageView mScrollRightBtn;
     private ImageButton inputBackspaceBtn;
+    private GifImageView mGivLoading;
 
     private CustomViewPager dialogAnswerContainerViewPager;
 
@@ -101,6 +95,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         mScrollLeftBtn = (ImageView) view.findViewById(R.id.scroll_left_btn);
         mScrollRightBtn = (ImageView) view.findViewById(R.id.scroll_right_btn);
         inputBackspaceBtn = (ImageButton) view.findViewById(R.id.ibtn_input_backspace);
+        mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
     }
 
     @Override
@@ -286,6 +281,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         if (user == null) {
             mInputEditText.setText("");
         } else {
+            mGivLoading.setVisibility(View.VISIBLE);
             HttpAsyncTaskPost task = new HttpAsyncTaskPost(DialogFragment.this, SEND_MESSAGE);
             if(!TextUtils.isEmpty(event.getAnswer())) {
                 task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(event.getAnswer(), user.getFirebaseToken()), Constants.SERVER_KEY);
@@ -346,6 +342,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Override
     public void onTaskCompleted(String response, int requestId) {
+        mGivLoading.setVisibility(View.GONE);
         if (requestId == SEND_MESSAGE) {
             retrieveFromJSONSendMessage(response);
         }

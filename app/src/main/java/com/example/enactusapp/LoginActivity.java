@@ -17,6 +17,7 @@ import com.example.enactusapp.Utils.ToastUtils;
 
 import org.json.JSONObject;
 
+import pl.droidsonroids.gif.GifImageView;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 
 public class LoginActivity extends BaseActivity implements OnTaskCompleted {
@@ -45,6 +46,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
     private EditText mUsername;
     private EditText mPassword;
     private Button mBtnSignIn;
+    private GifImageView mGivLoading;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -63,6 +65,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         mBtnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mGivLoading.setVisibility(View.VISIBLE);
                 InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(LoginActivity.this, LOGIN);
@@ -76,6 +79,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         mUsername = (EditText) findViewById(R.id.et_username);
         mPassword = (EditText) findViewById(R.id.et_password);
         mBtnSignIn = (Button) findViewById(R.id.btn_sign_in);
+        mGivLoading = (GifImageView) findViewById(R.id.giv_loading);
     }
 
     @AfterPermissionGranted(REC_PERMISSION)
@@ -127,6 +131,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
 
     @Override
     public void onTaskCompleted(String response, int requestId) {
+        mGivLoading.setVisibility(View.GONE);
         if (requestId == LOGIN) {
             retrieveFromJSONLogin(response);
         }

@@ -30,6 +30,7 @@ import java.io.File;
 
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
+import pl.droidsonroids.gif.GifImageView;
 
 import static com.example.enactusapp.Config.Config.resetConfig;
 
@@ -52,6 +53,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     private Button startCalibrationBtn;
     private Button muscleSensorBtn;
     private Button logoutBtn;
+    private GifImageView mGivLoading;
 
     public static ProfileFragment newInstance() {
         ProfileFragment fragment = new ProfileFragment();
@@ -79,6 +81,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         startCalibrationBtn = (Button) view.findViewById(R.id.btn_start_calibration);
         muscleSensorBtn = (Button) view.findViewById(R.id.btn_muscle_sensor);
         logoutBtn = (Button) view.findViewById(R.id.btn_logout);
+        mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
     }
 
     @Override
@@ -106,6 +109,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
             @Override
             public void onClick(View view) {
                 if (!TextUtils.isEmpty(profileNameEt.getText().toString())) {
+                    mGivLoading.setVisibility(View.VISIBLE);
                     HttpAsyncTaskPost task = new HttpAsyncTaskPost(ProfileFragment.this, UPDATE_USER);
                     String jsonData = convertToJSONUpdateUser(Config.sUserId, profileNameEt.getText().toString());
                     task.execute(Constants.IP_ADDRESS + "api/Account/EditName", jsonData, null);
@@ -177,6 +181,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
 
     @Override
     public void onTaskCompleted(String response, int requestId) {
+        mGivLoading.setVisibility(View.GONE);
         if (requestId == UPDATE_USER) {
             retrieveFromJSONUpdateUser(response);
         }

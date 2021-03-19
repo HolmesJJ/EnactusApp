@@ -36,6 +36,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
+import pl.droidsonroids.gif.GifImageView;
 
 /**
  * @author Administrator
@@ -51,6 +52,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     private SwipeRefreshLayout mSrlRefresh;
     private RecyclerView mContactRecyclerView;
+    private GifImageView mGivLoading;
     private ContactAdapter mContactAdapter;
 
     private List<User> users = new ArrayList<>();
@@ -73,6 +75,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     private void initView(View view) {
         mSrlRefresh = (SwipeRefreshLayout) view.findViewById(R.id.srl_refresh);
         mContactRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler_view);
+        mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mContactRecyclerView.getContext(), 0);
         mContactRecyclerView.setLayoutManager(linearLayoutManager);
@@ -96,6 +99,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                 task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
             }
         });
+        mGivLoading.setVisibility(View.VISIBLE);
         HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
         String jsonData = convertToJSONGetUsers(Config.sUserId);
         task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
@@ -216,6 +220,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     @Override
     public void onTaskCompleted(String response, int requestId) {
+        mGivLoading.setVisibility(View.GONE);
         if (requestId == GET_USERS) {
             mSrlRefresh.setRefreshing(false);
             retrieveFromJSONGetUsers(response);
@@ -228,6 +233,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     @Override
     public void onItemClick(int position) {
         if (!TextUtils.isEmpty(users.get(position).getFirebaseToken())) {
+            mGivLoading.setVisibility(View.VISIBLE);
             String firebaseToken = users.get(position).getFirebaseToken();
             HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, SEND_MESSAGE);
             task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(Config.sName + " says hello to you", firebaseToken), Constants.SERVER_KEY);

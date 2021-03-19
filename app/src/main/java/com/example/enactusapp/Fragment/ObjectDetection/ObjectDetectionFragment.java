@@ -346,12 +346,6 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         sentences.clear();
         lastSelectedPosition = -1;
         lastSelectedSentence = "";
-        sentences.add("That is my mouse.");
-        sentences.add("Can you pass me my mouse?");
-        sentences.add("How much is this mouse?");
-        sentences.add("How long has this mouse been used mouse been use?");
-        sentences.add("Can you pass me my mouse?");
-        sentences.add("How much is this mouse?");
         if (keyword.equals("mouse")) {
             sentences.add("That is my mouse.");
             sentences.add("Can you pass me my mouse?");

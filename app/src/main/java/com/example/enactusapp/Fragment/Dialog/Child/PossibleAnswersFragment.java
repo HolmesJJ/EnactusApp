@@ -40,6 +40,7 @@ import org.json.JSONObject;
 
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
+import pl.droidsonroids.gif.GifImageView;
 
 /**
  * @author Administrator
@@ -53,6 +54,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     private static final int GET_SMART_ANSWERS = 1;
 
     private RecyclerView mDialogPossibleAnswersRecyclerView;
+    private GifImageView mGivLoading;
     private DialogPossibleAnswersAdapter mDialogPossibleAnswersAdapter;
 
     private User user;
@@ -79,6 +81,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
 
     private void initView(View view) {
         mDialogPossibleAnswersRecyclerView = (RecyclerView) view.findViewById(R.id.dialog_possible_answers_recycler_view);
+        mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mDialogPossibleAnswersRecyclerView.getContext(), linearLayoutManager.getOrientation());
         mDialogPossibleAnswersRecyclerView.setLayoutManager(linearLayoutManager);
@@ -94,6 +97,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
         mDialogPossibleAnswersAdapter = new DialogPossibleAnswersAdapter(_mActivity, possibleAnswersList);
         mDialogPossibleAnswersRecyclerView.setAdapter(mDialogPossibleAnswersAdapter);
         if (!TextUtils.isEmpty(message) && user != null) {
+            mGivLoading.setVisibility(View.VISIBLE);
             qnaAnswers();
         }
         EventBusActivityScope.getDefault(_mActivity).post(new RequireMessageEvent());
@@ -119,6 +123,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
                             } else {
                                 mDialogPossibleAnswersAdapter.notifyDataSetChanged();
                                 mDialogPossibleAnswersAdapter.setOnItemClickListener(PossibleAnswersFragment.this);
+                                mGivLoading.setVisibility(View.GONE);
                             }
                         } else {
                             ToastUtils.showShortSafe("Answer generation fail!");
@@ -165,6 +170,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
         message = event.getMessage().toLowerCase();
         chatHistory.clear();
         chatHistory.addAll(event.getChatHistory());
+        mGivLoading.setVisibility(View.VISIBLE);
         qnaAnswers();
     }
 
@@ -181,6 +187,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
 
     @Override
     public void onTaskCompleted(String response, int requestId) {
+        mGivLoading.setVisibility(View.GONE);
         if (requestId == GET_SMART_ANSWERS) {
             retrieveFromJSONGetSmartAnswers(response);
             mDialogPossibleAnswersAdapter.notifyDataSetChanged();

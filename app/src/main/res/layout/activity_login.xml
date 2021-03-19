@@ -94,4 +94,12 @@
         android:layout_height="60dp"
         android:background="@drawable/btn_round_corner"/>
 
+    <pl.droidsonroids.gif.GifImageView
+        android:id="@+id/giv_loading"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/loading"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+
 </RelativeLayout>
