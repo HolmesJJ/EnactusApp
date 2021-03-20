@@ -640,16 +640,16 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private void countFixation(Coordinate coordinate) {
         if ((mCurrentCoordinate != null) && (Math.abs(mCurrentCoordinate.getX() - coordinate.getX()) < 80) && (Math.abs(mCurrentCoordinate.getY() - coordinate.getY()) < 80)) {
             fixationCounter++;
-            if (fixationCounter <= 25) {
+            if (fixationCounter <= 50) {
                 _mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mPbGaze.setProgress(fixationCounter * 4);
+                        mPbGaze.setProgress(fixationCounter * 2);
                     }
                 });
-                if (fixationCounter == 25) {
-                    ToastUtils.showShortSafe("Clicked: " +  coordinate.getX() + ", " + coordinate.getY());
-                    SimulateUtils.simulateClick(_mActivity, coordinate.getX(), coordinate.getY());
+                if (fixationCounter == 50) {
+                    SimulateUtils.simulateClick2(_mActivity, coordinate.getX(), coordinate.getY());
+                    ToastUtils.showShortSafe("Click: " +  coordinate.getX() + ", " + coordinate.getY());
                     if (mBottomBar.getCurrentItemPosition() == 3 && getGazePoint() != null) {
                         EventBusActivityScope.getDefault(_mActivity).post(new GazePointEvent(getGazePoint()));
                     }
