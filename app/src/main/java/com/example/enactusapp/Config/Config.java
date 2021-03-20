@@ -1,11 +1,14 @@
 package com.example.enactusapp.Config;
 
+import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.Utils.SpUtils;
 import com.example.enactusapp.Constants.SpUtilKeyConstants;
 
 public class Config {
 
     public static final String SETTING_CONFIG = "SettingConfig";
+    public static int sMode;
+    public static String sSocketAddress;
     public static boolean sIsLogin;
     public static int sUserId;
     public static String sUsername;
@@ -19,6 +22,16 @@ public class Config {
     private static SpUtils sSp = SpUtils.getInstance(SETTING_CONFIG);
 
     public Config() {
+    }
+
+    public static void setMode(int mode) {
+        sSp.put(SpUtilKeyConstants.MODE, mode);
+        sMode = mode;
+    }
+
+    public static void setSocketAddress(String socketAddress) {
+        sSp.put(SpUtilKeyConstants.SOCKET_ADDRESS, socketAddress);
+        sSocketAddress = socketAddress;
     }
 
     public static void setIsLogin(boolean isLogin) {
@@ -72,6 +85,8 @@ public class Config {
     }
 
     public static void loadConfig() {
+        sMode = sSp.getInt(SpUtilKeyConstants.MODE, SpUtilValueConstants.DEFAULT_MODE);
+        sSocketAddress = sSp.getString(SpUtilKeyConstants.SOCKET_ADDRESS, SpUtilValueConstants.DEFAULT_SOCKET_ADDRESS);
         sIsLogin = sSp.getBoolean(SpUtilKeyConstants.IS_LOGIN, false);
         sUserId = sSp.getInt(SpUtilKeyConstants.USER_ID, -1);
         sUsername = sSp.getString(SpUtilKeyConstants.USERNAME, "");

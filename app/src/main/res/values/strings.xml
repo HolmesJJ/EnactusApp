@@ -23,6 +23,7 @@
     <string name="action_sign_in">Sign In</string>
 
     <string name="action_start_chat">Start Chat</string>
+    <string name="action_confirm">Confirm</string>
     <string name="action_cancel">Cancel</string>
 
     <string name="action_send">Send</string>
@@ -36,4 +37,8 @@
     <string name="action_start_calibration">Start Calibration</string>
     <string name="action_muscle_sensor">Muscle Sensor</string>
     <string name="action_logout">Logout</string>
+
+    <string name="action_default_mode">Default</string>
+    <string name="action_bluetooth_mode">Bluetooth</string>
+    <string name="action_socket_mode">Socket</string>
 </resources>

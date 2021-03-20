@@ -72,7 +72,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         holder.mNameTextView.setText(name);
         double distance = CalculateUtils.getDistance(Config.sLatitude, Config.sLongitude, users.get(position).getLatitude(), users.get(position).getLongitude());
         Log.i(TAG, "user distance lat1: " + Config.sLatitude + ", lng1: " + Config.sLongitude + ", lat2: " + users.get(position).getLatitude() + ", lng2: " + users.get(position).getLongitude() + ", distance: " + distance);
-        holder.mDistanceTextView.setText(String.format("%.2f", distance) + "km");
+        holder.mDistanceTextView.setText(String.format("%.2f", distance) + "m");
         Glide.with(context).load(thumbnail).apply(RequestOptions.bitmapTransform(new RoundedCorners(ImageUtils.dp2px(context, 5)))).into(holder.mThumbnailImageView);
     }
 

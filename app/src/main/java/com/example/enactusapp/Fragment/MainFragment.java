@@ -32,6 +32,8 @@ import com.example.enactusapp.Bluetooth.BluetoothHelper;
 import com.example.enactusapp.Bluetooth.BluetoothHelper.OnReadDataListener;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Constants.SpUtilValueConstants;
+import com.example.enactusapp.Entity.Coordinate;
 import com.example.enactusapp.Entity.GazePoint;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.BackCameraEvent;
@@ -66,8 +68,11 @@ import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.UI.TextureViewOutlineProvider;
 import com.example.enactusapp.Utils.GPSUtils;
 import com.example.enactusapp.Utils.ImageUtils;
+import com.example.enactusapp.Utils.ScreenUtils;
 import com.example.enactusapp.Utils.SimulateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
+import com.example.enactusapp.WebSocket.Callback.IClientMessageCallback;
+import com.example.enactusapp.WebSocket.WebSocketClientManager;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -76,6 +81,7 @@ import com.hc.bluetoothlibrary.DeviceModule;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
+import org.opencv.core.Mat;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -102,7 +108,7 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener, OnTaskCompleted, OnReadDataListener {
+public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener, OnTaskCompleted, OnReadDataListener, IClientMessageCallback {
 
     private static final String TAG = "MainFragment";
 
@@ -135,6 +141,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private int currentEyeMovementState = EyeMovementState.FIXATION;
 
     private GazePoint mGazePoint;
+    private Coordinate mCurrentCoordinate;
 
     private Handler backgroundHandler;
     private HandlerThread backgroundThread = new HandlerThread("background");
@@ -335,6 +342,9 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             public void getOffset(int x, int y) {
                 mPvPoint.setOffset(x, y);
                 mVcCalibration.setOffset(x, y);
+                if (Config.sMode != SpUtilValueConstants.DEFAULT_MODE) {
+                    mPvPoint.setPosition(-1, -1);
+                }
             }
         });
     }
@@ -343,8 +353,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         _mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mPvPoint.setType(type == TrackingState.TRACKING ? PointView.TYPE_DEFAULT : PointView.TYPE_OUT_OF_SCREEN);
-                mPvPoint.setPosition(x, y);
+                if (Config.sMode == SpUtilValueConstants.DEFAULT_MODE) {
+                    mPvPoint.setType(type == TrackingState.TRACKING ? PointView.TYPE_DEFAULT : PointView.TYPE_OUT_OF_SCREEN);
+                    mPvPoint.setPosition(x, y);
+                }
             }
         });
     }
@@ -439,6 +451,12 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         TTSHelper.getInstance().initTTS(this);
         STTHelper.getInstance().initSTT(this);
         BluetoothHelper.getInstance().initBluetooth(_mActivity, this);
+        if (Config.sMode == SpUtilValueConstants.SOCKET_MODE) {
+            if (!WebSocketClientManager.getInstance().isConnected()) {
+                WebSocketClientManager.getInstance().connect(Config.sSocketAddress);
+            }
+            WebSocketClientManager.getInstance().setClientMessageCallback(this);
+        }
     }
 
     @Override
@@ -472,37 +490,41 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onGazeCoord(long timestamp, float x, float y, int state) {
-        if (!IS_USE_GAZE_FILER) {
-            if (state == TrackingState.TRACKING) {
-                mGazePoint = new GazePoint(x, y);
-                showGazePoint(x, y, state);
-            } else {
-                fixationCounter = 0;
-                _mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mPbGaze.setProgress(0);
-                    }
-                });
+        if (Config.sMode == SpUtilValueConstants.DEFAULT_MODE) {
+            if (!IS_USE_GAZE_FILER) {
+                if (state == TrackingState.TRACKING) {
+                    mGazePoint = new GazePoint(x, y);
+                    showGazePoint(x, y, state);
+                } else {
+                    fixationCounter = 0;
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPbGaze.setProgress(0);
+                        }
+                    });
+                }
             }
         }
     }
 
     @Override
     public void onFilteredGazeCoord(long timestamp, float x, float y, int state) {
-        if (IS_USE_GAZE_FILER) {
-            if (state == TrackingState.TRACKING) {
-                Log.i(TAG, "showGazePoint: (" + x + "x" + y + ")");
-                mGazePoint = new GazePoint(x, y);
-                showGazePoint(x, y, state);
-            } else {
-                fixationCounter = 0;
-                _mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mPbGaze.setProgress(0);
-                    }
-                });
+        if (Config.sMode == SpUtilValueConstants.DEFAULT_MODE) {
+            if (IS_USE_GAZE_FILER) {
+                if (state == TrackingState.TRACKING) {
+                    Log.i(TAG, "showGazePoint: (" + x + "x" + y + ")");
+                    mGazePoint = new GazePoint(x, y);
+                    showGazePoint(x, y, state);
+                } else {
+                    fixationCounter = 0;
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPbGaze.setProgress(0);
+                        }
+                    });
+                }
             }
         }
     }
@@ -533,37 +555,39 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onGazeEyeMovement(long timestamp, long duration, float x, float y, int state) {
-        // Log.i(TAG, "check eyeMovement timestamp: " + timestamp + " (" + x + "x" + y + ") : " + type);
-        if (state == EyeMovementState.FIXATION) {
-            if (currentEyeMovementState == EyeMovementState.FIXATION) {
-                fixationCounter++;
-                if (fixationCounter <= 25) {
-                    _mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mPbGaze.setProgress(fixationCounter * 4);
+        if (Config.sMode == SpUtilValueConstants.DEFAULT_MODE) {
+            // Log.i(TAG, "check eyeMovement timestamp: " + timestamp + " (" + x + "x" + y + ") : " + type);
+            if (state == EyeMovementState.FIXATION) {
+                if (currentEyeMovementState == EyeMovementState.FIXATION) {
+                    fixationCounter++;
+                    if (fixationCounter <= 25) {
+                        _mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mPbGaze.setProgress(fixationCounter * 4);
+                            }
+                        });
+                        if (fixationCounter == 25) {
+                            SimulateUtils.simulateClick(_mActivity, (int)x, (int)y);
+                            if (mBottomBar.getCurrentItemPosition() == 3 && getGazePoint() != null) {
+                                EventBusActivityScope.getDefault(_mActivity).post(new GazePointEvent(getGazePoint()));
+                            }
                         }
-                    });
-                    if (fixationCounter == 25) {
-                        SimulateUtils.simulateClick(_mActivity, (int)x, (int)y);
-                        if (mBottomBar.getCurrentItemPosition() == 3 && getGazePoint() != null) {
-                            EventBusActivityScope.getDefault(_mActivity).post(new GazePointEvent(getGazePoint()));
-                        }
+                    } else {
+                        fixationCounter = 0;
                     }
                 } else {
+                    currentEyeMovementState = EyeMovementState.FIXATION;
+                    fixationCounter = 0;
+                }
+            } else if (state == EyeMovementState.SACCADE) {
+                if (currentEyeMovementState != EyeMovementState.SACCADE) {
+                    currentEyeMovementState = EyeMovementState.SACCADE;
                     fixationCounter = 0;
                 }
             } else {
-                currentEyeMovementState = EyeMovementState.FIXATION;
                 fixationCounter = 0;
             }
-        } else if (state == EyeMovementState.SACCADE) {
-            if (currentEyeMovementState != EyeMovementState.SACCADE) {
-                currentEyeMovementState = EyeMovementState.SACCADE;
-                fixationCounter = 0;
-            }
-        } else {
-            fixationCounter = 0;
         }
     }
 
@@ -591,6 +615,51 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                     ToastUtils.showShortSafe("ERROR_CAMERA_INTERRUPT");
                     break;
             }
+        }
+    }
+
+    // Web Socket
+    @Override
+    public void onMessage(String message) {
+        try {
+            JSONObject jsonObject = new JSONObject(message);
+            int x = jsonObject.getInt("x");
+            int y = jsonObject.getInt("y");
+            int height = jsonObject.getInt("height");
+            int width = jsonObject.getInt("width");
+            int newX = (int)(x  / (width * 1.0) * ScreenUtils.getScreenRealWidth(_mActivity));
+            int newY = (int)(y  / (height * 1.0) * ScreenUtils.getScreenRealHeight(_mActivity));
+            mPvPoint.setPosition(newX, newY);
+            Coordinate coordinate = new Coordinate(newX, newY);
+            countFixation(coordinate);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void countFixation(Coordinate coordinate) {
+        if ((mCurrentCoordinate != null) && (Math.abs(mCurrentCoordinate.getX() - coordinate.getX()) < 80) && (Math.abs(mCurrentCoordinate.getY() - coordinate.getY()) < 80)) {
+            fixationCounter++;
+            if (fixationCounter <= 25) {
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPbGaze.setProgress(fixationCounter * 4);
+                    }
+                });
+                if (fixationCounter == 25) {
+                    ToastUtils.showShortSafe("Clicked: " +  coordinate.getX() + ", " + coordinate.getY());
+                    SimulateUtils.simulateClick(_mActivity, coordinate.getX(), coordinate.getY());
+                    if (mBottomBar.getCurrentItemPosition() == 3 && getGazePoint() != null) {
+                        EventBusActivityScope.getDefault(_mActivity).post(new GazePointEvent(getGazePoint()));
+                    }
+                }
+            } else {
+                fixationCounter = 0;
+            }
+        } else {
+            mCurrentCoordinate = new Coordinate(coordinate.getX(), coordinate.getY());
+            fixationCounter = 0;
         }
     }
 

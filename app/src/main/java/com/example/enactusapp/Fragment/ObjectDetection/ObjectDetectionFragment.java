@@ -16,7 +16,6 @@ import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.renderscript.Type;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -47,17 +46,16 @@ import com.example.enactusapp.TensorFlow.TFLiteObjectDetectionAPIModel;
 import com.example.enactusapp.Thread.CustomThreadPool;
 import com.example.enactusapp.Utils.FileUtils;
 import com.example.enactusapp.Utils.ImageUtils;
+import com.example.enactusapp.Utils.ScreenUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 import com.jiangdg.usbcamera.UVCCameraHelper;
 import com.jiangdg.usbcamera.UVCCameraHelper.OnMyDevConnectListener;
-import com.serenegiant.usb.IFrameCallback;
 import com.serenegiant.usb.common.AbstractUVCCameraHandler.OnPreViewResultListener;
 import com.serenegiant.usb.widget.CameraViewInterface;
 
 import org.greenrobot.eventbus.Subscribe;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -246,10 +244,8 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     }
 
     private void getScreenSize() {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        _mActivity.getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
-        screenHeight = displayMetrics.heightPixels;
-        screenWidth = displayMetrics.widthPixels;
+        screenHeight = ScreenUtils.getScreenRealHeight(_mActivity);
+        screenWidth = ScreenUtils.getScreenRealWidth(_mActivity);
         Log.i(TAG, "getScreenSize: screenHeight " + screenHeight + ", screenWidth " + screenWidth);
     }
 

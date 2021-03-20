@@ -7,13 +7,17 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.Utils.PermissionsUtils;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
+import com.example.enactusapp.WebSocket.WebSocketClientManager;
 
 import org.json.JSONObject;
 
@@ -46,6 +50,12 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
     private EditText mUsername;
     private EditText mPassword;
     private Button mBtnSignIn;
+    private Button mBtnDefaultMode;
+    private Button mBtnBluetoothMode;
+    private Button mBtnSocketMode;
+    private LinearLayout mLlSocketAddressContainer;
+    private Button mBtnConfirm;
+    private EditText mEtSocketAddress;
     private GifImageView mGivLoading;
 
     @Override
@@ -73,12 +83,54 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
                 task.execute(Constants.IP_ADDRESS + "api/Account/Login", jsonData, null);
             }
         });
+
+        mBtnDefaultMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Config.setMode(SpUtilValueConstants.DEFAULT_MODE);
+                mLlSocketAddressContainer.setVisibility(View.INVISIBLE);
+                WebSocketClientManager.getInstance().close();
+            }
+        });
+
+        mBtnBluetoothMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Config.setMode(SpUtilValueConstants.BLUETOOTH_MODE);
+                mLlSocketAddressContainer.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        mBtnSocketMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Config.setMode(SpUtilValueConstants.SOCKET_MODE);
+                mLlSocketAddressContainer.setVisibility(View.VISIBLE);
+            }
+        });
+
+        mBtnConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Config.setSocketAddress(mEtSocketAddress.getText().toString().trim());
+                if (!WebSocketClientManager.getInstance().isConnected()) {
+                    WebSocketClientManager.getInstance().connect(Config.sSocketAddress);
+                }
+            }
+        });
     }
 
     private void initView() {
         mUsername = (EditText) findViewById(R.id.et_username);
         mPassword = (EditText) findViewById(R.id.et_password);
         mBtnSignIn = (Button) findViewById(R.id.btn_sign_in);
+        mBtnDefaultMode = (Button) findViewById(R.id.btn_default_mode);
+        mBtnBluetoothMode = (Button) findViewById(R.id.btn_bluetooth_mode);
+        mBtnSocketMode = (Button) findViewById(R.id.btn_socket_mode);
+        mLlSocketAddressContainer = (LinearLayout) findViewById(R.id.ll_socket_address_container);
+        mBtnConfirm = (Button) findViewById(R.id.btn_confirm);
+        mEtSocketAddress = (EditText) findViewById(R.id.et_socket_address);
+        mEtSocketAddress.setText(Config.sSocketAddress);
         mGivLoading = (GifImageView) findViewById(R.id.giv_loading);
     }
 

@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.Event.CalibrationEvent;
 import com.example.enactusapp.Fragment.Bluetooth.BluetoothFragment;
 import com.example.enactusapp.Fragment.MainFragment;
@@ -20,6 +21,7 @@ import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
+import com.example.enactusapp.WebSocket.WebSocketClientManager;
 import com.shehuan.niv.NiceImageView;
 
 import androidx.annotation.Nullable;
@@ -129,6 +131,9 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         logoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (Config.sMode == SpUtilValueConstants.SOCKET_MODE) {
+                    WebSocketClientManager.getInstance().close();
+                }
                 resetConfig();
                 _mActivity.finish();
             }

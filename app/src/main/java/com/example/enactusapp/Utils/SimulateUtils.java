@@ -29,9 +29,9 @@ public class SimulateUtils {
      * 模拟点击
      */
     private static void simulateClick(View view, long start, long interval, float x, float y) {
-        final MotionEvent downEvent = MotionEvent.obtain(start, start, MotionEvent.ACTION_DOWN, x, y, 0);
+        final MotionEvent downEvent = MotionEvent.obtain(start, start + 100, MotionEvent.ACTION_DOWN, x, y, 0);
         long end = start + interval;
-        final MotionEvent upEvent = MotionEvent.obtain(end, end, MotionEvent.ACTION_UP, x, y, 0);
+        final MotionEvent upEvent = MotionEvent.obtain(end, end + 100, MotionEvent.ACTION_UP, x, y, 0);
         view.onTouchEvent(downEvent);
         view.onTouchEvent(upEvent);
         downEvent.recycle();
@@ -42,9 +42,11 @@ public class SimulateUtils {
      * 模拟点击
      */
     public static void simulateClick(Activity activity, int x, int y) {
-        MotionEvent evenDown = MotionEvent.obtain(System.currentTimeMillis(), System.currentTimeMillis() + 100, MotionEvent.ACTION_DOWN, x, y, 0);
+        long start = System.currentTimeMillis();
+        long end = start + 100;
+        MotionEvent evenDown = MotionEvent.obtain(start, start + 100, MotionEvent.ACTION_DOWN, x, y, 0);
+        MotionEvent eventUp = MotionEvent.obtain(end, end + 100, MotionEvent.ACTION_UP, x, y, 0);
         activity.dispatchTouchEvent(evenDown);
-        MotionEvent eventUp = MotionEvent.obtain(System.currentTimeMillis(), System.currentTimeMillis() + 100, MotionEvent.ACTION_UP, x, y, 0);
         activity.dispatchTouchEvent(eventUp);
         evenDown.recycle();
         eventUp.recycle();
