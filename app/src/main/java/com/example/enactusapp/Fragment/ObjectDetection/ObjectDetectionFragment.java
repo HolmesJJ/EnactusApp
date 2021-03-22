@@ -343,20 +343,83 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         lastSelectedPosition = -1;
         lastSelectedSentence = "";
         if (keyword.equals("mouse")) {
-            sentences.add("That is my mouse.");
             sentences.add("Can you pass me my mouse?");
-            sentences.add("How much is this mouse?");
-            sentences.add("How long has this mouse been used?");
+            sentences.add("Is this mouse yours?");
+            sentences.add("Who owns this mouse?");
+            sentences.add("Can I use this mouse?");
+            sentences.add("How much does this mouse?");
         } else if (keyword.equals("laptop")) {
-            sentences.add("This is my laptop.");
-            sentences.add("This laptop is very expensive.");
+            sentences.add("Can you pass me my laptop?");
+            sentences.add("Is this laptop yours?");
+            sentences.add("Who owns this laptop?");
             sentences.add("Can I use this laptop?");
-            sentences.add("How much is this laptop?");
+            sentences.add("How much does this laptop?");
         } else if (keyword.equals("keyboard")) {
-            sentences.add("This keyboard is very beautiful.");
             sentences.add("Can I use this keyboard?");
+            sentences.add("Is this keyboard yours?");
+            sentences.add("Who owns this keyboard?");
             sentences.add("Is this keyboard comfortable for typing?");
             sentences.add("How much is this keyboard?");
+        } else if (keyword.equals("tv")) {
+            sentences.add("Can I change the tv channel?");
+            sentences.add("Can I turn on the tv?");
+            sentences.add("Can I turn off the tv?");
+            sentences.add("How much does this tv?");
+            sentences.add("Can you watch tv with me?");
+        } else if (keyword.equals("cell phone")) {
+            sentences.add("Can you pass me my cell phone?");
+            sentences.add("Is this cell phone yours?");
+            sentences.add("Who owns this cell phone?");
+            sentences.add("How much does this cell phone?");
+            sentences.add("What brand of cell phone is this?");
+        } else if (keyword.equals("book")) {
+            sentences.add("Can you pass me my book?");
+            sentences.add("Is this book yours?");
+            sentences.add("Who is the author of this book?");
+            sentences.add("What is this book about?");
+            sentences.add("How much does this book?");
+        } else if (keyword.equals("chair")) {
+            sentences.add("Can I use this chair?");
+            sentences.add("Can you push me to the side of the chair?");
+            sentences.add("Can I take a break?");
+            sentences.add("How much is this chair?");
+            sentences.add("This chair looks very comfortable.");
+        } else if (keyword.equals("cup")) {
+            sentences.add("Can you pass me my cup?");
+            sentences.add("Is this cup yours?");
+            sentences.add("Who owns this cup?");
+            sentences.add("How much does this cup?");
+            sentences.add("Can you fill me with a glass of water?");
+        } else if (keyword.equals("pencil")) {
+            sentences.add("Can you pass me my pencil?");
+            sentences.add("Is this pencil yours?");
+            sentences.add("Who owns this pencil?");
+            sentences.add("Can I use this pencil?");
+            sentences.add("How much does this pencil?");
+        } else if (keyword.equals("pen")) {
+            sentences.add("Can you pass me my pen?");
+            sentences.add("Is this pen yours?");
+            sentences.add("Who owns this pen?");
+            sentences.add("Can I use this pen?");
+            sentences.add("How much does this pen?");
+        } else if (keyword.equals("bed")) {
+            sentences.add("Can you push me to the side of the bed?");
+            sentences.add("Can you help me lie down?");
+            sentences.add("Can I take a break?");
+            sentences.add("How much is this bed?");
+            sentences.add("This bed looks very comfortable.");
+        } else if (keyword.equals("apple")) {
+            sentences.add("Can you pass me my apple?");
+            sentences.add("Can I eat this apple?");
+            sentences.add("Is this apple yours?");
+            sentences.add("Who owns this apple?");
+            sentences.add("How much does this apple?");
+        } else if (keyword.equals("banana")) {
+            sentences.add("Can you pass me my banana?");
+            sentences.add("Can I eat this banana?");
+            sentences.add("Is this banana yours?");
+            sentences.add("Who owns this banana?");
+            sentences.add("How much does this banana?");
         }
     }
 
