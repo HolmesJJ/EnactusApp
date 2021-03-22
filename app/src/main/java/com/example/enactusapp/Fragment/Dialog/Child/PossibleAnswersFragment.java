@@ -51,7 +51,8 @@ import pl.droidsonroids.gif.GifImageView;
  */
 public class PossibleAnswersFragment extends SupportFragment implements OnItemClickListener, OnTaskCompleted {
 
-    private static final int GET_SMART_ANSWERS = 1;
+    private static final int GET_SMART_ANSWERS_1 = 1;
+    private static final int GET_SMART_ANSWERS_2 = 2;
 
     private RecyclerView mDialogPossibleAnswersRecyclerView;
     private GifImageView mGivLoading;
@@ -96,6 +97,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     private void initDelayView() {
         mDialogPossibleAnswersAdapter = new DialogPossibleAnswersAdapter(_mActivity, possibleAnswersList);
         mDialogPossibleAnswersRecyclerView.setAdapter(mDialogPossibleAnswersAdapter);
+        mDialogPossibleAnswersAdapter.setOnItemClickListener(this);
         if (!TextUtils.isEmpty(message) && user != null) {
             mGivLoading.setVisibility(View.VISIBLE);
             qnaAnswers();
@@ -104,8 +106,8 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     }
 
     private void qnaAnswers() {
-        mDialogPossibleAnswersAdapter.setOnItemClickListener(null);
         possibleAnswersList.clear();
+        // Google
         smartReply.suggestReplies(chatHistory)
                 .addOnSuccessListener(new OnSuccessListener<SmartReplySuggestionResult>() {
                     @Override
@@ -114,12 +116,9 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
                             for (SmartReplySuggestion suggestion : smartReplySuggestionResult.getSuggestions()) {
                                 possibleAnswersList.add(suggestion.getText());
                             }
-                            if (possibleAnswersList.size() == 0) {
+                            if (smartReplySuggestionResult.getSuggestions().size() == 0) {
                                 chatHistory.clear();
                                 EventBusActivityScope.getDefault(_mActivity).post(new ClearChatHistoryEvent());
-                                HttpAsyncTaskPost task = new HttpAsyncTaskPost(PossibleAnswersFragment.this, GET_SMART_ANSWERS);
-                                String jsonData = convertToJSONGetSmartAnswers(message);
-                                task.execute(Constants.SMART_ANSWERING_IP_ADDRESS, jsonData, Constants.SMART_ANSWERING_TOKEN);
                             } else {
                                 mDialogPossibleAnswersAdapter.notifyDataSetChanged();
                                 mDialogPossibleAnswersAdapter.setOnItemClickListener(PossibleAnswersFragment.this);
@@ -136,6 +135,13 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
                         ToastUtils.showShortSafe("Answer generation fail!");
                     }
                 });
+
+        // Microsoft
+        String jsonData = convertToJSONGetSmartAnswers(message);
+        HttpAsyncTaskPost task1 = new HttpAsyncTaskPost(PossibleAnswersFragment.this, GET_SMART_ANSWERS_1);
+        task1.execute(Constants.SMART_ANSWERING_IP_ADDRESS_1, jsonData, Constants.SMART_ANSWERING_TOKEN_1);
+        HttpAsyncTaskPost task2 = new HttpAsyncTaskPost(PossibleAnswersFragment.this, GET_SMART_ANSWERS_2);
+        task2.execute(Constants.SMART_ANSWERING_IP_ADDRESS_2, jsonData, Constants.SMART_ANSWERING_TOKEN_2);
     }
 
     private String convertToJSONGetSmartAnswers(String question) {
@@ -188,10 +194,13 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     @Override
     public void onTaskCompleted(String response, int requestId) {
         mGivLoading.setVisibility(View.GONE);
-        if (requestId == GET_SMART_ANSWERS) {
+        if (requestId == GET_SMART_ANSWERS_1) {
             retrieveFromJSONGetSmartAnswers(response);
             mDialogPossibleAnswersAdapter.notifyDataSetChanged();
-            mDialogPossibleAnswersAdapter.setOnItemClickListener(PossibleAnswersFragment.this);
+        }
+        if (requestId == GET_SMART_ANSWERS_2) {
+            retrieveFromJSONGetSmartAnswers(response);
+            mDialogPossibleAnswersAdapter.notifyDataSetChanged();
         }
     }
 }

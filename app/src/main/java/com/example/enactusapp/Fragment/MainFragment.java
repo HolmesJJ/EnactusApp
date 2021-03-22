@@ -124,6 +124,11 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private static final int FOURTH = 3;
     private static final int FIFTH = 4;
 
+    private static final int EYE_CONTROL_ID = 1;
+    private static final int GREETING_ID = 2;
+    private static final int QNA_ID = 3;
+    private static final int MUSCLE_CONTROL_ID = 4;
+
     private static final boolean IS_USE_GAZE_FILER = true;
 
     private SupportFragment[] mFragments = new SupportFragment[5];
@@ -622,16 +627,40 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onMessage(String message) {
         try {
-            JSONObject jsonObject = new JSONObject(message);
-            int x = jsonObject.getInt("x");
-            int y = jsonObject.getInt("y");
-            int height = jsonObject.getInt("height");
-            int width = jsonObject.getInt("width");
-            int newX = (int)(x  / (width * 1.0) * ScreenUtils.getScreenRealWidth(_mActivity));
-            int newY = (int)(y  / (height * 1.0) * ScreenUtils.getScreenRealHeight(_mActivity));
-            mPvPoint.setPosition(newX, newY);
-            Coordinate coordinate = new Coordinate(newX, newY);
-            countFixation(coordinate);
+            JSONObject messageJSON = new JSONObject(message);
+            int id = messageJSON.getInt("id");
+            if (id == EYE_CONTROL_ID) {
+                JSONObject contentJSON = messageJSON.getJSONObject("coordinate");
+                int x = contentJSON.getInt("x");
+                int y = contentJSON.getInt("y");
+                int height = contentJSON.getInt("height");
+                int width = contentJSON.getInt("width");
+                int newX = (int)(x  / (width * 1.0) * ScreenUtils.getScreenRealWidth(_mActivity));
+                int newY = (int)(y  / (height * 1.0) * ScreenUtils.getScreenRealHeight(_mActivity));
+                mPvPoint.setPosition(newX, newY);
+                Coordinate coordinate = new Coordinate(newX, newY);
+                countFixation(coordinate);
+            } else if (id == GREETING_ID) {
+                Intent notificationIntent = new Intent(MessageType.GREETING.getValue());
+                notificationIntent.putExtra("id", 2);
+                notificationIntent.putExtra("username", "C1234567D");
+                notificationIntent.putExtra("name", "Zhang Zhiyao");
+                notificationIntent.putExtra("longitude", 103.81);
+                notificationIntent.putExtra("latitude", 1.272);
+                notificationIntent.putExtra("message", "Zhang Zhiyao says hello to you");
+                LocalBroadcastManager.getInstance(_mActivity).sendBroadcast(notificationIntent);
+            } else if (id == QNA_ID) {
+                JSONObject contentJSON = messageJSON.getJSONObject("content");
+                String qna = contentJSON.getString("qna");
+                Intent notificationIntent = new Intent(MessageType.NORMAL.getValue());
+                notificationIntent.putExtra("id", 2);
+                notificationIntent.putExtra("username", "C1234567D");
+                notificationIntent.putExtra("name", "Zhang Zhiyao");
+                notificationIntent.putExtra("longitude", 103.81);
+                notificationIntent.putExtra("latitude", 1.272);
+                notificationIntent.putExtra("message", qna);
+                LocalBroadcastManager.getInstance(_mActivity).sendBroadcast(notificationIntent);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -48,9 +48,6 @@ android {
             signingConfig signingConfigs.debug
         }
     }
-    aaptOptions {
-        noCompress "tflite"
-    }
     lintOptions {
         abortOnError false
     }
@@ -98,8 +95,6 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
     // 圆角NiceImageView
     implementation 'com.github.SheHuan:NiceImageView:1.0.5'
-    // TTS sdk依赖于 okhttp 必须外部依赖或导入，否则报错
-    implementation 'com.squareup.okhttp3:okhttp:3.12.12'
     // TensorFlow
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
     // USB Camera

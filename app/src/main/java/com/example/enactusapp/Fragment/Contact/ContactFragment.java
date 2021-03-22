@@ -2,6 +2,7 @@ package com.example.enactusapp.Fragment.Contact;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -193,6 +194,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             content.put("body", body);
             jsonMsg.put("to", firebaseToken);
             jsonMsg.put("notification", content);
+            Log.i("666666666666666", jsonMsg.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

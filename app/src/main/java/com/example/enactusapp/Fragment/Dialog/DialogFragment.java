@@ -10,6 +10,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.CustomViewPager;
@@ -56,6 +57,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     private static final int SEND_MESSAGE = 1;
 
+    private LinearLayout mLlMessageContainer;
     private TextView mMessageTextView;
     private TextView mPossibleAnswers;
     private EditText mInputEditText;
@@ -87,6 +89,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     }
 
     private void initView(View view) {
+        mLlMessageContainer = (LinearLayout) view.findViewById(R.id.ll_message_container);
         mMessageTextView = (TextView) view.findViewById(R.id.tv_message);
         mPossibleAnswers = (TextView) view.findViewById(R.id.possible_answers);
         mInputEditText = (EditText) view.findViewById(R.id.et_keyword);
@@ -217,8 +220,8 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         });
 
         if (user != null && !TextUtils.isEmpty(message)) {
-            mMessageTextView.setVisibility(View.VISIBLE);
             mMessageTextView.setText(message);
+            mLlMessageContainer.setVisibility(View.VISIBLE);
         }
     }
 
@@ -241,7 +244,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         user = event.getUser();
         message = event.getMessage();
         mMessageTextView.setText(message);
-        mMessageTextView.setVisibility(View.VISIBLE);
+        mLlMessageContainer.setVisibility(View.VISIBLE);
         // 不是麦克风的信息
         if (user != null) {
             if (chatHistory.size() == 0) {
@@ -278,7 +281,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
             chatHistory.add(FirebaseTextMessage.createForLocalUser(mInputEditText.getText().toString(), System.currentTimeMillis()));
             TTSHelper.getInstance().speak(mInputEditText.getText().toString());
         }
-        if (user == null) {
+        if (user == null || user.getFirebaseToken() == null) {
             mInputEditText.setText("");
         } else {
             mGivLoading.setVisibility(View.VISIBLE);

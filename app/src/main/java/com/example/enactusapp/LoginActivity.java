@@ -8,7 +8,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.SpUtilValueConstants;
