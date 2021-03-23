@@ -1,11 +1,17 @@
 package com.example.enactusapp.Markov;
 
+import android.content.Context;
+import android.util.Log;
+
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Trie {
+
+    private final static String TAG = "Trie";
 
     public class TrieNode {
         TrieNode[] present_chars;
@@ -88,10 +94,12 @@ public class Trie {
         return results.toArray(new String[0]);
     }
 
-    public void readFile(String filename) throws FileNotFoundException {
-        Scanner sc = new Scanner(new File(filename));
+    public void readFile(Context context, String filename) throws Exception {
+        DataInputStream textFileStream = new DataInputStream(context.getAssets().open(filename));
+        Scanner sc = new Scanner(textFileStream);
         while (sc.hasNextLine()) {
             String str = sc.nextLine();
+            Log.i(TAG, "Trie File content: " + str);
             if(str.contains(" "))continue;
             insert(str);
         }

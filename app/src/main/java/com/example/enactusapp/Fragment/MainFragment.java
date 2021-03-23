@@ -55,6 +55,7 @@ import com.example.enactusapp.Fragment.ObjectDetection.ObjectDetectionFragment;
 import com.example.enactusapp.Fragment.Profile.ProfileFragment;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
+import com.example.enactusapp.Markov.MarkovHelper;
 import com.example.enactusapp.R;
 import com.example.enactusapp.STT.Listener.STTListener;
 import com.example.enactusapp.STT.RecogResult;
@@ -455,6 +456,8 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         GazeHelper.getInstance().initGaze(_mActivity, this);
         TTSHelper.getInstance().initTTS(this);
         STTHelper.getInstance().initSTT(this);
+        MarkovHelper.getInstance().initMarkov(_mActivity);
+        MarkovHelper.getInstance().loadDataSets();
         BluetoothHelper.getInstance().initBluetooth(_mActivity, this);
         if (Config.sUseMode == SpUtilValueConstants.SOCKET_MODE) {
             if (!WebSocketClientManager.getInstance().isConnected()) {
@@ -996,6 +999,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             viewLayoutChecker.releaseChecker();
         }
         BluetoothHelper.getInstance().releaseBluetooth();
+        MarkovHelper.getInstance().releaseMarkov();
         STTHelper.getInstance().releaseSTT();
         TTSHelper.getInstance().releaseTTS();
         GazeHelper.getInstance().stopTracking();

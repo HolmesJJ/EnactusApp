@@ -1,5 +1,9 @@
 package com.example.enactusapp.Markov;
 
+import android.content.Context;
+
+import com.example.enactusapp.Utils.ToastUtils;
+
 import java.util.ArrayList;
 
 public class MarkovHelper {
@@ -9,8 +13,9 @@ public class MarkovHelper {
     private MarkovModel markovModel;
     private Trie[] tries;
     private WordTable wordTable;
-    public String preWord;
-    public ArrayList<String> enteredWords = new ArrayList<>();
+    private String preWord;
+    private ArrayList<String> enteredWords;
+    private Context mContext;
 
     private MarkovHelper() {
     }
@@ -23,9 +28,20 @@ public class MarkovHelper {
         return MarkovHelper.SingleInstance.INSTANCE;
     }
 
-    public void initMarkov() {
+    public void initMarkov(Context context) {
         markovModel = new MarkovModel();
         tries = new Trie[11];
+        enteredWords = new ArrayList<>();
+        mContext = context;
+    }
+
+    public void releaseMarkov() {
+        wordTable = null;
+        preWord = null;
+        mContext = null;
+        enteredWords = null;
+        markovModel = null;
+        tries = null;
     }
 
     private String[][] getWords(String pattern) {
@@ -43,7 +59,7 @@ public class MarkovHelper {
 
     public void showByPreWord() {
         if (preWord == null) {
-            System.out.println("preWord not exist！");
+            System.out.println("preWord not exist!");
             return;
         }
         wordTable = new WordTable(markovModel.nextWords(preWord));
@@ -84,5 +100,27 @@ public class MarkovHelper {
 
     public void showPrePage() {
         wordTable.showPrePage();
+    }
+
+    public void loadDataSets() {
+        try {
+            for (int i = 1; i <= 7; i++) {
+                markovModel.readFile(mContext, "Harry Potter TXT/" + i + ".txt");
+            }
+            for (int i = 1; i <= 5; i++) {
+                markovModel.readFile(mContext, "The Lord of the Rings TXT/" + i + ".txt");
+            }
+            for (int i = 1; i <= 5; i++) {
+                markovModel.readFile(mContext, "Twilight Saga TXT/" + i + ".txt");
+            }
+            for (int i = 1; i <= 10; i++) {
+                tries[i] = new Trie();
+                if (i <= 5) {
+                    tries[i].readFile(mContext, "dict/dict" + i + ".txt");
+                }
+            }
+        } catch (Exception e) {
+            ToastUtils.showShortSafe("Load data sets error...");
+        }
     }
 }

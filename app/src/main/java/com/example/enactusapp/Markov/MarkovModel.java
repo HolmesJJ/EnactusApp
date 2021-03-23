@@ -1,5 +1,9 @@
 package com.example.enactusapp.Markov;
 
+import android.content.Context;
+import android.util.Log;
+
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -7,6 +11,7 @@ import java.util.*;
 public class MarkovModel {
 
     private HashMap<String, HashMap<String, Integer>> mp;
+    private final static String TAG = "MarkovModel";
 
     public MarkovModel() {
         mp = new HashMap<>();
@@ -51,13 +56,15 @@ public class MarkovModel {
         return st;
     }
 
-    public void readFile(String filename) throws FileNotFoundException {
+    public void readFile(Context context, String filename) throws Exception {
         HashSet<String> st = readDict();
-        Scanner sc = new Scanner(new File(filename));
+        DataInputStream textFileStream = new DataInputStream(context.getAssets().open(filename));
+        Scanner sc = new Scanner(textFileStream);
         String word;
         ArrayList<String> text = new ArrayList<>();
         while (sc.hasNext()) {
             word = sc.next();
+            Log.i(TAG, "MarkovModel File content: " + word);
             int i = 0, j = word.length() - 1;
             while (i < word.length() && !Character.isAlphabetic(word.charAt(i))) i++;
             while (j >= 0 && !Character.isAlphabetic(word.charAt(j))) j--;
