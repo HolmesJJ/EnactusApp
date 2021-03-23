@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -18,6 +19,10 @@ import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
+import com.example.enactusapp.Markov.Listener.MarkovListener;
+import com.example.enactusapp.Markov.MarkovHelper;
+import com.example.enactusapp.Thread.CustomThreadPool;
+import com.example.enactusapp.Utils.ContextUtils;
 import com.example.enactusapp.Utils.PermissionsUtils;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
@@ -28,7 +33,7 @@ import org.json.JSONObject;
 import pl.droidsonroids.gif.GifImageView;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 
-public class LoginActivity extends BaseActivity implements OnTaskCompleted {
+public class LoginActivity extends BaseActivity implements OnTaskCompleted, MarkovListener {
 
     private static final String TAG = "LoginActivity";
 
@@ -64,6 +69,8 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
     private Button mBtnConfirm;
     private EditText mEtSocketAddress;
     private GifImageView mGivLoading;
+
+    private static CustomThreadPool sThreadPoolLoadDataSets = new CustomThreadPool(Thread.NORM_PRIORITY);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -156,6 +163,17 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
                 }
             }
         });
+
+        if (!MarkovHelper.getInstance().isInitialized()) {
+            MarkovHelper.getInstance().initMarkov(ContextUtils.getContext());
+        }
+        if (!MarkovHelper.getInstance().isDataSetsLoaded()) {
+            mGivLoading.setVisibility(View.VISIBLE);
+            sThreadPoolLoadDataSets.execute(() -> {
+                MarkovHelper.getInstance().addMarkovListener(this);
+                MarkovHelper.getInstance().loadDataSets();
+            });
+        }
     }
 
     private void initView() {
@@ -220,6 +238,29 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // Markov
+    @Override
+    public void onDataSetsLoaded() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mGivLoading.setVisibility(View.GONE);
+            }
+        });
+        ToastUtils.showShortSafe("Load data sets successfully...");
+    }
+
+    @Override
+    public void onDataSetsError() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mGivLoading.setVisibility(View.GONE);
+            }
+        });
+        ToastUtils.showShortSafe("Load data sets error...");
     }
 
     @Override

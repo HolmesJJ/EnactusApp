@@ -55,6 +55,7 @@ import com.example.enactusapp.Fragment.ObjectDetection.ObjectDetectionFragment;
 import com.example.enactusapp.Fragment.Profile.ProfileFragment;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
+import com.example.enactusapp.Markov.Listener.MarkovListener;
 import com.example.enactusapp.Markov.MarkovHelper;
 import com.example.enactusapp.R;
 import com.example.enactusapp.STT.Listener.STTListener;
@@ -67,6 +68,7 @@ import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.UI.TextureViewOutlineProvider;
+import com.example.enactusapp.Utils.ContextUtils;
 import com.example.enactusapp.Utils.GPSUtils;
 import com.example.enactusapp.Utils.ImageUtils;
 import com.example.enactusapp.Utils.ScreenUtils;
@@ -82,7 +84,6 @@ import com.hc.bluetoothlibrary.DeviceModule;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
-import org.opencv.core.Mat;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -101,6 +102,7 @@ import camp.visual.gazetracker.state.TrackingState;
 import camp.visual.gazetracker.util.ViewLayoutChecker;
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
+import pl.droidsonroids.gif.GifImageView;
 
 /**
  * @author Administrator
@@ -109,7 +111,7 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateAuthor $Author$
  * @updateDes ${TODO}
  */
-public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener, OnTaskCompleted, OnReadDataListener, IClientMessageCallback {
+public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener, OnTaskCompleted, OnReadDataListener, IClientMessageCallback, MarkovListener {
 
     private static final String TAG = "MainFragment";
 
@@ -141,6 +143,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private PointView mPvPoint;
     private CalibrationViewer mVcCalibration;
     private Button btnStopCalibration;
+    private GifImageView mGivLoading;
 
     // 眼睛是在凝视或在移动
     private int fixationCounter = 0;
@@ -154,6 +157,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private ViewLayoutChecker viewLayoutChecker = new ViewLayoutChecker();
 
     private static CustomThreadPool sThreadPoolFirebase = new CustomThreadPool(Thread.NORM_PRIORITY);
+    private static CustomThreadPool sThreadPoolLoadDataSets = new CustomThreadPool(Thread.NORM_PRIORITY);
 
     private static SparseIntArray ORIENTATIONS = new SparseIntArray();
 
@@ -219,6 +223,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     private void initView(View view) {
 
+        mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
         mRlFrontCameraContainer = (RelativeLayout) view.findViewById(R.id.rl_front_camera_container);
         mTvFrontCamera = (TextureView) view.findViewById(R.id.tv_front_camera);
         mPbGaze = (ProgressBar) view.findViewById(R.id.pb_gaze);
@@ -227,6 +232,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         mTvFrontCamera.setClipToOutline(true);
         mPvPoint = (PointView) view.findViewById(R.id.pv_point);
         mVcCalibration = (CalibrationViewer) view.findViewById(R.id.cv_calibration);
+        mVcCalibration.bringToFront();
         btnStopCalibration = (Button) view.findViewById(R.id.btn_stop_calibration);
         btnStopCalibration.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -456,8 +462,16 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         GazeHelper.getInstance().initGaze(_mActivity, this);
         TTSHelper.getInstance().initTTS(this);
         STTHelper.getInstance().initSTT(this);
-        MarkovHelper.getInstance().initMarkov(_mActivity);
-        MarkovHelper.getInstance().loadDataSets();
+        if (!MarkovHelper.getInstance().isInitialized()) {
+            MarkovHelper.getInstance().initMarkov(ContextUtils.getContext());
+        }
+        if (!MarkovHelper.getInstance().isDataSetsLoaded()) {
+            mGivLoading.setVisibility(View.VISIBLE);
+            sThreadPoolLoadDataSets.execute(() -> {
+                MarkovHelper.getInstance().addMarkovListener(this);
+                MarkovHelper.getInstance().loadDataSets();
+            });
+        }
         BluetoothHelper.getInstance().initBluetooth(_mActivity, this);
         if (Config.sUseMode == SpUtilValueConstants.SOCKET_MODE) {
             if (!WebSocketClientManager.getInstance().isConnected()) {
@@ -829,6 +843,29 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onSTTOfflineUnLoaded() {
         Log.i(TAG, "onSTTOfflineUnLoaded");
+    }
+
+    // Markov
+    @Override
+    public void onDataSetsLoaded() {
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mGivLoading.setVisibility(View.GONE);
+            }
+        });
+        ToastUtils.showShortSafe("Load data sets successfully...");
+    }
+
+    @Override
+    public void onDataSetsError() {
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mGivLoading.setVisibility(View.GONE);
+            }
+        });
+        ToastUtils.showShortSafe("Load data sets error...");
     }
 
     // Bluetooth

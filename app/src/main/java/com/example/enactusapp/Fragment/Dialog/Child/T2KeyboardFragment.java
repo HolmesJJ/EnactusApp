@@ -3,6 +3,7 @@ package com.example.enactusapp.Fragment.Dialog.Child;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import com.example.enactusapp.Event.BlinkEvent;
 import com.example.enactusapp.Event.PossibleWordEvent;
 import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
 import com.example.enactusapp.Listener.OnItemClickListener;
+import com.example.enactusapp.Markov.MarkovHelper;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Utils.ContextUtils;
 
@@ -40,12 +42,6 @@ import me.yokeyword.fragmentation.SupportFragment;
  * @updateDes ${TODO}
  */
 public class T2KeyboardFragment extends SupportFragment implements OnItemClickListener {
-
-    private static final String DICTIONARY_1 = "dict1.txt";
-    private static final String DICTIONARY_2 = "dict2.txt";
-    private static final String DICTIONARY_3 = "dict3.txt";
-    private static final String DICTIONARY_4 = "dict4.txt";
-    private static final String DICTIONARY_5 = "dict5.txt";
 
     private RecyclerView mDialogPossibleWordsRecyclerView;
     private DialogPossibleWordsAdapter mDialogPossibleWordsAdapter;
@@ -112,14 +108,18 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
 
             @Override
             public void afterTextChanged(Editable editable) {
-                possibleWords(inputTv.getText().toString());
+                if (inputTv.getText() != null) {
+                    possibleWords(MarkovHelper.getInstance().getByPattern(inputTv.getText().toString()));
+                } else {
+                    possibleWords(null);
+                }
             }
         });
 
         t2KeyboardLeftBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                inputText = inputText + "L";
+                inputText = inputText + "l";
                 inputTv.setText(inputText);
             }
         });
@@ -127,7 +127,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         t2KeyboardRightBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                inputText = inputText + "R";
+                inputText = inputText + "r";
                 inputTv.setText(inputText);
             }
         });
@@ -143,7 +143,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
             @Override
             public void onClick(View view) {
                 if(inputText.length() >= 1) {
-                    inputText = inputText.substring(0, inputText.length()-1);
+                    inputText = inputText.substring(0, inputText.length() - 1);
                     inputTv.setText(inputText);
                 }
             }
@@ -152,91 +152,35 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         t2KeyboardPrevBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                possibleWords(MarkovHelper.getInstance().getPrePage());
             }
         });
 
         t2keyboardNextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                possibleWords(MarkovHelper.getInstance().getNextPage());
             }
         });
-    }
 
-    private void possibleWords(String keys) {
-        possibleWordsList.clear();
-        possibleWordsList.addAll(readDictionary(DICTIONARY_5, keys, 20));
-        if (possibleWordsList.size() <= 20) {
-            possibleWordsList.addAll(readDictionary(DICTIONARY_4, keys, 20 - possibleWordsList.size()));
-        }
-        if (possibleWordsList.size() <= 20) {
-            possibleWordsList.addAll(readDictionary(DICTIONARY_3, keys, 20 - possibleWordsList.size()));
-        }
-        if (possibleWordsList.size() <= 20) {
-            possibleWordsList.addAll(readDictionary(DICTIONARY_2, keys, 20 - possibleWordsList.size()));
-        }
-        if (possibleWordsList.size() <= 20) {
-            possibleWordsList.addAll(readDictionary(DICTIONARY_1, keys, 10 - possibleWordsList.size()));
-        }
         mDialogPossibleWordsAdapter = new DialogPossibleWordsAdapter(_mActivity, possibleWordsList);
         mDialogPossibleWordsRecyclerView.setAdapter(mDialogPossibleWordsAdapter);
         mDialogPossibleWordsAdapter.setOnItemClickListener(this);
     }
 
-    private List<String> readDictionary(String fileName, String keys, int number) {
-        List<String> wordsList = new ArrayList<>();
-        BufferedReader reader = null;
-        String L = "abcdefghijklm";
-        String R = "nopqrstuvwxyz";
-
-        try {
-            reader = new BufferedReader(new InputStreamReader(ContextUtils.getContext().getAssets().open(fileName)));
-            String mLine;
-            while ((mLine = reader.readLine()) != null && wordsList.size() <= number) {
-
-                // 符合长度
-                if (mLine.length() == keys.length()) {
-
-                    // 判断word的每个字母是否符合每一个key
-                    char[] keyArr = keys.toCharArray();
-                    char[] letterArr = mLine.toCharArray();
-
-                    int count = 0;
-                    for (int i = 0; i < keys.length(); i++) {
-                        String key = Character.toString(keyArr[i]).toUpperCase();
-                        String letter = Character.toString(letterArr[i]).toLowerCase();
-
-                        if ((key.equals("L") && L.contains(letter)) || key.equals("R") && R.contains(letter)) {
-                            count++;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // 全部字母都符合要求
-                    if (count == keys.length()) {
-                        wordsList.add(mLine);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.fillInStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.fillInStackTrace();
-                }
-            }
-        }
-        return wordsList;
+    private void possibleWords(List<String> words) {
+        possibleWordsList.clear();
+        possibleWordsList.addAll(words);
+        mDialogPossibleWordsAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onItemClick(int position) {
-        EventBusActivityScope.getDefault(_mActivity).post(new PossibleWordEvent(possibleWordsList.get(position) + " "));
+        String word = MarkovHelper.getInstance().chooseWord(position + 1);
+        EventBusActivityScope.getDefault(_mActivity).post(new PossibleWordEvent(word + " "));
         inputText = "";
         inputTv.setText(inputText);
+        possibleWords(MarkovHelper.getInstance().getByPreWord());
     }
 
     @Subscribe
@@ -245,9 +189,9 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
             _mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    inputText = inputText + "R";
+                    inputText = inputText + "l";
                     inputTv.setText(inputText);
-                    possibleWords(inputTv.getText().toString());
+                    possibleWords(MarkovHelper.getInstance().getByPattern(inputTv.getText().toString()));
                 }
             });
         }
@@ -255,9 +199,9 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
             _mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    inputText = inputText + "L";
+                    inputText = inputText + "r";
                     inputTv.setText(inputText);
-                    possibleWords(inputTv.getText().toString());
+                    possibleWords(MarkovHelper.getInstance().getByPattern(inputTv.getText().toString()));
                 }
             });
         }

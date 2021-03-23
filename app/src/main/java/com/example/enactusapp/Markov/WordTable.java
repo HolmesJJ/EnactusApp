@@ -1,5 +1,8 @@
 package com.example.enactusapp.Markov;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WordTable {
 
     public final int WORD_NUM_PER_PAGE = 5;
@@ -62,15 +65,23 @@ public class WordTable {
         }
     }
 
-
     public void showCurPage() {
         System.out.println("-----------------------------------------------------------------------------------");
         System.out.println("page" + (cur_page + 1) + ":");
         for (int j = 1; j <= WORD_NUM_PER_PAGE; j++) {
-            if(cur_page*WORD_NUM_PER_PAGE+j>word_num)break;
+            if (cur_page * WORD_NUM_PER_PAGE + j > word_num) break;
             System.out.print(j + ": " + table[cur_page][j].word + " ");
         }
         System.out.println('\n');
+    }
+
+    public List<String> getCurPage() {
+        List<String> words = new ArrayList<>();
+        for (int j = 1; j <= WORD_NUM_PER_PAGE; j++) {
+            if (cur_page * WORD_NUM_PER_PAGE + j > word_num) break;
+            words.add(table[cur_page][j].word);
+        }
+        return words;
     }
 
     public void showNextPage() {
@@ -78,8 +89,18 @@ public class WordTable {
         showCurPage();
     }
 
+    public List<String> getNextPage() {
+        if (cur_page < pages - 1) cur_page++;
+        return getCurPage();
+    }
+
     public void showPrePage() {
         if (cur_page > 0) cur_page--;
         showCurPage();
+    }
+
+    public List<String> getPrePage() {
+        if (cur_page > 0) cur_page--;
+        return getCurPage();
     }
 }

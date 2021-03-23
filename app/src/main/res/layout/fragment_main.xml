@@ -55,7 +55,8 @@
     <com.example.enactusapp.EyeTracker.PointView
         android:id="@+id/pv_point"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        />
 
     <com.example.enactusapp.EyeTracker.CalibrationViewer
         android:id="@+id/cv_calibration"
@@ -71,5 +72,13 @@
         android:layout_marginBottom="20dp"
         android:visibility="gone"
         android:text="Stop"/>
+
+    <pl.droidsonroids.gif.GifImageView
+        android:id="@+id/giv_loading"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/loading"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
 
 </FrameLayout>

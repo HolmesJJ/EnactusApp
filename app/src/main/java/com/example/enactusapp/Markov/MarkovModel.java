@@ -4,8 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 
 public class MarkovModel {
@@ -44,11 +42,12 @@ public class MarkovModel {
         return ret;
     }
 
-    private HashSet<String> readDict() throws FileNotFoundException {
+    private HashSet<String> readDict(Context context) throws Exception {
         HashSet<String> st = new HashSet<>();
         for (int i = 1; i <= 5; i++) {
-            String filename = "dict/dict" + i + ".txt";
-            Scanner sc = new Scanner(new File(filename));
+            String filename = "dicts/dict" + i + ".txt";
+            DataInputStream textFileStream = new DataInputStream(context.getAssets().open(filename));
+            Scanner sc = new Scanner(textFileStream);
             while (sc.hasNext()) {
                 st.add(sc.next());
             }
@@ -57,14 +56,13 @@ public class MarkovModel {
     }
 
     public void readFile(Context context, String filename) throws Exception {
-        HashSet<String> st = readDict();
+        HashSet<String> st = readDict(context);
         DataInputStream textFileStream = new DataInputStream(context.getAssets().open(filename));
         Scanner sc = new Scanner(textFileStream);
         String word;
         ArrayList<String> text = new ArrayList<>();
         while (sc.hasNext()) {
             word = sc.next();
-            Log.i(TAG, "MarkovModel File content: " + word);
             int i = 0, j = word.length() - 1;
             while (i < word.length() && !Character.isAlphabetic(word.charAt(i))) i++;
             while (j >= 0 && !Character.isAlphabetic(word.charAt(j))) j--;
