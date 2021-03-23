@@ -2,7 +2,8 @@ package com.example.enactusapp.Constants;
 
 public class SpUtilKeyConstants {
 
-    public static final String MODE = "mode";
+    public static final String CONTROL_MODE = "control_mode";
+    public static final String USE_MODE = "use_mode";
     public static final String SOCKET_ADDRESS = "socket_address";
     public static final String IS_LOGIN = "is_login";
     public static final String USER_ID = "user_id";

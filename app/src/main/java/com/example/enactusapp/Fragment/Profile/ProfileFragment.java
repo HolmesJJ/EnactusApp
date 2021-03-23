@@ -131,7 +131,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         logoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Config.sMode == SpUtilValueConstants.SOCKET_MODE) {
+                if (Config.sUseMode == SpUtilValueConstants.SOCKET_MODE) {
                     WebSocketClientManager.getInstance().close();
                 }
                 resetConfig();

@@ -2,12 +2,17 @@ package com.example.enactusapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+
+import androidx.core.content.ContextCompat;
 
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.SpUtilValueConstants;
@@ -48,6 +53,9 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
 
     private EditText mUsername;
     private EditText mPassword;
+    private RadioGroup mRgControlModeContainer;
+    private RadioButton mRbEyeTrackingMode;
+    private RadioButton mRbMuscleControlMode;
     private Button mBtnSignIn;
     private Button mBtnDefaultMode;
     private Button mBtnBluetoothMode;
@@ -69,7 +77,37 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
             finish();
         }
 
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            mRbEyeTrackingMode.setChecked(true);
+            mRbEyeTrackingMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.control_mode_radio_button_select)));
+            mRbMuscleControlMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(LoginActivity.this, R.color.control_mode_radio_button_unselect)));
+        } else {
+            mRbMuscleControlMode.setChecked(true);
+            mRbMuscleControlMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.control_mode_radio_button_select)));
+            mRbEyeTrackingMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(LoginActivity.this, R.color.control_mode_radio_button_unselect)));
+        }
+
         requestPermission();
+
+        mRgControlModeContainer.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
+                switch (checkedId) {
+                    case R.id.rb_eye_tracking_mode:
+                        mRbEyeTrackingMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(LoginActivity.this, R.color.control_mode_radio_button_select)));
+                        mRbMuscleControlMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(LoginActivity.this, R.color.control_mode_radio_button_unselect)));
+                        Config.setControlMode(SpUtilValueConstants.EYE_TRACKING_MODE);
+                        break;
+                    case R.id.rb_muscle_control_mode:
+                        mRbMuscleControlMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(LoginActivity.this, R.color.control_mode_radio_button_select)));
+                        mRbEyeTrackingMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(LoginActivity.this, R.color.control_mode_radio_button_unselect)));
+                        Config.setControlMode(SpUtilValueConstants.MUSCLE_CONTROL_MODE);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
 
         mBtnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,8 +124,9 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         mBtnDefaultMode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Config.setMode(SpUtilValueConstants.DEFAULT_MODE);
+                Config.setUseMode(SpUtilValueConstants.DEFAULT_MODE);
                 mLlSocketAddressContainer.setVisibility(View.INVISIBLE);
+                ToastUtils.showShortSafe("Default Mode");
                 WebSocketClientManager.getInstance().close();
             }
         });
@@ -95,7 +134,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         mBtnBluetoothMode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Config.setMode(SpUtilValueConstants.BLUETOOTH_MODE);
+                Config.setUseMode(SpUtilValueConstants.BLUETOOTH_MODE);
                 mLlSocketAddressContainer.setVisibility(View.INVISIBLE);
             }
         });
@@ -103,7 +142,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
         mBtnSocketMode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Config.setMode(SpUtilValueConstants.SOCKET_MODE);
+                Config.setUseMode(SpUtilValueConstants.SOCKET_MODE);
                 mLlSocketAddressContainer.setVisibility(View.VISIBLE);
             }
         });
@@ -122,6 +161,9 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted {
     private void initView() {
         mUsername = (EditText) findViewById(R.id.et_username);
         mPassword = (EditText) findViewById(R.id.et_password);
+        mRgControlModeContainer = (RadioGroup) findViewById(R.id.rg_control_mode_container);
+        mRbEyeTrackingMode = (RadioButton) findViewById(R.id.rb_eye_tracking_mode);
+        mRbMuscleControlMode = (RadioButton) findViewById(R.id.rb_muscle_control_mode);
         mBtnSignIn = (Button) findViewById(R.id.btn_sign_in);
         mBtnDefaultMode = (Button) findViewById(R.id.btn_default_mode);
         mBtnBluetoothMode = (Button) findViewById(R.id.btn_bluetooth_mode);

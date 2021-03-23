@@ -2,6 +2,9 @@ package com.example.enactusapp.Constants;
 
 public class SpUtilValueConstants {
 
+    public static final int EYE_TRACKING_MODE = 1;
+    public static final int MUSCLE_CONTROL_MODE = 2;
+
     public static final int DEFAULT_MODE = 1;
     public static final int BLUETOOTH_MODE = 2;
     public static final int SOCKET_MODE = 3;

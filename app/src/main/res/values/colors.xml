@@ -17,5 +17,8 @@
     <color name="bluetooth_split_line_bg">#f2f3f7</color>
     <color name="seek_bar_bg">#d3d6dd</color>
 
+    <color name="control_mode_radio_button_unselect">#cccccc</color>
+    <color name="control_mode_radio_button_select">#20c793</color>
+
     <color name="light_green">#20c793</color>
 </resources>

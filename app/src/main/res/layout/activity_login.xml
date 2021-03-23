@@ -81,9 +81,48 @@
         android:layout_width="match_parent"
         android:layout_height="2dp"/>
 
+    <RadioGroup
+        android:id="@+id/rg_control_mode_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:orientation="horizontal"
+        android:layout_below="@+id/v_line2">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <RadioButton
+            android:id="@+id/rb_eye_tracking_mode"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="@string/action_eye_tracking_mode" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <RadioButton
+            android:id="@+id/rb_muscle_control_mode"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="@string/action_muscle_control_mode"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+    </RadioGroup>
+
     <Button
         android:id="@+id/btn_sign_in"
-        android:layout_below="@+id/v_line2"
+        android:layout_below="@+id/rg_control_mode_container"
         android:layout_marginTop="32dp"
         android:text="@string/action_sign_in"
         android:textColor="@color/WHITE"
@@ -105,7 +144,7 @@
             android:orientation="vertical">
 
             <LinearLayout
-                android:id="@+id/btn_mode"
+                android:id="@+id/ll_use_mode_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -115,6 +154,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:background="@color/TRANSPARENT"
+                    android:textColor="@color/TRANSPARENT"
                     android:text="@string/action_default_mode" />
 
                 <Button
@@ -122,6 +163,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:background="@color/TRANSPARENT"
+                    android:textColor="@color/TRANSPARENT"
                     android:text="@string/action_bluetooth_mode" />
 
                 <Button
@@ -129,6 +172,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:background="@color/TRANSPARENT"
+                    android:textColor="@color/TRANSPARENT"
                     android:text="@string/action_socket_mode" />
 
             </LinearLayout>

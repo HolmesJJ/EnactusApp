@@ -38,6 +38,9 @@
     <string name="action_muscle_sensor">Muscle Sensor</string>
     <string name="action_logout">Logout</string>
 
+    <string name="action_eye_tracking_mode">Eye Tracking</string>
+    <string name="action_muscle_control_mode">Muscle Control</string>
+
     <string name="action_default_mode">Default</string>
     <string name="action_bluetooth_mode">Bluetooth</string>
     <string name="action_socket_mode">Socket</string>

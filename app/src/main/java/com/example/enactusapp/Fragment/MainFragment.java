@@ -347,7 +347,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             public void getOffset(int x, int y) {
                 mPvPoint.setOffset(x, y);
                 mVcCalibration.setOffset(x, y);
-                if (Config.sMode != SpUtilValueConstants.DEFAULT_MODE) {
+                if (Config.sUseMode != SpUtilValueConstants.DEFAULT_MODE) {
                     mPvPoint.setPosition(-1, -1);
                 }
             }
@@ -358,7 +358,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         _mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (Config.sMode == SpUtilValueConstants.DEFAULT_MODE) {
+                if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
                     mPvPoint.setType(type == TrackingState.TRACKING ? PointView.TYPE_DEFAULT : PointView.TYPE_OUT_OF_SCREEN);
                     mPvPoint.setPosition(x, y);
                 }
@@ -456,7 +456,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         TTSHelper.getInstance().initTTS(this);
         STTHelper.getInstance().initSTT(this);
         BluetoothHelper.getInstance().initBluetooth(_mActivity, this);
-        if (Config.sMode == SpUtilValueConstants.SOCKET_MODE) {
+        if (Config.sUseMode == SpUtilValueConstants.SOCKET_MODE) {
             if (!WebSocketClientManager.getInstance().isConnected()) {
                 WebSocketClientManager.getInstance().connect(Config.sSocketAddress);
             }
@@ -495,7 +495,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onGazeCoord(long timestamp, float x, float y, int state) {
-        if (Config.sMode == SpUtilValueConstants.DEFAULT_MODE) {
+        if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
             if (!IS_USE_GAZE_FILER) {
                 if (state == TrackingState.TRACKING) {
                     mGazePoint = new GazePoint(x, y);
@@ -515,7 +515,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onFilteredGazeCoord(long timestamp, float x, float y, int state) {
-        if (Config.sMode == SpUtilValueConstants.DEFAULT_MODE) {
+        if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
             if (IS_USE_GAZE_FILER) {
                 if (state == TrackingState.TRACKING) {
                     Log.i(TAG, "showGazePoint: (" + x + "x" + y + ")");
@@ -560,7 +560,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
     @Override
     public void onGazeEyeMovement(long timestamp, long duration, float x, float y, int state) {
-        if (Config.sMode == SpUtilValueConstants.DEFAULT_MODE) {
+        if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
             // Log.i(TAG, "check eyeMovement timestamp: " + timestamp + " (" + x + "x" + y + ") : " + type);
             if (state == EyeMovementState.FIXATION) {
                 if (currentEyeMovementState == EyeMovementState.FIXATION) {
