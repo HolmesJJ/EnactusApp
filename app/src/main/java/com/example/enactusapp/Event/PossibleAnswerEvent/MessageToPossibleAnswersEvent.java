@@ -1,4 +1,4 @@
-package com.example.enactusapp.Event;
+package com.example.enactusapp.Event.PossibleAnswerEvent;
 
 import com.example.enactusapp.Entity.User;
 import com.google.firebase.ml.naturallanguage.smartreply.FirebaseTextMessage;

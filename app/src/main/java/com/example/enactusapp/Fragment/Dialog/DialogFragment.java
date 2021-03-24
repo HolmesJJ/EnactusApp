@@ -18,14 +18,25 @@ import com.example.enactusapp.Adapter.DialogChildAdapter;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.ClearChatHistoryEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.ConfirmPossibleAnswerEvent;
 import com.example.enactusapp.Event.GreetingEvent;
-import com.example.enactusapp.Event.MessageToPossibleAnswersEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.MessageToPossibleAnswersEvent;
 import com.example.enactusapp.Event.MessageEvent;
-import com.example.enactusapp.Event.PossibleWordEvent;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
+import com.example.enactusapp.Event.PossibleAnswerEvent.PossibleAnswersEvent;
+import com.example.enactusapp.Event.PossibleWordEvent.ConfirmPossibleWordEvent;
+import com.example.enactusapp.Event.PossibleWordEvent.PossibleWordEvent;
+import com.example.enactusapp.Event.PossibleWordEvent.PossibleWordsEvent;
+import com.example.enactusapp.Event.PossibleWordEvent.SelectPossibleWordEvent;
 import com.example.enactusapp.Event.RequireMessageEvent;
-import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.SelectPossibleAnswerEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.SpeakPossibleAnswerEvent;
+import com.example.enactusapp.Event.T2KeyboardEvent.ConfirmT2KeyboardEvent;
+import com.example.enactusapp.Event.T2KeyboardEvent.SelectT2KeyboardEvent;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
@@ -55,8 +66,18 @@ import pl.droidsonroids.gif.GifImageView;
  */
 public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
+    private static final int DIALOG_FRAGMENT_ID = 1;
+    private static final String TAG = "DialogFragment";
     private static final int SEND_MESSAGE = 1;
 
+    private static final int LEFT_BUTTON_ID = 3;
+    private static final int RIGHT_BUTTON_ID = 4;
+    private static final int SEND_ID = 5;
+    private static final int BACK_ID = 6;
+    private static final int PREV_ID = 7;
+    private static final int NEXT_ID = 8;
+
+    private TextView mTvSelection;
     private LinearLayout mLlMessageContainer;
     private TextView mMessageTextView;
     private TextView mPossibleAnswers;
@@ -71,6 +92,16 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     private User user;
     private String message;
     private List<FirebaseTextMessage> chatHistory = new ArrayList<>();
+
+    private List<Selection> selections = new ArrayList<>();
+    private List<Selection> paSelections = new ArrayList<>(); // PossibleAnswersFragment
+    private List<Selection> t2Selections = new ArrayList<>(); // T2KeyboardFragment
+    private List<Selection> t26Selections = new ArrayList<>(); // T26KeyboardFragment
+    private int muscleControlRightCount = 0;
+    private int muscleControlRightPaCount = 0; // PossibleAnswersFragment
+    private int muscleControlRightT2Count = 0; // T2KeyboardFragment
+    private int muscleControlRightT26Count = 0; // T26KeyboardFragment
+    private int currentPage = 1;
 
     public static DialogFragment newInstance() {
         DialogFragment fragment = new DialogFragment();
@@ -89,6 +120,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     }
 
     private void initView(View view) {
+        mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
         mLlMessageContainer = (LinearLayout) view.findViewById(R.id.ll_message_container);
         mMessageTextView = (TextView) view.findViewById(R.id.tv_message);
         mPossibleAnswers = (TextView) view.findViewById(R.id.possible_answers);
@@ -136,6 +168,10 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         mScrollLeftBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                currentPage--;
+                if (currentPage < 1) {
+                    currentPage = 3;
+                }
                 if(dialogAnswerContainerViewPager.getCurrentItem() == 0) {
                     dialogAnswerContainerViewPager.setCurrentItem(2);
                     mPossibleAnswers.setVisibility(View.INVISIBLE);
@@ -179,6 +215,10 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         mScrollRightBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                currentPage++;
+                if (currentPage > 3) {
+                    currentPage = 1;
+                }
                 if(dialogAnswerContainerViewPager.getCurrentItem() == 0) {
                     dialogAnswerContainerViewPager.setCurrentItem(1);
                     mPossibleAnswers.setVisibility(View.INVISIBLE);
@@ -222,6 +262,68 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
         if (user != null && !TextUtils.isEmpty(message)) {
             mMessageTextView.setText(message);
             mLlMessageContainer.setVisibility(View.VISIBLE);
+        }
+
+        addSelections();
+        addPaSelections(null);
+        addT2Selections(null);
+        addT26Selections();
+    }
+
+    private void addSelections() {
+        muscleControlRightCount = 0;
+        selections.clear();
+        selections.add(new Selection(1, "Left"));
+        selections.add(new Selection(2, "Right"));
+        if (selections.size() > 0) {
+            mTvSelection.setText(selections.get(0).getName());
+        }
+    }
+
+    private void addPaSelections(List<String> pa) {
+        addSelections();
+        muscleControlRightPaCount = 0;
+        paSelections.clear();
+        paSelections.addAll(selections);
+        if (pa != null) {
+            for (int i = 0; i < pa.size(); i++) {
+                paSelections.add(new Selection(i + 3, "Option " + (i + 1)));
+            }
+        }
+        if (paSelections.size() > 0) {
+            mTvSelection.setText(paSelections.get(0).getName());
+        }
+    }
+
+    private void addT2Selections(List<String> t2) {
+        addSelections();
+        muscleControlRightT2Count = 0;
+        t2Selections.clear();
+        t2Selections.addAll(selections);
+        t2Selections.add(new Selection(LEFT_BUTTON_ID, "LeftBtn"));
+        t2Selections.add(new Selection(RIGHT_BUTTON_ID, "RightBtn"));
+        t2Selections.add(new Selection(SEND_ID, "Send"));
+        t2Selections.add(new Selection(BACK_ID, "Back"));
+        t2Selections.add(new Selection(PREV_ID, "Prev"));
+        t2Selections.add(new Selection(NEXT_ID, "Next"));
+        t2Selections.add(new Selection(9, "Backspace"));
+        if (t2 != null) {
+            for (int i = 0; i < t2.size(); i++) {
+                t2Selections.add(new Selection(i + 10, t2.get(i)));
+            }
+        }
+        if (t2Selections.size() > 0) {
+            mTvSelection.setText(t2Selections.get(0).getName());
+        }
+    }
+
+    private void addT26Selections() {
+        addSelections();
+        muscleControlRightT26Count = 0;
+        t26Selections.clear();
+        t26Selections.addAll(selections);
+        if (t26Selections.size() > 0) {
+            mTvSelection.setText(t26Selections.get(0).getName());
         }
     }
 
@@ -273,7 +375,7 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     }
 
     @Subscribe
-    public void onSpeakPossibleAnswersEvent(SpeakPossibleAnswersEvent event) {
+    public void onSpeakPossibleAnswerEvent(SpeakPossibleAnswerEvent event) {
         if (!TextUtils.isEmpty(event.getAnswer())) {
             chatHistory.add(FirebaseTextMessage.createForLocalUser(event.getAnswer(), System.currentTimeMillis()));
             TTSHelper.getInstance().speak(event.getAnswer());
@@ -292,6 +394,20 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
             else {
                 task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(mInputEditText.getText().toString(), user.getFirebaseToken()), Constants.SERVER_KEY);
             }
+        }
+    }
+
+    @Subscribe
+    public void onPossibleAnswersEvent(PossibleAnswersEvent event) {
+        if (event != null && event.getPossibleAnswers().size() > 0) {
+            addPaSelections(event.getPossibleAnswers());
+        }
+    }
+
+    @Subscribe
+    public void onPossibleWordsEvent(PossibleWordsEvent event) {
+        if (event != null && event.getPossibleWords().size() > 0) {
+            addT2Selections(event.getPossibleWords());
         }
     }
 
@@ -355,5 +471,123 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
     public void onDestroyView() {
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
         super.onDestroyView();
+    }
+
+    @Subscribe
+    public void onMuscleControlLeftEvents(MuscleControlLeftEvents event) {
+        if (event != null && event.getFragmentId() == DIALOG_FRAGMENT_ID) {
+            if (currentPage == 1) {
+                if (paSelections.get(muscleControlRightPaCount).getId() == 1) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScrollLeftBtn.performClick();
+                        }
+                    });
+                } else if (paSelections.get(muscleControlRightPaCount).getId() == 2) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScrollRightBtn.performClick();
+                        }
+                    });
+                } else {
+                    EventBusActivityScope.getDefault(_mActivity).post(new ConfirmPossibleAnswerEvent(muscleControlRightPaCount - 2));
+                }
+            } else if (currentPage == 2) {
+                if (t2Selections.get(muscleControlRightT2Count).getId() == 1) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScrollLeftBtn.performClick();
+                        }
+                    });
+                } else if (t2Selections.get(muscleControlRightT2Count).getId() == 2) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScrollRightBtn.performClick();
+                        }
+                    });
+                } else if (t2Selections.get(muscleControlRightT2Count).getId() >= 3 && t2Selections.get(muscleControlRightT2Count).getId() <= 8) {
+                    EventBusActivityScope.getDefault(_mActivity).post(new ConfirmT2KeyboardEvent(t2Selections.get(muscleControlRightT2Count).getId()));
+                } else if (t2Selections.get(muscleControlRightT2Count).getId() == 9) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            inputBackspaceBtn.performClick();
+                        }
+                    });
+                } else {
+                    EventBusActivityScope.getDefault(_mActivity).post(new ConfirmPossibleWordEvent(muscleControlRightT2Count - 9));
+                }
+            } else if (currentPage == 3) {
+                if (t26Selections.get(muscleControlRightT26Count).getId() == 1) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScrollLeftBtn.performClick();
+                        }
+                    });
+                } else if (t26Selections.get(muscleControlRightT26Count).getId() == 2) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScrollRightBtn.performClick();
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    @Subscribe
+    public void onMuscleControlRightEvents(MuscleControlRightEvents event) {
+        if (event != null && event.getFragmentId() == DIALOG_FRAGMENT_ID) {
+            if (currentPage == 1) {
+                muscleControlRightPaCount++;
+                if (muscleControlRightPaCount == paSelections.size()) {
+                    muscleControlRightPaCount = 0;
+                }
+                if (muscleControlRightPaCount >= 2) {
+                    EventBusActivityScope.getDefault(_mActivity).post(new SelectPossibleAnswerEvent(muscleControlRightPaCount - 2));
+                }
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTvSelection.setText(paSelections.get(muscleControlRightPaCount).getName());
+                    }
+                });
+            } else if (currentPage == 2) {
+                muscleControlRightT2Count++;
+                if (muscleControlRightT2Count == t2Selections.size()) {
+                    muscleControlRightT2Count = 0;
+                }
+                else if (muscleControlRightT2Count >= 2 && muscleControlRightT2Count <= 7) {
+                    EventBusActivityScope.getDefault(_mActivity).post(new SelectT2KeyboardEvent(t2Selections.get(muscleControlRightPaCount).getId()));
+                } else if (muscleControlRightT2Count == 8) {
+
+                } else {
+                    EventBusActivityScope.getDefault(_mActivity).post(new SelectPossibleWordEvent(muscleControlRightT2Count - 9));
+                }
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTvSelection.setText(t2Selections.get(muscleControlRightT2Count).getName());
+                    }
+                });
+            } else if (currentPage == 3) {
+                muscleControlRightT26Count++;
+                if (muscleControlRightT26Count == t26Selections.size()) {
+                    muscleControlRightT26Count = 0;
+                }
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTvSelection.setText(t26Selections.get(muscleControlRightT26Count).getName());
+                    }
+                });
+            }
+        }
     }
 }

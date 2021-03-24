@@ -145,7 +145,7 @@ public class MarkovHelper {
 
     public void loadDataSets() {
         try {
-            for (int i = 1; i <= 1; i++) {
+            for (int i = 1; i <= 7; i++) {
                 markovModel.readFile(mContext, "Harry Potter TXT/" + i + ".txt");
             }
 //            for (int i = 1; i <= 5; i++) {

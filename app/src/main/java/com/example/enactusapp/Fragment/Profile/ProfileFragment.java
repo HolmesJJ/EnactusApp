@@ -54,6 +54,7 @@ import static com.example.enactusapp.Config.Config.resetConfig;
 public class ProfileFragment extends SupportFragment implements OnTaskCompleted {
 
     private static final int PROFILE_FRAGMENT_ID = 3;
+    private static final String TAG = "ProfileFragment";
     private static final int UPDATE_USER = 1;
 
     private TextView mTvSelection;
@@ -99,6 +100,11 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         muscleSensorBtn = (Button) view.findViewById(R.id.btn_muscle_sensor);
         logoutBtn = (Button) view.findViewById(R.id.btn_logout);
         mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            muscleSensorBtn.setVisibility(View.GONE);
+        } else {
+            startCalibrationBtn.setVisibility(View.GONE);
+        }
     }
 
     @Override

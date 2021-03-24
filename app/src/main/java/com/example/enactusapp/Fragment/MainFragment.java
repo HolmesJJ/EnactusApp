@@ -471,8 +471,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (!GPSUtils.isOpenGPS(_mActivity)) {
             startLocation();
         }
-        Log.i(TAG, "Gaze Version: " + GazeTracker.getVersionName());
-        GazeHelper.getInstance().initGaze(_mActivity, this);
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            Log.i(TAG, "Gaze Version: " + GazeTracker.getVersionName());
+            GazeHelper.getInstance().initGaze(_mActivity, this);
+        }
         TTSHelper.getInstance().initTTS(this);
         STTHelper.getInstance().initSTT(this);
         if (!MarkovHelper.getInstance().isInitialized()) {
@@ -1041,6 +1043,8 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             showHideFragment(mFragments[1], mFragments[0]);
             mBottomBar.setCurrentItem(1);
             muscleControlFragmentId = 1;
+        } else if (mBottomBar.getCurrentItemPosition() == 1) {
+            muscleControlFragmentId = 1;
         } else if (mBottomBar.getCurrentItemPosition() == 3) {
             showHideFragment(mFragments[1], mFragments[2]);
             mBottomBar.setCurrentItem(1);
@@ -1067,15 +1071,19 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onResume() {
         super.onResume();
-        setOffsetOfView();
-        GazeHelper.getInstance().setCameraPreview(mTvFrontCamera);
-        GazeHelper.getInstance().startTracking();
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            setOffsetOfView();
+            GazeHelper.getInstance().setCameraPreview(mTvFrontCamera);
+            GazeHelper.getInstance().startTracking();
+        }
     }
 
     @Override
     public void onPause() {
-        GazeHelper.getInstance().stopTracking();
-        GazeHelper.getInstance().removeCameraPreview();
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            GazeHelper.getInstance().stopTracking();
+            GazeHelper.getInstance().removeCameraPreview();
+        }
         super.onPause();
     }
 
@@ -1088,8 +1096,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         BluetoothHelper.getInstance().releaseBluetooth();
         STTHelper.getInstance().releaseSTT();
         TTSHelper.getInstance().releaseTTS();
-        GazeHelper.getInstance().stopTracking();
-        GazeHelper.getInstance().releaseGaze();
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            GazeHelper.getInstance().stopTracking();
+            GazeHelper.getInstance().releaseGaze();
+        }
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
         super.onDestroyView();
     }

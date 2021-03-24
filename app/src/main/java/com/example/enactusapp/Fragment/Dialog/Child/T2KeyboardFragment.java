@@ -12,18 +12,19 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.DialogPossibleWordsAdapter;
 import com.example.enactusapp.Event.BlinkEvent;
-import com.example.enactusapp.Event.PossibleWordEvent;
-import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
+import com.example.enactusapp.Event.PossibleWordEvent.ConfirmPossibleWordEvent;
+import com.example.enactusapp.Event.PossibleWordEvent.PossibleWordEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.SpeakPossibleAnswerEvent;
+import com.example.enactusapp.Event.PossibleWordEvent.PossibleWordsEvent;
+import com.example.enactusapp.Event.PossibleWordEvent.SelectPossibleWordEvent;
+import com.example.enactusapp.Event.T2KeyboardEvent.ConfirmT2KeyboardEvent;
+import com.example.enactusapp.Event.T2KeyboardEvent.SelectT2KeyboardEvent;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Markov.MarkovHelper;
 import com.example.enactusapp.R;
-import com.example.enactusapp.Utils.ContextUtils;
 
 import org.greenrobot.eventbus.Subscribe;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,13 @@ import me.yokeyword.fragmentation.SupportFragment;
  */
 public class T2KeyboardFragment extends SupportFragment implements OnItemClickListener {
 
+    private static final int LEFT_BUTTON_ID = 3;
+    private static final int RIGHT_BUTTON_ID = 4;
+    private static final int SEND_ID = 5;
+    private static final int BACK_ID = 6;
+    private static final int PREV_ID = 7;
+    private static final int NEXT_ID = 8;
+
     private RecyclerView mDialogPossibleWordsRecyclerView;
     private DialogPossibleWordsAdapter mDialogPossibleWordsAdapter;
 
@@ -56,6 +64,11 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
     private TextView inputTv;
 
     private String inputText = "";
+
+    // 上一次选中的位置
+    private int lastSelectedPosition = -1;
+    // 上一次选中的单词
+    private String lastSelectedWord = "";
 
     public static T2KeyboardFragment newInstance() {
         Bundle args = new Bundle();
@@ -135,7 +148,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         t2KeyboardSendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EventBusActivityScope.getDefault(_mActivity).post(new SpeakPossibleAnswersEvent(null));
+                EventBusActivityScope.getDefault(_mActivity).post(new SpeakPossibleAnswerEvent(null));
             }
         });
 
@@ -172,6 +185,9 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         possibleWordsList.clear();
         possibleWordsList.addAll(words);
         mDialogPossibleWordsAdapter.notifyDataSetChanged();
+        lastSelectedPosition = -1;
+        lastSelectedWord = "";
+        EventBusActivityScope.getDefault(_mActivity).post(new PossibleWordsEvent(possibleWordsList));
     }
 
     @Override
@@ -205,6 +221,88 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
                 }
             });
         }
+    }
+
+    @Subscribe
+    public void onSelectT2KeyboardEvent(SelectT2KeyboardEvent event) {
+
+    }
+
+    @Subscribe
+    public void onConfirmT2KeyboardEvent(ConfirmT2KeyboardEvent event) {
+        if (event.getKeyId() == LEFT_BUTTON_ID) {
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    t2KeyboardLeftBtn.performClick();
+                }
+            });
+        } else if (event.getKeyId() == RIGHT_BUTTON_ID) {
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    t2KeyboardRightBtn.performClick();
+                }
+            });
+        } else if (event.getKeyId() == SEND_ID) {
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    t2KeyboardSendBtn.performClick();
+                }
+            });
+        } else if (event.getKeyId() == BACK_ID) {
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    t2keyboardBackBtn.performClick();
+                }
+            });
+        } else if (event.getKeyId() == PREV_ID) {
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    t2KeyboardPrevBtn.performClick();
+                }
+            });
+        } else if (event.getKeyId() == NEXT_ID) {
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    t2keyboardNextBtn.performClick();
+                }
+            });
+        }
+    }
+
+    @Subscribe
+    public void onSelectPossibleWordEvent(SelectPossibleWordEvent event) {
+        if (lastSelectedPosition != -1) {
+            possibleWordsList.set(lastSelectedPosition, lastSelectedWord);
+        }
+        lastSelectedPosition = event.getPosition();
+        lastSelectedWord = possibleWordsList.get(event.getPosition());
+        possibleWordsList.set(event.getPosition(), possibleWordsList.get(event.getPosition()) + " *");
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mDialogPossibleWordsAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Subscribe
+    public void onConfirmPossibleWordEvent(ConfirmPossibleWordEvent event) {
+        String word = MarkovHelper.getInstance().chooseWord(event.getPosition() + 1);
+        EventBusActivityScope.getDefault(_mActivity).post(new PossibleWordEvent(word + " "));
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                inputText = "";
+                inputTv.setText(inputText);
+                possibleWords(MarkovHelper.getInstance().getByPreWord());
+            }
+        });
     }
 
     @Override

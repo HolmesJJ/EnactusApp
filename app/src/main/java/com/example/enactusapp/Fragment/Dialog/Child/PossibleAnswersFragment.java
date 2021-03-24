@@ -1,7 +1,6 @@
 package com.example.enactusapp.Fragment.Dialog.Child;
 
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +9,12 @@ import com.example.enactusapp.Adapter.DialogPossibleAnswersAdapter;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.ClearChatHistoryEvent;
-import com.example.enactusapp.Event.MessageToPossibleAnswersEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.ConfirmPossibleAnswerEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.MessageToPossibleAnswersEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.PossibleAnswersEvent;
 import com.example.enactusapp.Event.RequireMessageEvent;
-import com.example.enactusapp.Event.SpeakPossibleAnswersEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.SelectPossibleAnswerEvent;
+import com.example.enactusapp.Event.PossibleAnswerEvent.SpeakPossibleAnswerEvent;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
@@ -65,6 +67,11 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     private List<FirebaseTextMessage> chatHistory = new ArrayList<>();
     private FirebaseSmartReply smartReply = FirebaseNaturalLanguage.getInstance().getSmartReply();
 
+    // 上一次选中的位置
+    private int lastSelectedPosition = -1;
+    // 上一次选中的答案
+    private String lastSelectedAnswer = "";
+
     public static PossibleAnswersFragment newInstance() {
         Bundle args = new Bundle();
         PossibleAnswersFragment fragment = new PossibleAnswersFragment();
@@ -98,10 +105,6 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
         mDialogPossibleAnswersAdapter = new DialogPossibleAnswersAdapter(_mActivity, possibleAnswersList);
         mDialogPossibleAnswersRecyclerView.setAdapter(mDialogPossibleAnswersAdapter);
         mDialogPossibleAnswersAdapter.setOnItemClickListener(this);
-        if (!TextUtils.isEmpty(message) && user != null) {
-            mGivLoading.setVisibility(View.VISIBLE);
-            qnaAnswers();
-        }
         EventBusActivityScope.getDefault(_mActivity).post(new RequireMessageEvent());
     }
 
@@ -116,12 +119,14 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
                             for (SmartReplySuggestion suggestion : smartReplySuggestionResult.getSuggestions()) {
                                 possibleAnswersList.add(suggestion.getText());
                             }
+                            lastSelectedPosition = -1;
+                            lastSelectedAnswer = "";
+                            EventBusActivityScope.getDefault(_mActivity).post(new PossibleAnswersEvent(possibleAnswersList));
                             if (smartReplySuggestionResult.getSuggestions().size() == 0) {
                                 chatHistory.clear();
                                 EventBusActivityScope.getDefault(_mActivity).post(new ClearChatHistoryEvent());
                             } else {
                                 mDialogPossibleAnswersAdapter.notifyDataSetChanged();
-                                mDialogPossibleAnswersAdapter.setOnItemClickListener(PossibleAnswersFragment.this);
                                 mGivLoading.setVisibility(View.GONE);
                             }
                         } else {
@@ -180,9 +185,37 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
         qnaAnswers();
     }
 
+    @Subscribe
+    public void onSelectPossibleAnswerEvent(SelectPossibleAnswerEvent event) {
+        if (lastSelectedPosition != -1) {
+            possibleAnswersList.set(lastSelectedPosition, lastSelectedAnswer);
+        }
+        lastSelectedPosition = event.getPosition();
+        lastSelectedAnswer = possibleAnswersList.get(event.getPosition());
+        possibleAnswersList.set(event.getPosition(), possibleAnswersList.get(event.getPosition()) + " *");
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mDialogPossibleAnswersAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Subscribe
+    public void onConfirmPossibleAnswerEvent(ConfirmPossibleAnswerEvent event) {
+        EventBusActivityScope.getDefault(_mActivity).post(new SpeakPossibleAnswerEvent(possibleAnswersList.get(event.getPosition())));
+    }
+
     @Override
     public void onItemClick(int position) {
-        EventBusActivityScope.getDefault(_mActivity).post(new SpeakPossibleAnswersEvent(possibleAnswersList.get(position)));
+        if (lastSelectedPosition != -1) {
+            possibleAnswersList.set(lastSelectedPosition, lastSelectedAnswer);
+        }
+        lastSelectedPosition = position;
+        lastSelectedAnswer = possibleAnswersList.get(position);
+        possibleAnswersList.set(position, possibleAnswersList.get(position) + " *");
+        mDialogPossibleAnswersAdapter.notifyDataSetChanged();
+        EventBusActivityScope.getDefault(_mActivity).post(new SpeakPossibleAnswerEvent(possibleAnswersList.get(position)));
     }
 
     @Override
@@ -202,5 +235,8 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
             retrieveFromJSONGetSmartAnswers(response);
             mDialogPossibleAnswersAdapter.notifyDataSetChanged();
         }
+        lastSelectedPosition = -1;
+        lastSelectedAnswer = "";
+        EventBusActivityScope.getDefault(_mActivity).post(new PossibleAnswersEvent(possibleAnswersList));
     }
 }
