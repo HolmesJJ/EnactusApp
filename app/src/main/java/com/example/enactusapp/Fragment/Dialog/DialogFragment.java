@@ -18,6 +18,7 @@ import com.example.enactusapp.Adapter.DialogChildAdapter;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.ClearChatHistoryEvent;
@@ -121,6 +122,11 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     private void initView(View view) {
         mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            mTvSelection.setVisibility(View.GONE);
+        } else {
+            mTvSelection.setVisibility(View.VISIBLE);
+        }
         mLlMessageContainer = (LinearLayout) view.findViewById(R.id.ll_message_container);
         mMessageTextView = (TextView) view.findViewById(R.id.tv_message);
         mPossibleAnswers = (TextView) view.findViewById(R.id.possible_answers);

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.example.enactusapp.Adapter.ContactAdapter;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.GreetingEvent;
@@ -88,6 +89,11 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     private void initView(View view) {
         mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            mTvSelection.setVisibility(View.GONE);
+        } else {
+            mTvSelection.setVisibility(View.VISIBLE);
+        }
         mSrlRefresh = (SwipeRefreshLayout) view.findViewById(R.id.srl_refresh);
         mContactRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler_view);
         mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);

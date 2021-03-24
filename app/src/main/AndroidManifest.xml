@@ -58,13 +58,13 @@
         <!-- STT 必须要在这里定义，name不能改，STT的库会调用这里的信息 -->
         <meta-data
             android:name="com.baidu.speech.APP_ID"
-            android:value="22653715"/>
+            android:value="23861843"/>
         <meta-data
             android:name="com.baidu.speech.API_KEY"
-            android:value="sbrxWRBGwvrnykshP1WfkYpc"/>
+            android:value="D3nC11vOUxWW3azo9o3znO8h"/>
         <meta-data
             android:name="com.baidu.speech.SECRET_KEY"
-            android:value="LxUCc1H667mlvuA5HHHNlGGBB3OM1gvI"/>
+            android:value="l1z1zrxebAuHdlbPennGEpp7EnjSBruU"/>
 
         <activity android:name=".MainActivity"></activity>
         <activity android:name=".LoginActivity">

@@ -9,7 +9,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.ChatEvent.StopChatEvent;
@@ -75,6 +77,11 @@ public class NotificationFragment extends SupportFragment {
 
     private void initView(View view) {
         mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            mTvSelection.setVisibility(View.GONE);
+        } else {
+            mTvSelection.setVisibility(View.VISIBLE);
+        }
         mNivThumbnail = (NiceImageView) view.findViewById(R.id.iv_thumbnail);
         mTvName = (TextView) view.findViewById(R.id.tv_name);
         mTvMessage = (TextView) view.findViewById(R.id.tv_message);

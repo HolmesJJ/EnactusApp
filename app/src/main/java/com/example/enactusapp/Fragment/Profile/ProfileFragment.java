@@ -89,6 +89,11 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
 
     private void initView(View view) {
         mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            mTvSelection.setVisibility(View.GONE);
+        } else {
+            mTvSelection.setVisibility(View.VISIBLE);
+        }
         mNivProfileImage = (NiceImageView) view.findViewById(R.id.niv_profile_image);
         profileEditBtn = (ImageButton) view.findViewById(R.id.btn_profile_edit);
         profileConfirmBtn = (ImageButton) view.findViewById(R.id.btn_profile_confirm);

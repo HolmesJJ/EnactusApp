@@ -30,6 +30,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.SentencesAdapter;
+import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
 import com.example.enactusapp.Entity.GazePoint;
@@ -223,6 +225,11 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
     private void initView(View view) {
         mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            mTvSelection.setVisibility(View.GONE);
+        } else {
+            mTvSelection.setVisibility(View.VISIBLE);
+        }
         mTvBackCamera = (TextureView) view.findViewById(R.id.tv_back_camera);
         mCviBackCamera = (CameraViewInterface) mTvBackCamera;
         mCviBackCamera.setCallback(this);
