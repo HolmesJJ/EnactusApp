@@ -6,20 +6,26 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.ContactAdapter;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
+import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.GreetingEvent;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.TTS.TTSHelper;
 import com.example.enactusapp.Utils.CalculateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 
+import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -48,15 +54,21 @@ import pl.droidsonroids.gif.GifImageView;
  */
 public class ContactFragment extends SupportFragment implements OnItemClickListener, OnTaskCompleted {
 
+    private static final int CONTACT_FRAGMENT_ID = 0;
+    private static final String TAG = "ContactFragment";
+
     private static final int GET_USERS = 1;
     private static final int SEND_MESSAGE = 2;
 
+    private TextView mTvSelection;
     private SwipeRefreshLayout mSrlRefresh;
     private RecyclerView mContactRecyclerView;
     private GifImageView mGivLoading;
     private ContactAdapter mContactAdapter;
 
     private List<User> users = new ArrayList<>();
+    private List<Selection> selections = new ArrayList<>();
+    private int muscleControlRightCount = 0;
 
     public static ContactFragment newInstance() {
         ContactFragment fragment = new ContactFragment();
@@ -69,11 +81,13 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_contact, container, false);
+        EventBusActivityScope.getDefault(_mActivity).register(this);
         initView(view);
         return view;
     }
 
     private void initView(View view) {
+        mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
         mSrlRefresh = (SwipeRefreshLayout) view.findViewById(R.id.srl_refresh);
         mContactRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler_view);
         mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
@@ -108,6 +122,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     @Override
     public void onDestroyView() {
+        EventBusActivityScope.getDefault(_mActivity).unregister(this);
         super.onDestroyView();
     }
 
@@ -194,7 +209,6 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             content.put("body", body);
             jsonMsg.put("to", firebaseToken);
             jsonMsg.put("notification", content);
-            Log.i("666666666666666", jsonMsg.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -220,12 +234,24 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
         }
     }
 
+    private void addSelections() {
+        muscleControlRightCount = 0;
+        selections.clear();
+        for (int i = 0; i < users.size(); i++) {
+            selections.add(new Selection(users.get(i).getId(), users.get(i).getName()));
+        }
+        if (selections.size() > 0) {
+            mTvSelection.setText(selections.get(0).getName());
+        }
+    }
+
     @Override
     public void onTaskCompleted(String response, int requestId) {
         mGivLoading.setVisibility(View.GONE);
         if (requestId == GET_USERS) {
             mSrlRefresh.setRefreshing(false);
             retrieveFromJSONGetUsers(response);
+            addSelections();
         }
         if (requestId == SEND_MESSAGE) {
             retrieveFromJSONSendMessage(response);
@@ -241,6 +267,42 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(Config.sName + " says hello to you", firebaseToken), Constants.SERVER_KEY);
         } else {
             ToastUtils.showShortSafe("Firebase Token Empty");
+        }
+    }
+
+
+    @Subscribe
+    public void onMuscleControlLeftEvents(MuscleControlLeftEvents event) {
+        if (event != null && event.getFragmentId() == CONTACT_FRAGMENT_ID) {
+            if (selections.size() > 0 && !TextUtils.isEmpty(users.get(muscleControlRightCount).getFirebaseToken())) {
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mGivLoading.setVisibility(View.VISIBLE);
+                    }
+                });
+                String firebaseToken = users.get(muscleControlRightCount).getFirebaseToken();
+                HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, SEND_MESSAGE);
+                task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(Config.sName + " says hello to you", firebaseToken), Constants.SERVER_KEY);
+            } else {
+                ToastUtils.showShortSafe("Firebase Token Empty");
+            }
+        }
+    }
+
+    @Subscribe
+    public void onMuscleControlRightEvents(MuscleControlRightEvents event) {
+        if (event != null && event.getFragmentId() == CONTACT_FRAGMENT_ID) {
+            muscleControlRightCount++;
+            if (muscleControlRightCount == selections.size()) {
+                muscleControlRightCount = 0;
+            }
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTvSelection.setText(selections.get(muscleControlRightCount).getName());
+                }
+            });
         }
     }
 }

@@ -161,6 +161,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted, Mark
                 if (!WebSocketClientManager.getInstance().isConnected()) {
                     WebSocketClientManager.getInstance().connect(Config.sSocketAddress);
                 }
+                mLlSocketAddressContainer.setVisibility(View.INVISIBLE);
             }
         });
 

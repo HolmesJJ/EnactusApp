@@ -2,29 +2,32 @@ package com.example.enactusapp.Fragment.Notification;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.enactusapp.Constants.Constants;
+import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Entity.User;
+import com.example.enactusapp.Event.ChatEvent.StopChatEvent;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
 import com.example.enactusapp.Event.NotificationEvent;
-import com.example.enactusapp.Event.StartChatEvent;
+import com.example.enactusapp.Event.ChatEvent.StartChatEvent;
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.R;
 import com.shehuan.niv.NiceImageView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
@@ -38,6 +41,10 @@ import me.yokeyword.fragmentation.SupportFragment;
  */
 public class NotificationFragment extends SupportFragment {
 
+    private static final int NOTIFICATION_FRAGMENT_ID = 99;
+    private static final String TAG = "NotificationFragment";
+
+    private TextView mTvSelection;
     private NiceImageView mNivThumbnail;
     private TextView mTvName;
     private TextView mTvMessage;
@@ -46,6 +53,9 @@ public class NotificationFragment extends SupportFragment {
 
     private User user;
     private String message;
+
+    private List<Selection> selections = new ArrayList<>();
+    private int muscleControlRightCount = 0;
 
     public static NotificationFragment newInstance() {
         NotificationFragment fragment = new NotificationFragment();
@@ -64,6 +74,7 @@ public class NotificationFragment extends SupportFragment {
     }
 
     private void initView(View view) {
+        mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
         mNivThumbnail = (NiceImageView) view.findViewById(R.id.iv_thumbnail);
         mTvName = (TextView) view.findViewById(R.id.tv_name);
         mTvMessage = (TextView) view.findViewById(R.id.tv_message);
@@ -89,9 +100,21 @@ public class NotificationFragment extends SupportFragment {
         cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                EventBusActivityScope.getDefault(_mActivity).post(new StopChatEvent());
                 ((MainFragment) getParentFragment()).hideNotificationFragment();
             }
         });
+        addSelections();
+    }
+
+    private void addSelections() {
+        muscleControlRightCount = 0;
+        selections.clear();
+        selections.add(new Selection(1, "Start"));
+        selections.add(new Selection(2, "Cancel"));
+        if (selections.size() > 0) {
+            mTvSelection.setText(selections.get(0).getName());
+        }
     }
 
     @Subscribe
@@ -103,6 +126,43 @@ public class NotificationFragment extends SupportFragment {
             Glide.with(this).load(thumbnail).circleCrop().into(mNivThumbnail);
             mTvName.setText(user.getName());
             mTvMessage.setText(message);
+        }
+    }
+
+    @Subscribe
+    public void onMuscleControlLeftEvents(MuscleControlLeftEvents event) {
+        if (event != null && event.getFragmentId() == NOTIFICATION_FRAGMENT_ID) {
+            if (selections.get(muscleControlRightCount).getId() == 1) {
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        startChatBtn.performClick();
+                    }
+                });
+            } else {
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        cancelBtn.performClick();
+                    }
+                });
+            }
+        }
+    }
+
+    @Subscribe
+    public void onMuscleControlRightEvents(MuscleControlRightEvents event) {
+        if (event != null && event.getFragmentId() == NOTIFICATION_FRAGMENT_ID) {
+            muscleControlRightCount++;
+            if (muscleControlRightCount == selections.size()) {
+                muscleControlRightCount = 0;
+            }
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTvSelection.setText(selections.get(muscleControlRightCount).getName());
+                }
+            });
         }
     }
 

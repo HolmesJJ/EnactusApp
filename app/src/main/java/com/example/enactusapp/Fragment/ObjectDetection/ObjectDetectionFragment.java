@@ -33,9 +33,12 @@ import com.example.enactusapp.Adapter.SentencesAdapter;
 import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
 import com.example.enactusapp.Entity.GazePoint;
+import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Event.BackCameraEvent;
 import com.example.enactusapp.Event.BluetoothEvent;
 import com.example.enactusapp.Event.GazePointEvent;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
@@ -79,6 +82,7 @@ import me.yokeyword.fragmentation.SupportFragment;
  */
 public class ObjectDetectionFragment extends SupportFragment implements OnItemClickListener, CameraViewInterface.Callback, OnMyDevConnectListener, OnPreViewResultListener {
 
+    private static final int OBJECT_DETECTION_FRAGMENT_ID = 2;
     private static final String TAG = "ObjectDetectionFragment";
 
     // Configuration values for the prepackaged SSD model.
@@ -94,12 +98,16 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private static final boolean SAVE_PREVIEW_BITMAP = false;
     private static final float TEXT_SIZE_DIP = 10;
 
+    private List<Selection> selections = new ArrayList<>();
+    private int muscleControlRightCount = 0;
+
     // Which detection model to use: by default uses TensorFlow Object Detection API frozen
     // checkpoints.
     private enum DetectorMode {
         TF_OD_API;
     }
 
+    private TextView mTvSelection;
     private TextureView mTvBackCamera;
     private CameraViewInterface mCviBackCamera;
     private SeekBar mSbBrightness;
@@ -111,7 +119,6 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private TextView mTvInferenceTimeView;
     private TextView mTvCurrentKeyword;
     private Button btnNext;
-    private Button btnHideNext;
 
     private int screenHeight;
     private int screenWidth;
@@ -154,12 +161,6 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private boolean isUpdatingRecognitionObjects = false;
     private int keywordCounter = 0;
 
-    // 选中Next按钮的次数
-    private int countBtnNext = 0;
-    // 选中一个句子的次数
-    private int countSentenceNext = 0;
-    // 选中发音的次数
-    private int countSpeak = 0;
     // 上一次选中的位置
     private int lastSelectedPosition = -1;
     // 上一次选中的句子
@@ -221,6 +222,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     }
 
     private void initView(View view) {
+        mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
         mTvBackCamera = (TextureView) view.findViewById(R.id.tv_back_camera);
         mCviBackCamera = (CameraViewInterface) mTvBackCamera;
         mCviBackCamera.setCallback(this);
@@ -232,7 +234,6 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         mTvInferenceTimeView = (TextView) view.findViewById(R.id.tv_inference_time);
         mTvCurrentKeyword = (TextView) view.findViewById(R.id.tv_current_keyword);
         btnNext = (Button) view.findViewById(R.id.btn_next);
-        btnHideNext = (Button) view.findViewById(R.id.btn_hide_next);
         mSentencesAdapter = new SentencesAdapter(_mActivity, sentences);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRvSentences.getContext(), linearLayoutManager.getOrientation());
@@ -296,6 +297,9 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                lastSelectedPosition = -1;
+                lastSelectedSentence = "";
+                muscleControlRightCount = 0;
                 try {
                     if (keywordCounter < keywords.size()) {
                         final String currentKeyword = keywords.get(keywordCounter);
@@ -313,29 +317,22 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                 mSentencesAdapter.notifyDataSetChanged();
             }
         });
-        btnHideNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (sentences.size() > 0) {
-                    if (lastSelectedPosition != -1 && lastSelectedPosition < sentences.size()) {
-                        sentences.set(lastSelectedPosition, lastSelectedSentence);
-                    }
-                    if (lastSelectedPosition < sentences.size() - 1) {
-                        lastSelectedPosition = lastSelectedPosition + 1;
-                    } else {
-                        lastSelectedPosition = 0;
-                    }
-                    lastSelectedSentence = sentences.get(lastSelectedPosition);
-                    sentences.set(lastSelectedPosition, sentences.get(lastSelectedPosition) + " *");
-                    _mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSentencesAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            }
-        });
+
+        addSelections();
+    }
+
+    private void addSelections() {
+        muscleControlRightCount = 0;
+        selections.clear();
+        selections.add(new Selection(1, "Next"));
+        selections.add(new Selection(2, "Option 1"));
+        selections.add(new Selection(3, "Option 2"));
+        selections.add(new Selection(4, "Option 3"));
+        selections.add(new Selection(5, "Option 4"));
+        selections.add(new Selection(6, "Option 5"));
+        if (selections.size() > 0) {
+            mTvSelection.setText(selections.get(0).getName());
+        }
     }
 
     private void initData(final String keyword) {
@@ -782,47 +779,35 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     @Subscribe
     public void onBluetoothEvent(BluetoothEvent bluetoothEvent) {
         if (bluetoothEvent.getCurrentPosition() == 3) {
-            if (bluetoothEvent.getChannel1().equals("A") && bluetoothEvent.getChannel2().equals("A")) {
-                countSpeak++;
-                // 3次代表点击发送
-                if (countSpeak == 3 && lastSelectedPosition != -1) {
-                    TTSHelper.getInstance().speak(lastSelectedSentence);
-                }
-            } else {
-                countSpeak = 0;
-            }
             if (bluetoothEvent.getChannel1().equals("A") && bluetoothEvent.getChannel2().equals("B")) {
-                countBtnNext++;
-                if (countBtnNext == 3) {
+                if (selections.get(muscleControlRightCount).getId() == 1) {
                     btnNext.performClick();
+                } else {
+                    int position = selections.get(muscleControlRightCount).getId() - 2;
+                    TTSHelper.getInstance().speak(sentences.get(position));
                 }
-            } else {
-                countBtnNext = 0;
-            }
-            if (bluetoothEvent.getChannel2().equals("A") && bluetoothEvent.getChannel1().equals("B")) {
-                countSentenceNext++;
-                if (countSentenceNext == 3) {
-                    if (sentences.size() > 0) {
-                        if (lastSelectedPosition != -1 && lastSelectedPosition < sentences.size()) {
+            } else if (bluetoothEvent.getChannel1().equals("B") && bluetoothEvent.getChannel2().equals("A")) {
+                if (muscleControlRightCount < selections.size() && muscleControlRightCount < sentences.size() + 1) {
+                    muscleControlRightCount++;
+                    if (selections.get(muscleControlRightCount).getId() == 1) {
+                        if (lastSelectedPosition != -1) {
                             sentences.set(lastSelectedPosition, lastSelectedSentence);
                         }
-                        if (lastSelectedPosition < sentences.size() - 1) {
-                            lastSelectedPosition = lastSelectedPosition + 1;
-                        } else {
-                            lastSelectedPosition = 0;
+                        mSentencesAdapter.notifyDataSetChanged();
+                    } else {
+                        int position = selections.get(muscleControlRightCount).getId() - 2;
+                        if (lastSelectedPosition != -1) {
+                            sentences.set(lastSelectedPosition, lastSelectedSentence);
                         }
-                        lastSelectedSentence = sentences.get(lastSelectedPosition);
-                        sentences.set(lastSelectedPosition, sentences.get(lastSelectedPosition) + " *");
-                        _mActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mSentencesAdapter.notifyDataSetChanged();
-                            }
-                        });
+                        lastSelectedPosition = position;
+                        lastSelectedSentence = sentences.get(position);
+                        sentences.set(position, sentences.get(position) + " *");
+                        mSentencesAdapter.notifyDataSetChanged();
                     }
+                } else {
+                    muscleControlRightCount = 0;
                 }
-            } else {
-                countSentenceNext = 0;
+                mTvSelection.setText(selections.get(muscleControlRightCount).getName());
             }
         }
     }
@@ -912,5 +897,56 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         mOutAllocation = Allocation.createTyped(mRenderScript,
                 rgbaType.create(),
                 Allocation.USAGE_SCRIPT);
+    }
+
+    @Subscribe
+    public void onMuscleControlLeftEvents(MuscleControlLeftEvents event) {
+        if (event != null && event.getFragmentId() == OBJECT_DETECTION_FRAGMENT_ID) {
+            if (selections.get(muscleControlRightCount).getId() == 1) {
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        btnNext.performClick();
+                    }
+                });
+            } else {
+                int position = selections.get(muscleControlRightCount).getId() - 2;
+                TTSHelper.getInstance().speak(sentences.get(position));
+            }
+        }
+    }
+
+    @Subscribe
+    public void onMuscleControlRightEvents(MuscleControlRightEvents event) {
+        if (event != null && event.getFragmentId() == OBJECT_DETECTION_FRAGMENT_ID) {
+            muscleControlRightCount++;
+            if (muscleControlRightCount < selections.size() && muscleControlRightCount < sentences.size() + 1) {
+                if (selections.get(muscleControlRightCount).getId() == 1) {
+                    if (lastSelectedPosition != -1) {
+                        sentences.set(lastSelectedPosition, lastSelectedSentence);
+                    }
+                } else {
+                    int position = selections.get(muscleControlRightCount).getId() - 2;
+                    if (lastSelectedPosition != -1) {
+                        sentences.set(lastSelectedPosition, lastSelectedSentence);
+                    }
+                    lastSelectedPosition = position;
+                    lastSelectedSentence = sentences.get(position);
+                    sentences.set(position, sentences.get(position) + " *");
+                }
+            } else {
+                muscleControlRightCount = 0;
+                if (lastSelectedPosition != -1) {
+                    sentences.set(lastSelectedPosition, lastSelectedSentence);
+                }
+            }
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSentencesAdapter.notifyDataSetChanged();
+                    mTvSelection.setText(selections.get(muscleControlRightCount).getName());
+                }
+            });
+        }
     }
 }

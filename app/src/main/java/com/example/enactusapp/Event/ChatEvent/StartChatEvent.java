@@ -1,4 +1,4 @@
-package com.example.enactusapp.Event;
+package com.example.enactusapp.Event.ChatEvent;
 
 import com.example.enactusapp.Entity.User;
 

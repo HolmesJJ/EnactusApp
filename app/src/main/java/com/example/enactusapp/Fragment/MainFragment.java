@@ -39,10 +39,13 @@ import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.BackCameraEvent;
 import com.example.enactusapp.Event.BluetoothEvent;
 import com.example.enactusapp.Event.CalibrationEvent;
+import com.example.enactusapp.Event.ChatEvent.StopChatEvent;
 import com.example.enactusapp.Event.GazePointEvent;
 import com.example.enactusapp.Event.MessageEvent;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
 import com.example.enactusapp.Event.NotificationEvent;
-import com.example.enactusapp.Event.StartChatEvent;
+import com.example.enactusapp.Event.ChatEvent.StartChatEvent;
 import com.example.enactusapp.EyeTracker.CalibrationViewer;
 import com.example.enactusapp.EyeTracker.GazeDevice;
 import com.example.enactusapp.EyeTracker.GazeHelper;
@@ -126,11 +129,16 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private static final int THIRD = 2;
     private static final int FOURTH = 3;
     private static final int FIFTH = 4;
+    private static final int TOTAL_TABS = 5;
 
     private static final int EYE_CONTROL_ID = 1;
     private static final int GREETING_ID = 2;
     private static final int QNA_ID = 3;
     private static final int MUSCLE_CONTROL_ID = 4;
+
+    private static final int MUSCLE_CONTROL_LEFT_ID = 1;
+    private static final int MUSCLE_CONTROL_RIGHT_ID = 2;
+    private static final int MUSCLE_CONTROL_BOTH_ID = 3;
 
     private static final boolean IS_USE_GAZE_FILER = true;
 
@@ -148,6 +156,10 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     // 眼睛是在凝视或在移动
     private int fixationCounter = 0;
     private int currentEyeMovementState = EyeMovementState.FIXATION;
+
+    // 肌肉控制的Fragment
+    private int muscleControlPreFragmentId = 0;
+    private int muscleControlFragmentId = 0;
 
     private GazePoint mGazePoint;
     private Coordinate mCurrentCoordinate;
@@ -265,6 +277,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                     if (prePosition > 2) {
                         prePosition = prePosition - 1;
                     }
+                    muscleControlFragmentId = position;
                     showHideFragment(mFragments[position], mFragments[prePosition]);
                 } else {
                     ToastUtils.showShortSafe("Start Speaking");
@@ -677,6 +690,33 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                 notificationIntent.putExtra("latitude", 1.272);
                 notificationIntent.putExtra("message", qna);
                 LocalBroadcastManager.getInstance(_mActivity).sendBroadcast(notificationIntent);
+            } else if (id == MUSCLE_CONTROL_ID) {
+                JSONObject contentJSON = messageJSON.getJSONObject("content");
+                int action = contentJSON.getInt("muscle");
+                if (action == MUSCLE_CONTROL_LEFT_ID) {
+                    EventBusActivityScope.getDefault(_mActivity).post(new MuscleControlLeftEvents(muscleControlFragmentId));
+                } else if (action == MUSCLE_CONTROL_RIGHT_ID) {
+                    EventBusActivityScope.getDefault(_mActivity).post(new MuscleControlRightEvents(muscleControlFragmentId));
+                } else {
+                    muscleControlFragmentId++;
+                    if (muscleControlFragmentId == 0) {
+                        showHideFragment(mFragments[0], mFragments[3]);
+                        mBottomBar.setCurrentItem(0);
+                    } if (muscleControlFragmentId == 1) {
+                        showHideFragment(mFragments[1], mFragments[0]);
+                        mBottomBar.setCurrentItem(1);
+                    } else if (muscleControlFragmentId == 2) {
+                        showHideFragment(mFragments[2], mFragments[1]);
+                        mBottomBar.setCurrentItem(3);
+                    } else if (muscleControlFragmentId == 3) {
+                        showHideFragment(mFragments[3], mFragments[2]);
+                        mBottomBar.setCurrentItem(4);
+                    } else {
+                        muscleControlFragmentId = 0;
+                        showHideFragment(mFragments[0], mFragments[3]);
+                        mBottomBar.setCurrentItem(0);
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -938,6 +978,8 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             String message = intent.getStringExtra("message");
             String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + id + ".jpg";
             showNotificationFragment();
+            muscleControlPreFragmentId = muscleControlFragmentId;
+            muscleControlFragmentId = 99;
             EventBusActivityScope.getDefault(_mActivity).post(new NotificationEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
         }
     };
@@ -998,13 +1040,21 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (mBottomBar.getCurrentItemPosition() == 0) {
             showHideFragment(mFragments[1], mFragments[0]);
             mBottomBar.setCurrentItem(1);
+            muscleControlFragmentId = 1;
         } else if (mBottomBar.getCurrentItemPosition() == 3) {
             showHideFragment(mFragments[1], mFragments[2]);
             mBottomBar.setCurrentItem(1);
+            muscleControlFragmentId = 1;
         } else if (mBottomBar.getCurrentItemPosition() == 4) {
             showHideFragment(mFragments[1], mFragments[3]);
             mBottomBar.setCurrentItem(1);
+            muscleControlFragmentId = 1;
         }
+    }
+
+    @Subscribe
+    public void onStopChatEvent(StopChatEvent event) {
+        muscleControlFragmentId = muscleControlPreFragmentId;
     }
 
     @Subscribe
@@ -1036,7 +1086,6 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             viewLayoutChecker.releaseChecker();
         }
         BluetoothHelper.getInstance().releaseBluetooth();
-        MarkovHelper.getInstance().releaseMarkov();
         STTHelper.getInstance().releaseSTT();
         TTSHelper.getInstance().releaseTTS();
         GazeHelper.getInstance().stopTracking();

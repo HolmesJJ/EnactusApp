@@ -1,5 +1,6 @@
 package com.example.enactusapp.Fragment.Profile;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -13,11 +14,15 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.SpUtilValueConstants;
+import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Event.CalibrationEvent;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
+import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
 import com.example.enactusapp.Fragment.Bluetooth.BluetoothFragment;
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
+import com.example.enactusapp.LoginActivity;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
@@ -26,9 +31,12 @@ import com.shehuan.niv.NiceImageView;
 
 import androidx.annotation.Nullable;
 
+import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
@@ -45,8 +53,10 @@ import static com.example.enactusapp.Config.Config.resetConfig;
  */
 public class ProfileFragment extends SupportFragment implements OnTaskCompleted {
 
+    private static final int PROFILE_FRAGMENT_ID = 3;
     private static final int UPDATE_USER = 1;
 
+    private TextView mTvSelection;
     private NiceImageView mNivProfileImage;
     private ImageButton profileEditBtn;
     private ImageButton profileConfirmBtn;
@@ -56,6 +66,9 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     private Button muscleSensorBtn;
     private Button logoutBtn;
     private GifImageView mGivLoading;
+
+    private List<Selection> selections = new ArrayList<>();
+    private int muscleControlRightCount = 0;
 
     public static ProfileFragment newInstance() {
         ProfileFragment fragment = new ProfileFragment();
@@ -68,11 +81,13 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
+        EventBusActivityScope.getDefault(_mActivity).register(this);
         initView(view);
         return view;
     }
 
     private void initView(View view) {
+        mTvSelection = (TextView) view.findViewById(R.id.tv_selection);
         mNivProfileImage = (NiceImageView) view.findViewById(R.id.niv_profile_image);
         profileEditBtn = (ImageButton) view.findViewById(R.id.btn_profile_edit);
         profileConfirmBtn = (ImageButton) view.findViewById(R.id.btn_profile_confirm);
@@ -135,6 +150,8 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
                     WebSocketClientManager.getInstance().close();
                 }
                 resetConfig();
+                Intent intent = new Intent(_mActivity, LoginActivity.class);
+                startActivity(intent);
                 _mActivity.finish();
             }
         });
@@ -145,6 +162,17 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
                 ((MainFragment) getParentFragment()).startBrotherFragment(BluetoothFragment.newInstance());
             }
         });
+
+        addSelections();
+    }
+
+    private void addSelections() {
+        muscleControlRightCount = 0;
+        selections.clear();
+        selections.add(new Selection(1, "Logout"));
+        if (selections.size() > 0) {
+            mTvSelection.setText(selections.get(0).getName());
+        }
     }
 
     private String convertToJSONUpdateUser(int userId, String name) {
@@ -190,5 +218,41 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         if (requestId == UPDATE_USER) {
             retrieveFromJSONUpdateUser(response);
         }
+    }
+
+    @Subscribe
+    public void onMuscleControlLeftEvents(MuscleControlLeftEvents event) {
+        if (event != null && event.getFragmentId() == PROFILE_FRAGMENT_ID) {
+            if (selections.get(muscleControlRightCount).getId() == 1) {
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        logoutBtn.performClick();
+                    }
+                });
+            }
+        }
+    }
+
+    @Subscribe
+    public void onMuscleControlRightEvents(MuscleControlRightEvents event) {
+        if (event != null && event.getFragmentId() == PROFILE_FRAGMENT_ID) {
+            muscleControlRightCount++;
+            if (muscleControlRightCount == selections.size()) {
+                muscleControlRightCount = 0;
+            }
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTvSelection.setText(selections.get(muscleControlRightCount).getName());
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        EventBusActivityScope.getDefault(_mActivity).unregister(this);
+        super.onDestroyView();
     }
 }

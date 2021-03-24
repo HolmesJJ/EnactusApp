@@ -2,7 +2,7 @@ package com.example.enactusapp.Constants;
 
 public class Constants {
 
-    public static final String IP_ADDRESS = "http://192.168.1.192/";
+    public static final String IP_ADDRESS = "http://52.148.79.173/";
     public static final String SMART_ANSWERING_IP_ADDRESS_1 = "https://phychant-chatbot1.azurewebsites.net/qnamaker/knowledgebases/5fcb7907-9d21-4dd2-b4e9-872c93cf5663/generateAnswer";
     public static final String SMART_ANSWERING_IP_ADDRESS_2 = "https://phychant-chatbot2.azurewebsites.net/qnamaker/knowledgebases/a3b254bd-4456-4a4a-b576-238271010953/generateAnswer";
     public static final String SMART_ANSWERING_TOKEN_1 = "EndpointKey 0a977412-0f0b-4be3-8f6e-ee3b82751166";
