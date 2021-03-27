@@ -2,6 +2,7 @@ package com.example.enactusapp.Fragment.Profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -161,9 +162,13 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
                     WebSocketClientManager.getInstance().close();
                 }
                 resetConfig();
-                Intent intent = new Intent(_mActivity, LoginActivity.class);
-                startActivity(intent);
-                _mActivity.finish();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        _mActivity.finishAffinity();
+                        System.exit(0);
+                    }
+                }, 1000);
             }
         });
 

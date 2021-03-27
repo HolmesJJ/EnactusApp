@@ -346,10 +346,15 @@ public class DialogFragment extends SupportFragment implements OnTaskCompleted {
 
     @Subscribe
     public void onMessageEvent(MessageEvent event) {
-        if (user == null || user.getId() != event.getUser().getId()) {
+        if (user == null) {
             chatHistory.clear();
         }
-        user = event.getUser();
+        if (user != null && event.getUser() != null && user.getId() != event.getUser().getId()) {
+            chatHistory.clear();
+        }
+        if (event.getUser() != null) {
+            user = event.getUser();
+        }
         message = event.getMessage();
         mMessageTextView.setText(message);
         mLlMessageContainer.setVisibility(View.VISIBLE);

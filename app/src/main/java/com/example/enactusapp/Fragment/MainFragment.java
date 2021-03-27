@@ -834,12 +834,15 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         if (mBottomBar.getCurrentItemPosition() == 0) {
             showHideFragment(mFragments[1], mFragments[0]);
             mBottomBar.setCurrentItem(1);
+            muscleControlFragmentId = 1;
         } else if (mBottomBar.getCurrentItemPosition() == 3) {
             showHideFragment(mFragments[1], mFragments[2]);
             mBottomBar.setCurrentItem(1);
+            muscleControlFragmentId = 1;
         } else if (mBottomBar.getCurrentItemPosition() == 4) {
             showHideFragment(mFragments[1], mFragments[3]);
             mBottomBar.setCurrentItem(1);
+            muscleControlFragmentId = 1;
         }
     }
 
@@ -1001,12 +1004,15 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
             if (mBottomBar.getCurrentItemPosition() == 0) {
                 showHideFragment(mFragments[1], mFragments[0]);
                 mBottomBar.setCurrentItem(1);
+                muscleControlFragmentId = 1;
             } else if (mBottomBar.getCurrentItemPosition() == 3) {
                 showHideFragment(mFragments[1], mFragments[2]);
                 mBottomBar.setCurrentItem(1);
+                muscleControlFragmentId = 1;
             } else if (mBottomBar.getCurrentItemPosition() == 4) {
                 showHideFragment(mFragments[1], mFragments[3]);
                 mBottomBar.setCurrentItem(1);
+                muscleControlFragmentId = 1;
             }
         }
     };
