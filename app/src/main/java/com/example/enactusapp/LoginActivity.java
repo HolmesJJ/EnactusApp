@@ -1,10 +1,12 @@
 package com.example.enactusapp;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
-import android.util.Log;
+import android.provider.Settings;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -23,6 +25,7 @@ import com.example.enactusapp.Markov.Listener.MarkovListener;
 import com.example.enactusapp.Markov.MarkovHelper;
 import com.example.enactusapp.Thread.CustomThreadPool;
 import com.example.enactusapp.Utils.ContextUtils;
+import com.example.enactusapp.Utils.GPSUtils;
 import com.example.enactusapp.Utils.PermissionsUtils;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
@@ -32,13 +35,15 @@ import org.json.JSONObject;
 
 import pl.droidsonroids.gif.GifImageView;
 import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.AppSettingsDialog;
 
 public class LoginActivity extends BaseActivity implements OnTaskCompleted, MarkovListener {
 
-    private static final String TAG = "LoginActivity";
+    private static final String TAG = LoginActivity.class.getSimpleName();
 
     private static final int LOGIN = 1;
     private static final int REC_PERMISSION = 100;
+    private static final int START_LOCATION_ACTIVITY = 101;
     String[] PERMISSIONS = {
             android.Manifest.permission.INTERNET,
             android.Manifest.permission.ACCESS_NETWORK_STATE,
@@ -54,6 +59,9 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted, Mark
             android.Manifest.permission.RECORD_AUDIO,
             android.Manifest.permission.BLUETOOTH,
             android.Manifest.permission.BLUETOOTH_ADMIN,
+            android.Manifest.permission.FOREGROUND_SERVICE, // Sdk Version 28
+            // 自行去Settings打开SYSTEM_ALERT_WINDOW权限
+            // android.Manifest.permission.SYSTEM_ALERT_WINDOW
     };
 
     private EditText mUsername;
@@ -70,7 +78,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted, Mark
     private EditText mEtSocketAddress;
     private GifImageView mGivLoading;
 
-    private static CustomThreadPool sThreadPoolLoadDataSets = new CustomThreadPool(Thread.NORM_PRIORITY);
+    private static final CustomThreadPool sThreadPoolLoadDataSets = new CustomThreadPool(Thread.NORM_PRIORITY);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -78,20 +86,14 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted, Mark
         setContentView(R.layout.activity_login);
         initView();
 
-        if (Config.sIsLogin) {
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        }
-
         if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
             mRbEyeTrackingMode.setChecked(true);
-            mRbEyeTrackingMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.control_mode_radio_button_select)));
-            mRbMuscleControlMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(LoginActivity.this, R.color.control_mode_radio_button_unselect)));
+            mRbEyeTrackingMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(ContextUtils.getContext(), R.color.control_mode_radio_button_select)));
+            mRbMuscleControlMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(ContextUtils.getContext(), R.color.control_mode_radio_button_unselect)));
         } else {
             mRbMuscleControlMode.setChecked(true);
-            mRbMuscleControlMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.control_mode_radio_button_select)));
-            mRbEyeTrackingMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(LoginActivity.this, R.color.control_mode_radio_button_unselect)));
+            mRbMuscleControlMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(ContextUtils.getContext(), R.color.control_mode_radio_button_select)));
+            mRbEyeTrackingMode.setButtonTintList(ColorStateList.valueOf(ContextCompat.getColor(ContextUtils.getContext(), R.color.control_mode_radio_button_unselect)));
         }
 
         requestPermission();
@@ -119,6 +121,13 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted, Mark
         mBtnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (!hasSystemAlertWindowPermission()) {
+                    return;
+                }
+                if (!GPSUtils.isOpenGPS(ContextUtils.getContext())) {
+                    startLocation();
+                    return;
+                }
                 mGivLoading.setVisibility(View.VISIBLE);
                 InputMethodManager imm = (InputMethodManager) getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
@@ -199,7 +208,45 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted, Mark
         mBtnSignIn.setEnabled(false);
         PermissionsUtils.doSomeThingWithPermission(this, () -> {
             mBtnSignIn.setEnabled(true);
+            if (!hasSystemAlertWindowPermission()) {
+                return;
+            }
+            if (!GPSUtils.isOpenGPS(ContextUtils.getContext())) {
+                startLocation();
+                return;
+            }
+            if (Config.sIsLogin) {
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
         }, PERMISSIONS, REC_PERMISSION, R.string.rationale_init);
+    }
+
+    private boolean hasSystemAlertWindowPermission() {
+        if(!Settings.canDrawOverlays(ContextUtils.getContext())) {
+            new AppSettingsDialog.Builder(this).setTitle(R.string.need_permissions_str)
+                    .setRationale(getString(R.string.permissions_denied_content_str)).build().show();
+        } else {
+            return true;
+        }
+        return false;
+    }
+
+    //开启位置权限
+    private void startLocation() {
+        // 不能用ContextUtils.getContext()
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Tips")
+                .setMessage("Please turn on your GPS")
+                .setCancelable(false)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivityForResult(intent, START_LOCATION_ACTIVITY);
+                    }
+                }).show();
     }
 
     private String convertToJSONLogin(String username, String password) {
@@ -265,10 +312,20 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted, Mark
     }
 
     @Override
-    public void onTaskCompleted(String response, int requestId) {
+    public void onTaskCompleted(String response, int requestId, String... others) {
         mGivLoading.setVisibility(View.GONE);
         if (requestId == LOGIN) {
             retrieveFromJSONLogin(response);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == START_LOCATION_ACTIVITY) {
+            if (!GPSUtils.isOpenGPS(ContextUtils.getContext())) {
+                startLocation();
+            }
         }
     }
 }

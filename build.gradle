@@ -3,12 +3,13 @@
 buildscript {
     repositories {
         google()
+        // fragmentation还需要这个
         jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.1'
-        classpath 'com.google.gms:google-services:4.2.0'
+        classpath 'com.android.tools.build:gradle:3.4.3'
+        classpath 'com.google.gms:google-services:4.3.3'
         classpath 'de.undercouch:gradle-download-task:4.0.2'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -19,9 +20,11 @@ buildscript {
 allprojects {
     repositories {
         google()
+        // fragmentation还需要这个
         jcenter()
         maven { url 'http://raw.github.com/saki4510t/libcommon/master/repository/' }
         maven { url 'https://jitpack.io' }
+        maven { url 'https://maven.google.com' }
         mavenCentral()
     }
 }

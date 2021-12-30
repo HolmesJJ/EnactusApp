@@ -20,7 +20,7 @@ public class Config {
     public static boolean sIsCalibrated;
     public static long sLastCalibratedTime;
 
-    private static SpUtils sSp = SpUtils.getInstance(SETTING_CONFIG);
+    private static final SpUtils sSp = SpUtils.getInstance(SETTING_CONFIG);
 
     public Config() {
     }

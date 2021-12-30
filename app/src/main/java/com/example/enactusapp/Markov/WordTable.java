@@ -7,7 +7,7 @@ public class WordTable {
 
     public final int WORD_NUM_PER_PAGE = 5;
 
-    public class WordCell {
+    public static class WordCell {
         String word;
         int trieID;
         int idx;
@@ -46,7 +46,6 @@ public class WordTable {
             }
         }
     }
-
 
     public WordTable(String[] words) {
         cur_page = 0;

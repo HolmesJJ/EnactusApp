@@ -6,13 +6,6 @@ import com.example.enactusapp.Utils.ContextUtils;
 
 import me.yokeyword.fragmentation.Fragmentation;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class BaseApplication extends Application {
     @Override
     public void onCreate() {

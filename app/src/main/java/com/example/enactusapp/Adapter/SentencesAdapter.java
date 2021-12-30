@@ -14,17 +14,10 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class SentencesAdapter extends RecyclerView.Adapter<SentencesAdapter.SentencesViewHolder> {
 
-    private Context context;
-    private List<String> sentences;
+    private final Context context;
+    private final List<String> sentences;
 
     private LayoutInflater mInflater = null;
     private OnItemClickListener mOnItemClickListener;
@@ -65,9 +58,9 @@ public class SentencesAdapter extends RecyclerView.Adapter<SentencesAdapter.Sent
         return sentences.size();
     }
 
-    public class SentencesViewHolder extends RecyclerView.ViewHolder {
+    public static class SentencesViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView mSentenceTextView;
+        private final TextView mSentenceTextView;
 
         public SentencesViewHolder(View itemView) {
             super(itemView);

@@ -2,7 +2,7 @@ package com.example.enactusapp.Event.PossibleAnswerEvent;
 
 public class ConfirmPossibleAnswerEvent {
 
-    private int position;
+    private final int position;
 
     public ConfirmPossibleAnswerEvent(int position) {
         this.position = position;
@@ -10,9 +10,5 @@ public class ConfirmPossibleAnswerEvent {
 
     public int getPosition() {
         return position;
-    }
-
-    public void setPosition(int position) {
-        this.position = position;
     }
 }

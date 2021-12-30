@@ -16,33 +16,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
 
+import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Utils.ContextUtils;
+import com.example.enactusapp.Utils.ToastUtils;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class BottomBar extends LinearLayout {
     private static final int TRANSLATE_DURATION_MILLIS = 200;
-    private static final int MIDDLE_TAB = 2;
 
     private final Interpolator mInterpolator = new AccelerateDecelerateInterpolator();
-    private boolean mVisible = true;
-    private boolean mIsMiddleTabClicked = false;
-
-    private List<BottomBarTab> mTabs = new ArrayList<>();
+    private final List<BottomBarTab> mTabs = new ArrayList<>();
 
     private LinearLayout mTabLayout;
-
     private LayoutParams mTabParams;
-    private int mCurrentPosition = 0;
+
     private OnTabSelectedListener mListener;
+
+    private int mSpeakTabPosition = -1;
+    private int mGazeTabPosition = -1;
+    private int mCurrentPosition = 0;
+    private boolean mVisible = true;
+    private boolean mIsSpeakTabClicked = false;
 
     public BottomBar(Context context) {
         this(context, null);
@@ -76,16 +72,22 @@ public class BottomBar extends LinearLayout {
                 if (mListener == null) return;
 
                 int pos = tab.getTabPosition();
-                if (pos == MIDDLE_TAB) {
-                    if (mIsMiddleTabClicked) {
+                if (pos == mSpeakTabPosition) {
+                    if (mIsSpeakTabClicked) {
                         mListener.onTabReselected(pos);
                         tab.setTabColor(ContextCompat.getColor(ContextUtils.getContext(), R.color.tab_unselect));
                     } else {
                         mListener.onTabSelected(pos, mCurrentPosition);
                         tab.setTabColor(Color.RED);
                     }
-                    mIsMiddleTabClicked = !mIsMiddleTabClicked;
+                    mIsSpeakTabClicked = !mIsSpeakTabClicked;
                     return;
+                }
+                if (pos == mGazeTabPosition) {
+                    if (Config.sControlMode == SpUtilValueConstants.MUSCLE_CONTROL_MODE) {
+                        ToastUtils.showShortSafe(" Does not support in Muscle Control Mode");
+                        return;
+                    }
                 }
                 if (mCurrentPosition == pos) {
                     mListener.onTabReselected(pos);
@@ -103,6 +105,14 @@ public class BottomBar extends LinearLayout {
         mTabLayout.addView(tab);
         mTabs.add(tab);
         return this;
+    }
+
+    public void setSpeakTabPositions(int position) {
+        mSpeakTabPosition = position;
+    }
+
+    public void setGazeTabPositions(int position) {
+        mGazeTabPosition = position;
     }
 
     public void setOnTabSelectedListener(OnTabSelectedListener onTabSelectedListener) {
@@ -157,7 +167,7 @@ public class BottomBar extends LinearLayout {
     }
 
     static class SavedState extends BaseSavedState {
-        private int position;
+        private final int position;
 
         public SavedState(Parcel source) {
             super(source);
@@ -235,7 +245,7 @@ public class BottomBar extends LinearLayout {
                         .setDuration(TRANSLATE_DURATION_MILLIS)
                         .translationY(translationY);
             } else {
-                ViewCompat.setTranslationY(this, translationY);
+                this.setTranslationY(translationY);
             }
         }
     }

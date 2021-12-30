@@ -2,7 +2,7 @@ package com.example.enactusapp.Event.T2KeyboardEvent;
 
 public class ConfirmT2KeyboardEvent {
 
-    private int keyId;
+    private final int keyId;
 
     public ConfirmT2KeyboardEvent(int keyId) {
         this.keyId = keyId;
@@ -10,9 +10,5 @@ public class ConfirmT2KeyboardEvent {
 
     public int getKeyId() {
         return keyId;
-    }
-
-    public void setKeyId(int keyId) {
-        this.keyId = keyId;
     }
 }

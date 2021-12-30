@@ -27,12 +27,13 @@ import java.util.Map;
 
 public class TTSHelper implements SpeechSynthesizerListener {
 
-    private static final String TAG = "TTSHelper";
+    private static final String TAG = TTSHelper.class.getSimpleName();
+
     private static final int ERROR_CODE = -99;
 
     // TtsMode.MIX; 离在线融合，在线优先； TtsMode.ONLINE 纯在线； TtsMode.OFFLINE 纯离线合成，需要纯离线SDK
-    private TtsMode ttsMode = IOfflineResourceConst.DEFAULT_SDK_TTS_MODE;
-    private boolean isOnlineSDK = TtsMode.ONLINE.equals(IOfflineResourceConst.DEFAULT_SDK_TTS_MODE);
+    private final TtsMode ttsMode = IOfflineResourceConst.DEFAULT_SDK_TTS_MODE;
+    private final boolean isOnlineSDK = TtsMode.ONLINE.equals(IOfflineResourceConst.DEFAULT_SDK_TTS_MODE);
 
     private TTSConfig mTTSConfig;
     private TTSListener mTTSListener;
@@ -54,7 +55,7 @@ public class TTSHelper implements SpeechSynthesizerListener {
     }
 
     private static class SingleInstance {
-        private static TTSHelper INSTANCE = new TTSHelper();
+        private static final TTSHelper INSTANCE = new TTSHelper();
     }
 
     public static TTSHelper getInstance() {

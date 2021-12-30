@@ -1,24 +1,20 @@
 package com.example.enactusapp.Service;
 
-import android.content.Intent;
+import androidx.annotation.NonNull;
 
+import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.MessageType;
-import com.example.enactusapp.Utils.ToastUtils;
+import com.example.enactusapp.Entity.User;
+import com.example.enactusapp.Event.NotificationEvent;
+import com.example.enactusapp.Event.UpdateTokenEvent;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import org.json.JSONArray;
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
+import java.io.File;
+
 public class FcmMessagingService extends FirebaseMessagingService {
 
     private int id;
@@ -32,6 +28,11 @@ public class FcmMessagingService extends FirebaseMessagingService {
     private String type;
 
     @Override
+    public void onNewToken(@NonNull String token) {
+        EventBus.getDefault().post(new UpdateTokenEvent(token));
+    }
+
+    @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
 
         // Check if message contains a notification payload.
@@ -43,26 +44,12 @@ public class FcmMessagingService extends FirebaseMessagingService {
 
         if (body != null) {
             if (retrieveFromJSON(body)) {
+                String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + id + ".jpg";
+                User user = new User(id, username, name, thumbnail, firebaseToken, longitude, latitude);
                 if (type.equals(MessageType.GREETING.getValue())) {
-                    Intent notificationIntent = new Intent(MessageType.GREETING.getValue());
-                    notificationIntent.putExtra("id", id);
-                    notificationIntent.putExtra("username", username);
-                    notificationIntent.putExtra("name", name);
-                    notificationIntent.putExtra("firebaseToken", firebaseToken);
-                    notificationIntent.putExtra("longitude", longitude);
-                    notificationIntent.putExtra("latitude", latitude);
-                    notificationIntent.putExtra("message", message);
-                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
+                    EventBus.getDefault().post(new NotificationEvent(user, message, MessageType.GREETING));
                 } else {
-                    Intent notificationIntent = new Intent(MessageType.NORMAL.getValue());
-                    notificationIntent.putExtra("id", id);
-                    notificationIntent.putExtra("username", username);
-                    notificationIntent.putExtra("name", name);
-                    notificationIntent.putExtra("firebaseToken", firebaseToken);
-                    notificationIntent.putExtra("longitude", longitude);
-                    notificationIntent.putExtra("latitude", latitude);
-                    notificationIntent.putExtra("message", message);
-                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(notificationIntent);
+                    EventBus.getDefault().post(new NotificationEvent(user, message, MessageType.NORMAL));
                 }
             }
         }

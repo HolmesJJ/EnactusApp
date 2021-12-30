@@ -15,9 +15,10 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class EncryptUtils {
+
     private static final String TAG = EncryptUtils.class.getSimpleName();
     private static EncryptUtils instance;
-    private String key;
+    private final String key;
 
     private EncryptUtils(Context context) {
         String serialNo = this.getDeviceSerialNumber(context);
@@ -41,7 +42,7 @@ public class EncryptUtils {
                 MessageDigest messageDigest = MessageDigest.getInstance("sha-256");
                 messageDigest.update(strText.getBytes());
                 byte[] byteBuffer = messageDigest.digest();
-                StringBuffer strHexString = new StringBuffer();
+                StringBuilder strHexString = new StringBuilder();
 
                 for (int i = 0; i < byteBuffer.length; ++i) {
                     String hex = Integer.toHexString(255 & byteBuffer[i]);
@@ -94,8 +95,7 @@ public class EncryptUtils {
             SecretKeySpec keyspec = new SecretKeySpec(this.key.getBytes(), "AES");
             cipher.init(2, keyspec);
             byte[] original = cipher.doFinal(encrypted);
-            String originalString = new String(original);
-            return originalString;
+            return new String(original);
         } catch (Exception var7) {
             var7.printStackTrace();
             return null;
@@ -132,8 +132,7 @@ public class EncryptUtils {
             SecretKeySpec keyspec = new SecretKeySpec(this.key.getBytes(), "AES");
             cipher.init(2, keyspec, parameterSpec);
             byte[] original = cipher.doFinal(encrypted);
-            String originalString = new String(original);
-            return originalString;
+            return new String(original);
         } catch (Exception var8) {
             var8.printStackTrace();
             return null;

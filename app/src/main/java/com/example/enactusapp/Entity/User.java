@@ -2,11 +2,11 @@ package com.example.enactusapp.Entity;
 
 public class User {
 
-    private int id;
-    private String username;
-    private String name;
-    private String thumbnail;
-    private String firebaseToken;
+    private final int id;
+    private final String username;
+    private final String name;
+    private final String thumbnail;
+    private final String firebaseToken;
     private double longitude;
     private double latitude;
 

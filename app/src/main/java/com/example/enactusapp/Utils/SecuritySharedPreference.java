@@ -3,7 +3,6 @@ package com.example.enactusapp.Utils;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
@@ -16,9 +15,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class SecuritySharedPreference implements SharedPreferences {
+
     private static final String TAG = SecuritySharedPreference.class.getName();
-    private SharedPreferences mSharedPreferences;
-    private Context mContext;
+
+    private final SharedPreferences mSharedPreferences;
+    private final Context mContext;
 
     public SecuritySharedPreference(Context context, String name, int mode) {
         this.mContext = context;
@@ -32,11 +33,10 @@ public class SecuritySharedPreference implements SharedPreferences {
 
     public Map<String, String> getAll() {
         Map<String, ?> encryptMap = this.mSharedPreferences.getAll();
-        Map<String, String> decryptMap = new HashMap(10);
-        Iterator var3 = encryptMap.entrySet().iterator();
+        Map<String, String> decryptMap = new HashMap<>(10);
 
-        while (var3.hasNext()) {
-            Map.Entry<String, ?> entry = (Map.Entry) var3.next();
+        for (Map.Entry<String, ?> stringEntry : encryptMap.entrySet()) {
+            Map.Entry<String, ?> entry = (Map.Entry) stringEntry;
             Object cipherText = entry.getValue();
             if (cipherText != null) {
                 decryptMap.put(entry.getKey(), entry.getValue().toString());
@@ -68,7 +68,7 @@ public class SecuritySharedPreference implements SharedPreferences {
             if (encryptSet == null) {
                 return defValues;
             } else {
-                decryptSet = new HashSet();
+                decryptSet = new HashSet<>();
                 var5 = encryptSet.iterator();
 
                 while (var5.hasNext()) {
@@ -79,7 +79,7 @@ public class SecuritySharedPreference implements SharedPreferences {
                 return decryptSet;
             }
         } else {
-            decryptSet = new HashSet();
+            decryptSet = new HashSet<>();
             var5 = encryptSet.iterator();
 
             while (var5.hasNext()) {
@@ -174,27 +174,25 @@ public class SecuritySharedPreference implements SharedPreferences {
     public void handleTransition() {
         Map<String, ?> oldMap = this.mSharedPreferences.getAll();
         Map<String, String> newMap = new HashMap(10);
-        Iterator var3 = oldMap.entrySet().iterator();
 
-        while (var3.hasNext()) {
-            Map.Entry<String, ?> entry = (Map.Entry) var3.next();
+        for (Map.Entry<String, ?> stringEntry : oldMap.entrySet()) {
+            Map.Entry<String, ?> entry = (Map.Entry) stringEntry;
             newMap.put(this.encryptPreference((String) entry.getKey()), this.encryptPreference(entry.getValue().toString()));
         }
 
         Editor editor = this.mSharedPreferences.edit();
-        editor.clear().commit();
-        Iterator var7 = newMap.entrySet().iterator();
+        editor.clear().apply();
 
-        while (var7.hasNext()) {
-            Map.Entry<String, String> entry = (Map.Entry) var7.next();
+        for (Map.Entry<String, String> stringStringEntry : newMap.entrySet()) {
+            Map.Entry<String, String> entry = (Map.Entry) stringStringEntry;
             editor.putString((String) entry.getKey(), (String) entry.getValue());
         }
 
-        editor.commit();
+        editor.apply();
     }
 
     public final class SecurityEditor implements Editor {
-        private Editor mEditor;
+        private final Editor mEditor;
 
         private SecurityEditor() {
             this.mEditor = SecuritySharedPreference.this.mSharedPreferences.edit();
@@ -206,11 +204,9 @@ public class SecuritySharedPreference implements SharedPreferences {
         }
 
         public Editor putStringSet(String key, Set<String> values) {
-            Set<String> encryptSet = new HashSet();
-            Iterator var4 = values.iterator();
+            Set<String> encryptSet = new HashSet<>();
 
-            while (var4.hasNext()) {
-                String value = (String) var4.next();
+            for (String value : values) {
                 encryptSet.add(SecuritySharedPreference.this.encryptPreference(value));
             }
 
@@ -254,12 +250,7 @@ public class SecuritySharedPreference implements SharedPreferences {
 
         @TargetApi(9)
         public void apply() {
-            if (Build.VERSION.SDK_INT >= 9) {
-                this.mEditor.apply();
-            } else {
-                this.commit();
-            }
-
+            this.mEditor.apply();
         }
     }
 }

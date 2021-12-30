@@ -26,7 +26,9 @@ import java.util.Queue;
  * A tracker that handles non-max suppression and matches existing objects to new detections.
  */
 public class MultiBoxTracker {
-    private static final String TAG = "MultiBoxTracker";
+
+    private static final String TAG = MultiBoxTracker.class.getSimpleName();
+
     private static final float TEXT_SIZE_DIP = 18;
     private static final float MIN_SIZE = 16.0f;
     private static final int[] COLORS = {

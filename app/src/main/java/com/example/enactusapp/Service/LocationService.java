@@ -19,12 +19,14 @@ import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
+import com.example.enactusapp.Utils.ContextUtils;
 
 import org.json.JSONObject;
 
 public class LocationService extends Service implements OnTaskCompleted {
 
-    private static final String TAG = "LocationService";
+    private static final String TAG = LocationService.class.getSimpleName();
+
     private static final int UPDATE_LNG_LAT = 1;
     private static final long MIN_DISTANCE = 0;
     private static final long LOCATION_REQUEST_INTERVAL = 10000;
@@ -134,8 +136,8 @@ public class LocationService extends Service implements OnTaskCompleted {
     }
 
     private void requestLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(ContextUtils.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(ContextUtils.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         // 获取最佳服务对象
@@ -244,7 +246,7 @@ public class LocationService extends Service implements OnTaskCompleted {
     }
 
     @Override
-    public void onTaskCompleted(String response, int requestId) {
+    public void onTaskCompleted(String response, int requestId, String... others) {
         if (requestId == UPDATE_LNG_LAT) {
             retrieveFromJSONUpdateLngLat(response);
         }

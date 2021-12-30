@@ -21,7 +21,8 @@ import java.util.Map;
 
 public class SDKRecognizer {
 
-    private static final String TAG = "SDKRecognizer";
+    private static final String TAG = SDKRecognizer.class.getSimpleName();
+
     /**
      * SDK 内部核心 EventManager 类
      */

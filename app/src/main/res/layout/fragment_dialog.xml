@@ -5,23 +5,39 @@
     android:layout_height="match_parent"
     android:background="@color/WHITE">
 
-    <TextView
-        android:id="@+id/tv_title"
+    <LinearLayout
+        android:id="@+id/ll_title_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
         android:layout_marginTop="32dp"
-        android:gravity="center"
-        android:text="@string/dialog"
-        android:textColor="@color/BLACK"
-        android:textSize="30sp" />
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/iv_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:src="@drawable/ic_toolbar_back"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:gravity="center"
+            android:text="@string/dialog"
+            android:textColor="@color/BLACK"
+            android:textSize="30sp" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tv_selection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
         android:gravity="center"
         android:textColor="@color/BLACK"
         android:textSize="15sp" />
@@ -29,27 +45,28 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/tv_title"
-        android:layout_marginTop="32dp">
+        android:layout_below="@+id/ll_title_container"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="@dimen/bottom_bar_height">
 
         <LinearLayout
             android:id="@+id/ll_message_container"
-            android:layout_marginStart="32dp"
-            android:background="@drawable/ll_dialog_shape"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
             android:layout_marginEnd="90dp"
+            android:background="@drawable/ll_dialog_shape"
             android:elevation="5dp"
             android:visibility="invisible">
 
             <TextView
                 android:id="@+id/tv_message"
                 android:layout_width="wrap_content"
-                android:layout_margin="16dp"
-                android:textSize="20sp"
-                android:layout_gravity="center"
                 android:layout_height="wrap_content"
-                android:textColor="@color/BLACK" />
+                android:layout_gravity="center"
+                android:layout_margin="16dp"
+                android:textColor="@color/BLACK"
+                android:textSize="20sp" />
 
         </LinearLayout>
 
@@ -74,7 +91,7 @@
             android:background="@color/possible_answer_keyword_bg">
 
             <TextView
-                android:id="@+id/possible_answers"
+                android:id="@+id/tv_possible_answers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -91,7 +108,7 @@
                 android:textSize="30sp"
                 android:textColor="@color/BLACK"
                 android:background="@drawable/et_keyword_shape"
-                android:layout_toStartOf="@+id/ibtn_input_backspace"
+                android:layout_toStartOf="@+id/ib_backspace"
                 android:layout_centerVertical="true"
                 android:saveEnabled="false"
                 android:padding="5dp"
@@ -99,7 +116,7 @@
                 android:textCursorDrawable="@drawable/et_cursor"/>
 
             <ImageButton
-                android:id="@+id/ibtn_input_backspace"
+                android:id="@+id/ib_backspace"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -128,7 +145,7 @@
                 android:layout_marginBottom="10dp"/>
 
             <ImageView
-                android:id="@+id/scroll_left_btn"
+                android:id="@+id/iv_scroll_left"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_marginTop="16dp"
@@ -138,7 +155,7 @@
                 android:focusable="true" />
 
             <ImageView
-                android:id="@+id/scroll_right_btn"
+                android:id="@+id/iv_scroll_right"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_marginTop="16dp"
@@ -151,6 +168,25 @@
         </RelativeLayout>
 
     </RelativeLayout>
+
+    <ProgressBar
+        android:id="@+id/pb_gaze"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/bottomBar"
+        style="@style/pb_gaze"
+        android:progressDrawable="@drawable/pb_gaze"/>
+
+    <com.example.enactusapp.UI.BottomBar
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottom_bar_height"
+        android:layout_alignParentBottom="true" />
+
+    <com.example.enactusapp.EyeTracker.PointView
+        android:id="@+id/pv_point"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <pl.droidsonroids.gif.GifImageView
         android:id="@+id/giv_loading"

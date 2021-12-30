@@ -23,18 +23,12 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
 
-    private static final String TAG = "ContactAdapter";
-    private Context context;
-    private List<User> users;
+    private static final String TAG = ContactAdapter.class.getSimpleName();
+
+    private final Context context;
+    private final List<User> users;
 
     private LayoutInflater mInflater = null;
     private OnItemClickListener mOnItemClickListener;

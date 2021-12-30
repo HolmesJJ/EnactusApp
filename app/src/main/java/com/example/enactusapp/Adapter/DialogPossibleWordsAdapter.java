@@ -14,17 +14,10 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class DialogPossibleWordsAdapter extends RecyclerView.Adapter<DialogPossibleWordsAdapter.DialogPossibleWordsViewHolder> {
 
-    private Context context;
-    private List<String> possibleWordsList;
+    private final Context context;
+    private final List<String> possibleWordsList;
 
     private LayoutInflater mInflater = null;
 
@@ -66,9 +59,9 @@ public class DialogPossibleWordsAdapter extends RecyclerView.Adapter<DialogPossi
         return possibleWordsList.size();
     }
 
-    public class DialogPossibleWordsViewHolder extends RecyclerView.ViewHolder {
+    public static class DialogPossibleWordsViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView mPossibleWordTextView;
+        private final TextView mPossibleWordTextView;
 
         public DialogPossibleWordsViewHolder(View itemView) {
             super(itemView);

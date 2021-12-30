@@ -13,6 +13,15 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 public class PointView extends View {
+
+    public static final int TYPE_DEFAULT = 0;
+    public static final int TYPE_OUT_OF_SCREEN = 1;
+
+    private final int defaultColor = Color.rgb(0x00, 0x00, 0xff);
+    private final int outOfScreenColor = Color.rgb(0xff, 0x00, 0x00);
+    private final int type = TYPE_DEFAULT;
+    private Paint paint;
+
     public PointView(Context context) {
         super(context);
         init();
@@ -34,13 +43,6 @@ public class PointView extends View {
         init();
     }
 
-    private int defaultColor = Color.rgb(0x00, 0x00, 0xff);
-    private int outOfScreenColor = Color.rgb(0xff, 0x00, 0x00);
-    public static final int TYPE_DEFAULT = 0;
-    public static final int TYPE_OUT_OF_SCREEN = 1;
-    private int type = TYPE_DEFAULT;
-    private Paint paint;
-
     private void init() {
         paint = new Paint();
         paint.setColor(defaultColor);
@@ -48,7 +50,7 @@ public class PointView extends View {
     }
 
     private float offsetX, offsetY;
-    private PointF position = new PointF();
+    private final PointF position = new PointF();
 
     public void setOffset(int x, int y) {
         offsetX = x;

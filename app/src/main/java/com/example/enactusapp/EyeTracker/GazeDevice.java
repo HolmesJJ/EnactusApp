@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class GazeDevice {
 
-    private Map<String, GazeDevice.Info> deviceInfoList = new HashMap();
+    private final Map<String, GazeDevice.Info> deviceInfoList = new HashMap();
 
     public GazeDevice() {
     }

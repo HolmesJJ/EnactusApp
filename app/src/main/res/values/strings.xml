@@ -1,14 +1,16 @@
 <resources>
-    <string name="app_name">EnactusApp</string>
+    <string name="app_name">Silver+</string>
 
     <string name="contact">Contact</string>
-    <string name="dialog">Dialog</string>
-    <string name="speak">Speak</string>
     <string name="objectDetection">Detection</string>
+    <string name="speak">Speak</string>
+    <string name="gaze">Gaze</string>
     <string name="profile">Profile</string>
     <string name="login">Login</string>
+    <string name="dialog">Dialog</string>
     <string name="notification">Notification</string>
     <string name="bluetooth">Bluetooth</string>
+    <string name="main">Main</string>
 
     <string name="rationale_init">APP Needs some Permission</string>
     <string name="permissions_denied_content_str">Permission Denied \nOpen Setting to Modify APP Permission</string>
@@ -44,4 +46,6 @@
     <string name="action_default_mode">Default</string>
     <string name="action_bluetooth_mode">Bluetooth</string>
     <string name="action_socket_mode">Socket</string>
+
+    <string name="gaze_capturing">Gaze Capturing...</string>
 </resources>

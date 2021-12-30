@@ -2,7 +2,6 @@ package com.example.enactusapp.Fragment.Contact;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,16 +13,17 @@ import com.example.enactusapp.Constants.MessageType;
 import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Entity.User;
-import com.example.enactusapp.Event.GreetingEvent;
 import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
 import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
+import com.example.enactusapp.Fragment.Dialog.DialogFragment;
+import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Listener.OnTaskCompleted;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
-import com.example.enactusapp.TTS.TTSHelper;
 import com.example.enactusapp.Utils.CalculateUtils;
+import com.example.enactusapp.Utils.ContextUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -32,7 +32,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -46,29 +45,20 @@ import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 import pl.droidsonroids.gif.GifImageView;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class ContactFragment extends SupportFragment implements OnItemClickListener, OnTaskCompleted {
 
-    private static final int CONTACT_FRAGMENT_ID = 0;
-    private static final String TAG = "ContactFragment";
+    private static final String TAG = ContactFragment.class.getSimpleName();
 
     private static final int GET_USERS = 1;
     private static final int SEND_MESSAGE = 2;
 
     private TextView mTvSelection;
     private SwipeRefreshLayout mSrlRefresh;
-    private RecyclerView mContactRecyclerView;
     private GifImageView mGivLoading;
     private ContactAdapter mContactAdapter;
 
-    private List<User> users = new ArrayList<>();
-    private List<Selection> selections = new ArrayList<>();
+    private final List<User> users = new ArrayList<>();
+    private final List<Selection> selections = new ArrayList<>();
     private int muscleControlRightCount = 0;
 
     public static ContactFragment newInstance() {
@@ -95,13 +85,13 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             mTvSelection.setVisibility(View.VISIBLE);
         }
         mSrlRefresh = (SwipeRefreshLayout) view.findViewById(R.id.srl_refresh);
-        mContactRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler_view);
+        RecyclerView mContactRecyclerView = (RecyclerView) view.findViewById(R.id.contact_recycler_view);
         mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ContextUtils.getContext());
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mContactRecyclerView.getContext(), 0);
         mContactRecyclerView.setLayoutManager(linearLayoutManager);
         mContactRecyclerView.addItemDecoration(dividerItemDecoration);
-        mContactAdapter = new ContactAdapter(_mActivity, users);
+        mContactAdapter = new ContactAdapter(ContextUtils.getContext(), users);
         mContactRecyclerView.setAdapter(mContactAdapter);
         mContactAdapter.setOnItemClickListener(this);
     }
@@ -109,6 +99,10 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     @Override
     public void onEnterAnimationEnd(Bundle savedInstanceState) {
         initDelayView();
+        mGivLoading.setVisibility(View.VISIBLE);
+        HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
+        String jsonData = convertToJSONGetUsers(Config.sUserId);
+        task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
     }
 
     private void initDelayView() {
@@ -120,10 +114,6 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                 task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
             }
         });
-        mGivLoading.setVisibility(View.VISIBLE);
-        HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
-        String jsonData = convertToJSONGetUsers(Config.sUserId);
-        task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
     }
 
     @Override
@@ -175,7 +165,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                     latitude = jsonObject.getDouble("latitude");
                 }
                 users.add(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude));
-                Collections.sort(users, new Comparator<User>() {
+                users.sort(new Comparator<User>() {
                     @Override
                     public int compare(User user1, User user2) {
                         double distance1 = CalculateUtils.getDistance(Config.sLatitude, Config.sLongitude, user1.getLatitude(), user1.getLongitude());
@@ -183,8 +173,8 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                         return (int) (distance1 - distance2);
                     }
                 });
-                mContactAdapter.notifyDataSetChanged();
             }
+            mContactAdapter.notifyDataSetChanged();
         } catch (Exception e) {
             e.printStackTrace();
             try {
@@ -221,13 +211,13 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
         return jsonMsg.toString();
     }
 
-    private void retrieveFromJSONSendMessage(String response) {
+    private void retrieveFromJSONSendMessage(String response, int id) {
         try {
             JSONObject jsonObject = new JSONObject(response);
-            int id = jsonObject.getInt("success");
-            if (id == 1) {
-                EventBusActivityScope.getDefault(_mActivity).post(new GreetingEvent());
+            int code = jsonObject.getInt("success");
+            if (code == 1) {
                 ToastUtils.showShortSafe("Sent");
+                startWithPopTo(DialogFragment.newInstance(id), MainFragment.class, false);
             } else {
                 String results = jsonObject.getString("results");
                 JSONArray jsonArray = new JSONArray(results);
@@ -252,7 +242,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
     }
 
     @Override
-    public void onTaskCompleted(String response, int requestId) {
+    public void onTaskCompleted(String response, int requestId, String... others) {
         mGivLoading.setVisibility(View.GONE);
         if (requestId == GET_USERS) {
             mSrlRefresh.setRefreshing(false);
@@ -260,26 +250,27 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             addSelections();
         }
         if (requestId == SEND_MESSAGE) {
-            retrieveFromJSONSendMessage(response);
+            int id = Integer.parseInt(others[0]);
+            retrieveFromJSONSendMessage(response, id);
         }
     }
 
     @Override
     public void onItemClick(int position) {
-        if (!TextUtils.isEmpty(users.get(position).getFirebaseToken())) {
+        User user = users.get(position);
+        if (!TextUtils.isEmpty(user.getFirebaseToken())) {
             mGivLoading.setVisibility(View.VISIBLE);
             String firebaseToken = users.get(position).getFirebaseToken();
-            HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, SEND_MESSAGE);
+            HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, SEND_MESSAGE, String.valueOf(user.getId()));
             task.execute(Constants.FIREBASE_ADDRESS, convertToJSONSendMessage(Config.sName + " says hello to you", firebaseToken), Constants.SERVER_KEY);
         } else {
             ToastUtils.showShortSafe("Firebase Token Empty");
         }
     }
 
-
     @Subscribe
     public void onMuscleControlLeftEvents(MuscleControlLeftEvents event) {
-        if (event != null && event.getFragmentId() == CONTACT_FRAGMENT_ID) {
+        if (event != null && event.getFragmentId() == Constants.CONTACT_FRAGMENT_ID) {
             if (selections.size() > 0 && !TextUtils.isEmpty(users.get(muscleControlRightCount).getFirebaseToken())) {
                 _mActivity.runOnUiThread(new Runnable() {
                     @Override
@@ -298,7 +289,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
 
     @Subscribe
     public void onMuscleControlRightEvents(MuscleControlRightEvents event) {
-        if (event != null && event.getFragmentId() == CONTACT_FRAGMENT_ID) {
+        if (event != null && event.getFragmentId() == Constants.CONTACT_FRAGMENT_ID) {
             muscleControlRightCount++;
             if (muscleControlRightCount == selections.size()) {
                 muscleControlRightCount = 0;

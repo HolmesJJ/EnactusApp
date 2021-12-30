@@ -31,6 +31,7 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.SentencesAdapter;
 import com.example.enactusapp.Config.Config;
+import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Constants.SpUtilValueConstants;
 import com.example.enactusapp.CustomView.OverlayView;
 import com.example.enactusapp.CustomView.OverlayView.DrawCallback;
@@ -38,7 +39,7 @@ import com.example.enactusapp.Entity.GazePoint;
 import com.example.enactusapp.Entity.Selection;
 import com.example.enactusapp.Event.BackCameraEvent;
 import com.example.enactusapp.Event.BluetoothEvent;
-import com.example.enactusapp.Event.GazePointEvent;
+import com.example.enactusapp.Event.SelectObjectEvent;
 import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
 import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
 import com.example.enactusapp.Fragment.MainFragment;
@@ -49,6 +50,7 @@ import com.example.enactusapp.TensorFlow.Classifier;
 import com.example.enactusapp.TensorFlow.MultiBoxTracker;
 import com.example.enactusapp.TensorFlow.TFLiteObjectDetectionAPIModel;
 import com.example.enactusapp.Thread.CustomThreadPool;
+import com.example.enactusapp.Utils.ContextUtils;
 import com.example.enactusapp.Utils.FileUtils;
 import com.example.enactusapp.Utils.ImageUtils;
 import com.example.enactusapp.Utils.ScreenUtils;
@@ -75,17 +77,9 @@ import java.util.List;
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class ObjectDetectionFragment extends SupportFragment implements OnItemClickListener, CameraViewInterface.Callback, OnMyDevConnectListener, OnPreViewResultListener {
 
-    private static final int OBJECT_DETECTION_FRAGMENT_ID = 2;
-    private static final String TAG = "ObjectDetectionFragment";
+    private static final String TAG = ObjectDetectionFragment.class.getSimpleName();
 
     // Configuration values for the prepackaged SSD model.
     private static final int TF_OD_API_INPUT_SIZE = 300;
@@ -100,7 +94,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private static final boolean SAVE_PREVIEW_BITMAP = false;
     private static final float TEXT_SIZE_DIP = 10;
 
-    private List<Selection> selections = new ArrayList<>();
+    private final List<Selection> selections = new ArrayList<>();
     private int muscleControlRightCount = 0;
 
     // Which detection model to use: by default uses TensorFlow Object Detection API frozen
@@ -110,13 +104,11 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     }
 
     private TextView mTvSelection;
-    private TextureView mTvBackCamera;
     private CameraViewInterface mCviBackCamera;
     private SeekBar mSbBrightness;
     private SeekBar mSbContrast;
     private OverlayView trackingOverlay;
     private ImageView mIvPreview;
-    private RecyclerView mRvSentences;
     private SentencesAdapter mSentencesAdapter;
     private TextView mTvInferenceTimeView;
     private TextView mTvCurrentKeyword;
@@ -151,9 +143,9 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     // 当前选中的对象
     private String currentObject;
     // Detected Objects
-    private List<String> sentences = new ArrayList<>();
-    private List<String> keywords = new ArrayList<>();
-    private List<Classifier.Recognition> detectedObjects = new LinkedList<>();
+    private final List<String> sentences = new ArrayList<>();
+    private final List<String> keywords = new ArrayList<>();
+    private final List<Classifier.Recognition> detectedObjects = new LinkedList<>();
     private GazePoint mGazePoint;
     // 是否正在搜索物体
     private boolean isSearchingObject = false;
@@ -187,10 +179,10 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private Bitmap cropCopyBitmap = null;
 
     // 线程池
-    private static CustomThreadPool sThreadPoolRGBTrack = new CustomThreadPool(Thread.NORM_PRIORITY);
-    private static CustomThreadPool sThreadPoolRGBVerify = new CustomThreadPool(Thread.MAX_PRIORITY);
+    private static final CustomThreadPool sThreadPoolRGBTrack = new CustomThreadPool(Thread.NORM_PRIORITY);
+    private static final CustomThreadPool sThreadPoolRGBVerify = new CustomThreadPool(Thread.MAX_PRIORITY);
 
-    private static SparseIntArray ORIENTATIONS = new SparseIntArray();
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 0);
         ORIENTATIONS.append(Surface.ROTATION_90, 90);
@@ -201,8 +193,8 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     private static class CompareSizeByArea implements Comparator<Size> {
         @Override
         public int compare(Size lhs, Size rhs) {
-            return Long.signum( (long)(lhs.getWidth() * lhs.getHeight()) -
-                    (long)(rhs.getWidth() * rhs.getHeight()));
+            return Long.signum(((long) lhs.getWidth() * lhs.getHeight()) -
+                    ((long) rhs.getWidth() * rhs.getHeight()));
         }
     }
 
@@ -230,19 +222,19 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         } else {
             mTvSelection.setVisibility(View.VISIBLE);
         }
-        mTvBackCamera = (TextureView) view.findViewById(R.id.tv_back_camera);
+        TextureView mTvBackCamera = (TextureView) view.findViewById(R.id.tv_back_camera);
         mCviBackCamera = (CameraViewInterface) mTvBackCamera;
         mCviBackCamera.setCallback(this);
         mSbBrightness = (SeekBar) view.findViewById(R.id.sb_brightness);
         mSbContrast = (SeekBar) view.findViewById(R.id.sb_contrast);
         trackingOverlay = (OverlayView) view.findViewById(R.id.tracking_overlay);
         mIvPreview = (ImageView) view.findViewById(R.id.iv_preview);
-        mRvSentences = (RecyclerView) view.findViewById(R.id.rv_sentences);
+        RecyclerView mRvSentences = (RecyclerView) view.findViewById(R.id.rv_sentences);
         mTvInferenceTimeView = (TextView) view.findViewById(R.id.tv_inference_time);
         mTvCurrentKeyword = (TextView) view.findViewById(R.id.tv_current_keyword);
         btnNext = (Button) view.findViewById(R.id.btn_next);
-        mSentencesAdapter = new SentencesAdapter(_mActivity, sentences);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
+        mSentencesAdapter = new SentencesAdapter(ContextUtils.getContext(), sentences);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ContextUtils.getContext());
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mRvSentences.getContext(), linearLayoutManager.getOrientation());
         mRvSentences.setLayoutManager(linearLayoutManager);
         mRvSentences.addItemDecoration(dividerItemDecoration);
@@ -252,8 +244,8 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     }
 
     private void getScreenSize() {
-        screenHeight = ScreenUtils.getScreenRealHeight(_mActivity);
-        screenWidth = ScreenUtils.getScreenRealWidth(_mActivity);
+        screenHeight = ScreenUtils.getScreenRealHeight(ContextUtils.getContext());
+        screenWidth = ScreenUtils.getScreenRealWidth(ContextUtils.getContext());
         Log.i(TAG, "getScreenSize: screenHeight " + screenHeight + ", screenWidth " + screenWidth);
     }
 
@@ -312,6 +304,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                         final String currentKeyword = keywords.get(keywordCounter);
                         mTvCurrentKeyword.setText(currentKeyword);
                         initData(currentKeyword);
+                        mSentencesAdapter.notifyDataSetChanged();
                         keywordCounter++;
                     } else {
                         keywordCounter = 0;
@@ -320,8 +313,8 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                     e.fillInStackTrace();
                     mTvCurrentKeyword.setText("");
                     initData("");
+                    mSentencesAdapter.notifyDataSetChanged();
                 }
-                mSentencesAdapter.notifyDataSetChanged();
             }
         });
 
@@ -435,7 +428,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         mUVCCameraHelper = UVCCameraHelper.getInstance();
         // set default preview size
         mUVCCameraHelper.setDefaultPreviewSize(640, 480);
-        // set default frame format，defalut is UVCCameraHelper.Frame_FORMAT_MPEG
+        // set default frame format，default is UVCCameraHelper.Frame_FORMAT_MPEG
         // if using mpeg can not record mp4, please try yuv
         mUVCCameraHelper.setDefaultFrameFormat(UVCCameraHelper.FRAME_FORMAT_YUYV);
         mUVCCameraHelper.initUSBMonitor(_mActivity, mCviBackCamera, this);
@@ -451,10 +444,10 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     }
 
     private void initClassifier() {
-        tracker = new MultiBoxTracker(_mActivity);
+        tracker = new MultiBoxTracker(ContextUtils.getContext());
         try {
             detector = TFLiteObjectDetectionAPIModel.create(
-                    _mActivity.getAssets(),
+                    ContextUtils.getContext().getAssets(),
                     TF_OD_API_MODEL_FILE,
                     TF_OD_API_LABELS_FILE,
                     TF_OD_API_INPUT_SIZE,
@@ -562,13 +555,13 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                     if (searchObject != null) {
                         mTvCurrentKeyword.setText(searchObject.getTitle());
                         initData(searchObject.getTitle());
+                        _mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSentencesAdapter.notifyDataSetChanged();
+                            }
+                        });
                     }
-                    _mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSentencesAdapter.notifyDataSetChanged();
-                        }
-                    });
                     isWaitingSearch = false;
                 }
             }
@@ -624,11 +617,12 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     public void onItemClick(int position) {
         if (lastSelectedPosition != -1) {
             sentences.set(lastSelectedPosition, lastSelectedSentence);
+            mSentencesAdapter.notifyItemChanged(lastSelectedPosition);
         }
         lastSelectedPosition = position;
         lastSelectedSentence = sentences.get(position);
         sentences.set(position, sentences.get(position) + " *");
-        mSentencesAdapter.notifyDataSetChanged();
+        mSentencesAdapter.notifyItemChanged(position);
         TTSHelper.getInstance().speak(sentences.get(position));
     }
 
@@ -639,7 +633,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
         if (!isAttached) {
             isAttached = true;
             ToastUtils.showShortSafe(device.getDeviceName() + " is attached");
-            if (((MainFragment) getParentFragment()).getCurrentItemPosition() == 3 && mUVCCameraHelper != null) {
+            if (getParentFragment() != null && ((MainFragment) getParentFragment()).getCurrentItemPosition() == Constants.OBJECT_DETECTION_FRAGMENT_ID && mUVCCameraHelper != null) {
                 mUVCCameraHelper.requestPermission(0);
             }
         }
@@ -764,8 +758,8 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     }
 
     @Subscribe
-    public void onGazePointEvent(GazePointEvent gazePointEvent) {
-        this.mGazePoint = gazePointEvent.getGazePoint();
+    public void onSelectObjectEvent(SelectObjectEvent selectObjectEvent) {
+        this.mGazePoint = selectObjectEvent.getGazePoint();
         if (isUpdatingRecognitionObjects) {
             isWaitingSearch = true;
         } else {
@@ -785,7 +779,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
     @Subscribe
     public void onBluetoothEvent(BluetoothEvent bluetoothEvent) {
-        if (bluetoothEvent.getCurrentPosition() == 3) {
+        if (bluetoothEvent.getCurrentPosition() == Constants.OBJECT_DETECTION_FRAGMENT_ID) {
             if (bluetoothEvent.getChannel1().equals("A") && bluetoothEvent.getChannel2().equals("B")) {
                 if (selections.get(muscleControlRightCount).getId() == 1) {
                     btnNext.performClick();
@@ -799,22 +793,43 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                     if (selections.get(muscleControlRightCount).getId() == 1) {
                         if (lastSelectedPosition != -1) {
                             sentences.set(lastSelectedPosition, lastSelectedSentence);
+                            _mActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mSentencesAdapter.notifyItemChanged(lastSelectedPosition);
+                                }
+                            });
                         }
-                        mSentencesAdapter.notifyDataSetChanged();
                     } else {
                         int position = selections.get(muscleControlRightCount).getId() - 2;
                         if (lastSelectedPosition != -1) {
                             sentences.set(lastSelectedPosition, lastSelectedSentence);
+                            _mActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mSentencesAdapter.notifyItemChanged(lastSelectedPosition);
+                                }
+                            });
                         }
                         lastSelectedPosition = position;
                         lastSelectedSentence = sentences.get(position);
                         sentences.set(position, sentences.get(position) + " *");
-                        mSentencesAdapter.notifyDataSetChanged();
+                        _mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSentencesAdapter.notifyItemChanged(position);
+                            }
+                        });
                     }
                 } else {
                     muscleControlRightCount = 0;
                 }
-                mTvSelection.setText(selections.get(muscleControlRightCount).getName());
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTvSelection.setText(selections.get(muscleControlRightCount).getName());
+                    }
+                });
             }
         }
     }
@@ -889,7 +904,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
     private void initRenderScript(int width, int height) {
 
-        RenderScript mRenderScript = RenderScript.create(_mActivity);
+        RenderScript mRenderScript = RenderScript.create(ContextUtils.getContext());
         mScriptIntrinsicYuvToRGB = ScriptIntrinsicYuvToRGB.create(mRenderScript,
                 Element.U8_4(mRenderScript));
 
@@ -908,7 +923,7 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
     @Subscribe
     public void onMuscleControlLeftEvents(MuscleControlLeftEvents event) {
-        if (event != null && event.getFragmentId() == OBJECT_DETECTION_FRAGMENT_ID) {
+        if (event != null && event.getFragmentId() == Constants.OBJECT_DETECTION_FRAGMENT_ID) {
             if (selections.get(muscleControlRightCount).getId() == 1) {
                 _mActivity.runOnUiThread(new Runnable() {
                     @Override
@@ -925,32 +940,55 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
 
     @Subscribe
     public void onMuscleControlRightEvents(MuscleControlRightEvents event) {
-        if (event != null && event.getFragmentId() == OBJECT_DETECTION_FRAGMENT_ID) {
+        if (event != null && event.getFragmentId() == Constants.OBJECT_DETECTION_FRAGMENT_ID) {
             muscleControlRightCount++;
             if (muscleControlRightCount < selections.size() && muscleControlRightCount < sentences.size() + 1) {
                 if (selections.get(muscleControlRightCount).getId() == 1) {
                     if (lastSelectedPosition != -1) {
                         sentences.set(lastSelectedPosition, lastSelectedSentence);
+                        _mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSentencesAdapter.notifyItemChanged(lastSelectedPosition);
+                            }
+                        });
                     }
                 } else {
                     int position = selections.get(muscleControlRightCount).getId() - 2;
                     if (lastSelectedPosition != -1) {
                         sentences.set(lastSelectedPosition, lastSelectedSentence);
+                        _mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSentencesAdapter.notifyItemChanged(lastSelectedPosition);
+                            }
+                        });
                     }
                     lastSelectedPosition = position;
                     lastSelectedSentence = sentences.get(position);
                     sentences.set(position, sentences.get(position) + " *");
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSentencesAdapter.notifyItemChanged(position);
+                        }
+                    });
                 }
             } else {
                 muscleControlRightCount = 0;
                 if (lastSelectedPosition != -1) {
                     sentences.set(lastSelectedPosition, lastSelectedSentence);
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSentencesAdapter.notifyItemChanged(lastSelectedPosition);
+                        }
+                    });
                 }
             }
             _mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mSentencesAdapter.notifyDataSetChanged();
                     mTvSelection.setText(selections.get(muscleControlRightCount).getName());
                 }
             });

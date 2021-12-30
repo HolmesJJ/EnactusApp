@@ -25,7 +25,7 @@ public class BluetoothHelper {
     }
 
     private static class SingleInstance {
-        private static BluetoothHelper INSTANCE = new BluetoothHelper();
+        private static final BluetoothHelper INSTANCE = new BluetoothHelper();
     }
 
     public static BluetoothHelper getInstance() {

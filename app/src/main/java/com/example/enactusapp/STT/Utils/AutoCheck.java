@@ -30,6 +30,9 @@ import java.util.TreeSet;
 import javax.net.ssl.HttpsURLConnection;
 
 public class AutoCheck {
+
+    private static final String TAG = AutoCheck.class.getSimpleName();
+
     public static final boolean isOnlineLited = false; // 是否只需要是纯在线识别功能
     private LinkedHashMap<String, Check> checks;
 
@@ -41,8 +44,6 @@ public class AutoCheck {
     private boolean isFinished = false;
 
     private String name;
-
-    private static final String TAG = "AutoCheck";
 
     public AutoCheck(Context context, final Handler handler, boolean enableOffline) {
         this.context = context;

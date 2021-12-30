@@ -12,7 +12,8 @@ import java.nio.ByteBuffer;
 
 public class WebSocketClientManager {
 
-    private static final String TAG = "WebSocketClientManager";
+    private static final String TAG = WebSocketClientManager.class.getSimpleName();
+
     private MiniWebSocketClient miniWebSocketClient = null;
     private IClientMessageCallback iClientMessageCallback;
 
@@ -23,7 +24,7 @@ public class WebSocketClientManager {
     }
 
     private static class SingleInstance {
-        private static WebSocketClientManager INSTANCE = new WebSocketClientManager();
+        private static final WebSocketClientManager INSTANCE = new WebSocketClientManager();
     }
 
     public static WebSocketClientManager getInstance() {

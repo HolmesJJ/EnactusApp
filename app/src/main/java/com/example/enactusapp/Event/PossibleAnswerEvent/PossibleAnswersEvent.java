@@ -4,7 +4,7 @@ import java.util.List;
 
 public class PossibleAnswersEvent {
 
-    private List<String> possibleAnswers;
+    private final List<String> possibleAnswers;
 
     public PossibleAnswersEvent(List<String> possibleAnswers) {
         this.possibleAnswers = possibleAnswers;
@@ -12,9 +12,5 @@ public class PossibleAnswersEvent {
 
     public List<String> getPossibleAnswers() {
         return possibleAnswers;
-    }
-
-    public void setPossibleAnswers(List<String> possibleAnswers) {
-        this.possibleAnswers = possibleAnswers;
     }
 }

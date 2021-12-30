@@ -20,13 +20,13 @@ public class OfflineResource implements IOfflineResourceConst {
 
     private static final String DIR_PATH = "baiduTTS";
 
-    private AssetManager assets;
-    private String destPath;
+    private final AssetManager assets;
+    private final String destPath;
 
     private String textFilename;
     private String modelFilename;
 
-    private static HashMap<String, Boolean> mapInitialized = new HashMap<String, Boolean>();
+    private static final HashMap<String, Boolean> mapInitialized = new HashMap<String, Boolean>();
 
     public OfflineResource(Context context, String voiceType) throws IOException {
         context = context.getApplicationContext();
@@ -73,6 +73,4 @@ public class OfflineResource implements IOfflineResourceConst {
         Log.i(TAG, "文件复制成功：" + destFilename);
         return destFilename;
     }
-
-
 }

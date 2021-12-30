@@ -13,7 +13,7 @@ import camp.visual.gazetracker.callback.StatusCallback;
 
 public class GazeHelper implements InitializationCallback, GazeCallback, CalibrationCallback, EyeMovementCallback, ImageCallback, StatusCallback {
 
-    private static final String TAG = "GazeHelper";
+    private static final String TAG = GazeHelper.class.getSimpleName();
 
     private GazeDevice mGazeDevice;
     private GazeTracker mGazeTracker;
@@ -23,7 +23,7 @@ public class GazeHelper implements InitializationCallback, GazeCallback, Calibra
     }
 
     private static class SingleInstance {
-        private static GazeHelper INSTANCE = new GazeHelper();
+        private static final GazeHelper INSTANCE = new GazeHelper();
     }
 
     public static GazeHelper getInstance() {

@@ -11,7 +11,6 @@ import android.text.TextUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -34,9 +33,8 @@ public class BitmapUtils {
         Matrix matrix = new Matrix();
         matrix.postScale(scaleWidth, scaleHeight);
         // 得到新的图片
-        Bitmap newBitMap = Bitmap.createBitmap(bitmap, 0, 0, width, height,
+        return Bitmap.createBitmap(bitmap, 0, 0, width, height,
                 matrix, true);
-        return newBitMap;
     }
 
     public static Bitmap getCropBitmap(Bitmap sourceBitmap, Rect originRect, int scale) {
@@ -49,7 +47,7 @@ public class BitmapUtils {
         }
         Rect rect = getScaleRect(orginRect, scaleX, scaleY, sourceBitmap.getWidth(), sourceBitmap.getHeight());
         if (rect.width() <= 0 || rect.height() <= 0) return null;
-        return sourceBitmap.createBitmap(sourceBitmap, rect.left, rect.top, rect.width(), rect.height());
+        return Bitmap.createBitmap(sourceBitmap, rect.left, rect.top, rect.width(), rect.height());
     }
 
     public static Rect getScaleRect(Rect rect, float scaleX, float scaleY, int maxW, int maxH) {
@@ -58,10 +56,10 @@ public class BitmapUtils {
         int right = (int) (rect.right + rect.width() * (scaleX - 1) / 2);
         int bottom = (int) (rect.bottom + rect.height() * (scaleY - 1) / 2);
         int top = (int) (rect.top - rect.height() * (scaleY - 1) / 2);
-        resultRect.left = left > 0 ? left : 0;
-        resultRect.right = right > maxW ? maxW : right;
-        resultRect.bottom = bottom > maxH ? maxH : bottom;
-        resultRect.top = top > 0 ? top : 0;
+        resultRect.left = Math.max(left, 0);
+        resultRect.right = Math.min(right, maxW);
+        resultRect.bottom = Math.min(bottom, maxH);
+        resultRect.top = Math.max(top, 0);
         return resultRect;
     }
 
@@ -74,8 +72,7 @@ public class BitmapUtils {
         if (isTMMirror) {
             matrix.postScale(1, -1);
         }
-        Bitmap rotaBitmap = Bitmap.createBitmap(sourceBitmap, 0, 0, sourceBitmap.getWidth(), sourceBitmap.getHeight(), matrix, false);
-        return rotaBitmap;
+        return Bitmap.createBitmap(sourceBitmap, 0, 0, sourceBitmap.getWidth(), sourceBitmap.getHeight(), matrix, false);
     }
 
     public static byte[] btmToBytes(Bitmap btm) {
@@ -96,15 +93,10 @@ public class BitmapUtils {
             FileOutputStream fileOutputStream = null;
             try {
                 fileOutputStream = new FileOutputStream(photoFile);
-                if (photoBitmap != null) {
-                    if (photoBitmap.compress(Bitmap.CompressFormat.JPEG, quality,
-                            fileOutputStream)) {
-                        fileOutputStream.flush();
-                    }
+                if (photoBitmap.compress(Bitmap.CompressFormat.JPEG, quality,
+                        fileOutputStream)) {
+                    fileOutputStream.flush();
                 }
-            } catch (FileNotFoundException e) {
-                photoFile.delete();
-                e.printStackTrace();
             } catch (IOException e) {
                 photoFile.delete();
                 e.printStackTrace();

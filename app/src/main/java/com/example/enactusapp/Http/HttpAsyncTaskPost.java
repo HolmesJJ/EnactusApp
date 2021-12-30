@@ -16,23 +16,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 
 public class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
 
     private final static String TAG = "HttpAsyncTaskPost";
-    private OnTaskCompleted listener;
-    private int requestId;
+    private final OnTaskCompleted listener;
+    private final int requestId;
+    private final String[] others;
 
-    public HttpAsyncTaskPost(OnTaskCompleted listener, int requestId) {
+    public HttpAsyncTaskPost(OnTaskCompleted listener, int requestId, String... others) {
         this.listener = listener;
         this.requestId = requestId;
+        this.others = others;
     }
 
     public static String POST(String urlString, String data, String authorization) {
@@ -98,6 +93,6 @@ public class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String response) {
         Log.d(TAG, response);
-        listener.onTaskCompleted(response, requestId);
+        listener.onTaskCompleted(response, requestId, others);
     }
 }

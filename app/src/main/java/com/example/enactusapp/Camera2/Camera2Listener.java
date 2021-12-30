@@ -34,5 +34,4 @@ public interface Camera2Listener {
      * @param e 相机相关异常
      */
     void onCameraError(Exception e);
-
 }

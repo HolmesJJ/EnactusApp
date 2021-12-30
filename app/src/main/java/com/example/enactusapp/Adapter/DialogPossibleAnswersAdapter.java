@@ -14,17 +14,10 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class DialogPossibleAnswersAdapter extends RecyclerView.Adapter<DialogPossibleAnswersAdapter.DialogPossibleAnswersViewHolder> {
 
-    private Context context;
-    private List<String> possibleAnswersList;
+    private final Context context;
+    private final List<String> possibleAnswersList;
 
     private LayoutInflater mInflater = null;
     private OnItemClickListener mOnItemClickListener;
@@ -38,7 +31,6 @@ public class DialogPossibleAnswersAdapter extends RecyclerView.Adapter<DialogPos
         this.context = context;
         this.possibleAnswersList = possibleAnswersList;
     }
-
 
     @NonNull
     @Override
@@ -66,9 +58,9 @@ public class DialogPossibleAnswersAdapter extends RecyclerView.Adapter<DialogPos
         return possibleAnswersList.size();
     }
 
-    public class DialogPossibleAnswersViewHolder extends RecyclerView.ViewHolder {
+    public static class DialogPossibleAnswersViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView mPossibleAnswerTextView;
+        private final TextView mPossibleAnswerTextView;
 
         public DialogPossibleAnswersViewHolder(View itemView) {
             super(itemView);

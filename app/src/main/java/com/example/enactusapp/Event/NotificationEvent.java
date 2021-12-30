@@ -1,30 +1,29 @@
 package com.example.enactusapp.Event;
 
+import com.example.enactusapp.Constants.MessageType;
 import com.example.enactusapp.Entity.User;
 
 public class NotificationEvent {
 
-    private User user;
-    private String message;
+    private final User user;
+    private final String message;
+    private final MessageType type;
 
-    public NotificationEvent(User user, String message) {
+    public NotificationEvent(User user, String message, MessageType type) {
         this.user = user;
         this.message = message;
+        this.type = type;
     }
 
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     public String getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public MessageType getType() {
+        return type;
     }
 }

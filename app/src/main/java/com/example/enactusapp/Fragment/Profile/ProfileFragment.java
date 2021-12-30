@@ -1,6 +1,5 @@
 package com.example.enactusapp.Fragment.Profile;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -23,7 +22,6 @@ import com.example.enactusapp.Fragment.Bluetooth.BluetoothFragment;
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Http.HttpAsyncTaskPost;
 import com.example.enactusapp.Listener.OnTaskCompleted;
-import com.example.enactusapp.LoginActivity;
 import com.example.enactusapp.R;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Utils.ToastUtils;
@@ -32,6 +30,7 @@ import com.shehuan.niv.NiceImageView;
 
 import androidx.annotation.Nullable;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
 
@@ -45,17 +44,10 @@ import pl.droidsonroids.gif.GifImageView;
 
 import static com.example.enactusapp.Config.Config.resetConfig;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class ProfileFragment extends SupportFragment implements OnTaskCompleted {
 
-    private static final int PROFILE_FRAGMENT_ID = 3;
-    private static final String TAG = "ProfileFragment";
+    private static final String TAG = ProfileFragment.class.getSimpleName();
+
     private static final int UPDATE_USER = 1;
 
     private TextView mTvSelection;
@@ -69,7 +61,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     private Button logoutBtn;
     private GifImageView mGivLoading;
 
-    private List<Selection> selections = new ArrayList<>();
+    private final List<Selection> selections = new ArrayList<>();
     private int muscleControlRightCount = 0;
 
     public static ProfileFragment newInstance() {
@@ -83,6 +75,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
+        EventBus.getDefault().register(this);
         EventBusActivityScope.getDefault(_mActivity).register(this);
         initView(view);
         return view;
@@ -151,7 +144,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         startCalibrationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EventBusActivityScope.getDefault(_mActivity).post(new CalibrationEvent(true));
+                EventBus.getDefault().post(new CalibrationEvent());
             }
         });
 
@@ -175,7 +168,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
         muscleSensorBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MainFragment) getParentFragment()).startBrotherFragment(BluetoothFragment.newInstance());
+                startWithPopTo(BluetoothFragment.newInstance(), MainFragment.class, false);
             }
         });
 
@@ -229,7 +222,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     }
 
     @Override
-    public void onTaskCompleted(String response, int requestId) {
+    public void onTaskCompleted(String response, int requestId, String... others) {
         mGivLoading.setVisibility(View.GONE);
         if (requestId == UPDATE_USER) {
             retrieveFromJSONUpdateUser(response);
@@ -238,7 +231,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
 
     @Subscribe
     public void onMuscleControlLeftEvents(MuscleControlLeftEvents event) {
-        if (event != null && event.getFragmentId() == PROFILE_FRAGMENT_ID) {
+        if (event != null && event.getFragmentId() == Constants.PROFILE_FRAGMENT_ID) {
             if (selections.get(muscleControlRightCount).getId() == 1) {
                 _mActivity.runOnUiThread(new Runnable() {
                     @Override
@@ -252,7 +245,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
 
     @Subscribe
     public void onMuscleControlRightEvents(MuscleControlRightEvents event) {
-        if (event != null && event.getFragmentId() == PROFILE_FRAGMENT_ID) {
+        if (event != null && event.getFragmentId() == Constants.PROFILE_FRAGMENT_ID) {
             muscleControlRightCount++;
             if (muscleControlRightCount == selections.size()) {
                 muscleControlRightCount = 0;
@@ -269,6 +262,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
     @Override
     public void onDestroyView() {
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
+        EventBus.getDefault().unregister(this);
         super.onDestroyView();
     }
 }

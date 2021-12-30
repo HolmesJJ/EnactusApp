@@ -13,7 +13,7 @@ public class Trie {
 
     private final static String TAG = "Trie";
 
-    public class TrieNode {
+    public static class TrieNode {
         TrieNode[] present_chars;
         boolean exist;
         int dep;
@@ -25,7 +25,7 @@ public class Trie {
         }
     }
 
-    private TrieNode root;
+    private final TrieNode root;
 
     public Trie() {
         root = new TrieNode(0);
@@ -42,7 +42,7 @@ public class Trie {
         node.exist = true;
     }
 
-    public void delete(String s){
+    public void delete(String s) {
         TrieNode node = root;
         for (int i = 0; i < s.length(); i++) {
             if (node.present_chars[s.charAt(i)] == null)
@@ -78,7 +78,7 @@ public class Trie {
                 if (node.present_chars[i] != null)
                     dfs(s, results, limit, node.present_chars[i], tmp + (char) i);
         }
-        else if(s.charAt(node.dep)=='r'){
+        else if(s.charAt(node.dep)=='r') {
             for (int i = 'n'; i <= 'z'; i++)
                 if (node.present_chars[i] != null)
                     dfs(s, results, limit, node.present_chars[i], tmp + (char) i);

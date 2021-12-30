@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -20,8 +21,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.enactusapp.Adapter.BluetoothAdapter;
 import com.example.enactusapp.Bluetooth.BluetoothHelper;
 import com.example.enactusapp.Bluetooth.BluetoothHelper.UpdateList;
+import com.example.enactusapp.Fragment.Base.BaseBackFragment;
+import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.R;
+import com.example.enactusapp.Utils.ContextUtils;
 import com.example.enactusapp.Utils.GPSUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 import com.hc.bluetoothlibrary.DeviceModule;
@@ -29,24 +33,21 @@ import com.hc.bluetoothlibrary.DeviceModule;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.yokeyword.fragmentation.SupportFragment;
+public class BluetoothFragment extends BaseBackFragment implements UpdateList {
 
-public class BluetoothFragment extends SupportFragment implements UpdateList {
-
-    private static final String TAG = "BluetoothFragment";
+    private static final String TAG = BluetoothFragment.class.getSimpleName();
 
     private static final int START_LOCATION_ACTIVITY = 99;
 
     private BluetoothHelper mBluetoothHelper;
 
+    private ImageView mIvBack;
     private SwipeRefreshLayout mSrlRefresh;
-    private RecyclerView mRvPairedBluetooth;
-    private RecyclerView mRvUnpairedBluetooth;
     private BluetoothAdapter mPairedBluetoothAdapter;
     private BluetoothAdapter mUnpairedBluetoothAdapter;
 
-    private List<DeviceModule> pairedDeviceModules = new ArrayList<>();
-    private List<DeviceModule> unpairedDeviceModules = new ArrayList<>();
+    private final List<DeviceModule> pairedDeviceModules = new ArrayList<>();
+    private final List<DeviceModule> unpairedDeviceModules = new ArrayList<>();
 
     public static BluetoothFragment newInstance() {
         BluetoothFragment fragment = new BluetoothFragment();
@@ -64,17 +65,18 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
     }
 
     private void initView(View view) {
+        mIvBack = (ImageView) view.findViewById(R.id.iv_back);
         mSrlRefresh = (SwipeRefreshLayout) view.findViewById(R.id.srl_refresh);
-        mRvPairedBluetooth = (RecyclerView) view.findViewById(R.id.rv_paired_bluetooth);
-        mRvUnpairedBluetooth = (RecyclerView) view.findViewById(R.id.rv_unpaired_bluetooth);
-        mPairedBluetoothAdapter = new BluetoothAdapter(_mActivity, pairedDeviceModules);
-        LinearLayoutManager pairedBluetoothLinearLayoutManager = new LinearLayoutManager(_mActivity);
+        RecyclerView mRvPairedBluetooth = (RecyclerView) view.findViewById(R.id.rv_paired_bluetooth);
+        RecyclerView mRvUnpairedBluetooth = (RecyclerView) view.findViewById(R.id.rv_unpaired_bluetooth);
+        mPairedBluetoothAdapter = new BluetoothAdapter(ContextUtils.getContext(), pairedDeviceModules);
+        LinearLayoutManager pairedBluetoothLinearLayoutManager = new LinearLayoutManager(ContextUtils.getContext());
         DividerItemDecoration pairedBluetoothDividerItemDecoration = new DividerItemDecoration(mRvPairedBluetooth.getContext(), pairedBluetoothLinearLayoutManager.getOrientation());
         mRvPairedBluetooth.setLayoutManager(pairedBluetoothLinearLayoutManager);
         mRvPairedBluetooth.addItemDecoration(pairedBluetoothDividerItemDecoration);
         mRvPairedBluetooth.setAdapter(mPairedBluetoothAdapter);
-        mUnpairedBluetoothAdapter = new BluetoothAdapter(_mActivity, unpairedDeviceModules);
-        LinearLayoutManager unpairedBluetoothLinearLayoutManager = new LinearLayoutManager(_mActivity);
+        mUnpairedBluetoothAdapter = new BluetoothAdapter(ContextUtils.getContext(), unpairedDeviceModules);
+        LinearLayoutManager unpairedBluetoothLinearLayoutManager = new LinearLayoutManager(ContextUtils.getContext());
         DividerItemDecoration unpairedBluetoothDividerItemDecoration = new DividerItemDecoration(mRvUnpairedBluetooth.getContext(), unpairedBluetoothLinearLayoutManager.getOrientation());
         mRvUnpairedBluetooth.setLayoutManager(unpairedBluetoothLinearLayoutManager);
         mRvUnpairedBluetooth.addItemDecoration(unpairedBluetoothDividerItemDecoration);
@@ -84,9 +86,17 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
     @Override
     public void onEnterAnimationEnd(Bundle savedInstanceState) {
         initDelayView();
+        initBluetooth();
     }
 
     private void initDelayView() {
+        mIvBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                popTo(MainFragment.class, false);
+            }
+        });
+
         mPairedBluetoothAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
@@ -110,7 +120,6 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
                 refresh();
             }
         });
-        initBluetooth();
     }
 
     private void initBluetooth() {
@@ -121,7 +130,7 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
 
     // 开启位置权限
     private void startLocation() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(_mActivity);
+        AlertDialog.Builder builder = new AlertDialog.Builder(ContextUtils.getContext());
         builder.setTitle("Tips")
                 .setMessage("Please turn on your GPS")
                 .setCancelable(false)
@@ -137,7 +146,7 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == START_LOCATION_ACTIVITY) {
-            if (!GPSUtils.isOpenGPS(_mActivity)) {
+            if (!GPSUtils.isOpenGPS(ContextUtils.getContext())) {
                 startLocation();
             }
         }
@@ -159,7 +168,7 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
             @Override
             public void run() {
                 if (mBluetoothHelper.bluetoothState()) {
-                    if (GPSUtils.isOpenGPS(_mActivity)) {
+                    if (GPSUtils.isOpenGPS(ContextUtils.getContext())) {
                         refresh();
                     } else {
                         startLocation();
@@ -190,14 +199,19 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
     @Override
     public void update(boolean isStart, DeviceModule deviceModule) {
         if (isStart) {
-            deviceModule.isCollectName(_mActivity);
+            deviceModule.isCollectName(ContextUtils.getContext());
             if (deviceModule.isBeenConnected()) {
                 pairedDeviceModules.add(deviceModule);
             } else {
                 unpairedDeviceModules.add(deviceModule);
             }
-            mPairedBluetoothAdapter.notifyDataSetChanged();
-            mUnpairedBluetoothAdapter.notifyDataSetChanged();
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mPairedBluetoothAdapter.notifyItemInserted(pairedDeviceModules.size() - 1);
+                    mUnpairedBluetoothAdapter.notifyItemInserted(unpairedDeviceModules.size() - 1);
+                }
+            });
         } else {
             Log.i(TAG, "Done..");
         }
@@ -207,17 +221,41 @@ public class BluetoothFragment extends SupportFragment implements UpdateList {
     public void updateMessyCode(boolean isStart, DeviceModule deviceModule) {
         for (int i = 0; i < pairedDeviceModules.size(); i++) {
             if (pairedDeviceModules.get(i).getMac().equals(deviceModule.getMac())) {
-                pairedDeviceModules.remove(pairedDeviceModules.get(i));
+                pairedDeviceModules.remove(i);
+                int pos = i;
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPairedBluetoothAdapter.notifyItemRemoved(pos);
+                    }
+                });
                 pairedDeviceModules.add(i, deviceModule);
-                mPairedBluetoothAdapter.notifyDataSetChanged();
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPairedBluetoothAdapter.notifyItemInserted(pos);
+                    }
+                });
                 break;
             }
         }
         for (int i = 0; i < unpairedDeviceModules.size(); i++) {
             if (unpairedDeviceModules.get(i).getMac().equals(deviceModule.getMac())) {
-                unpairedDeviceModules.remove(unpairedDeviceModules.get(i));
+                unpairedDeviceModules.remove(i);
+                int pos = i;
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mUnpairedBluetoothAdapter.notifyItemRemoved(pos);
+                    }
+                });
                 unpairedDeviceModules.add(i, deviceModule);
-                mUnpairedBluetoothAdapter.notifyDataSetChanged();
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mUnpairedBluetoothAdapter.notifyItemInserted(pos);
+                    }
+                });
                 break;
             }
         }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/TRANSPARENT"
+    android:orientation="vertical">
+
+    <ImageButton
+        android:id="@+id/ib_slide_down"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="5dp"
+        android:src="@drawable/ic_slide_down"
+        android:scaleType="fitCenter"
+        android:background="@color/TRANSPARENT"
+        android:contentDescription="Slide Down" />
+
+</FrameLayout>

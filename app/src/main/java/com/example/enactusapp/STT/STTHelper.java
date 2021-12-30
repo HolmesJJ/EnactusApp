@@ -19,7 +19,8 @@ import java.util.Map;
 
 public class STTHelper implements IRecogListener {
 
-    private static final String TAG = "STTHelper";
+    private static final String TAG = STTHelper.class.getSimpleName();
+
     private static final String DIR_PATH = "baiduSTT";
 
     // 是否需要调用离线命令词功能
@@ -39,7 +40,7 @@ public class STTHelper implements IRecogListener {
     }
 
     private static class SingleInstance {
-        private static STTHelper INSTANCE = new STTHelper();
+        private static final STTHelper INSTANCE = new STTHelper();
     }
 
     public static STTHelper getInstance() {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:FixedAspectRatioRelativeLayout="http://schemas.android.com/apk/res-auto"
+    android:layout_width="72dp"
+    android:layout_height="92dp"
+    android:elevation="10dp"
+    android:background="@drawable/rl_front_camera_container_round_corner">
+
+    <com.example.enactusapp.UI.FixedAspectRatioRelativeLayout
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        FixedAspectRatioRelativeLayout:aspect_ratio_width="480"
+        FixedAspectRatioRelativeLayout:aspect_ratio_height="640">
+
+        <TextureView
+            android:id="@+id/tv_front_camera"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </com.example.enactusapp.UI.FixedAspectRatioRelativeLayout>
+
+</RelativeLayout>

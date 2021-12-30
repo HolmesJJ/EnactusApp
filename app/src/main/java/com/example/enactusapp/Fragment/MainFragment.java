@@ -1,31 +1,16 @@
 package com.example.enactusapp.Fragment;
 
-import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.provider.Settings;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.Surface;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 
 import com.baidu.tts.client.SpeechError;
 import com.example.enactusapp.Bluetooth.BluetoothHelper;
@@ -38,18 +23,16 @@ import com.example.enactusapp.Entity.GazePoint;
 import com.example.enactusapp.Entity.User;
 import com.example.enactusapp.Event.BackCameraEvent;
 import com.example.enactusapp.Event.BluetoothEvent;
-import com.example.enactusapp.Event.CalibrationEvent;
-import com.example.enactusapp.Event.ChatEvent.StopChatEvent;
-import com.example.enactusapp.Event.GazePointEvent;
-import com.example.enactusapp.Event.MessageEvent;
+import com.example.enactusapp.Event.GazeEvent.GazeCoordEvent;
+import com.example.enactusapp.Event.GazeEvent.GazeEvent;
+import com.example.enactusapp.Event.GazeEvent.GazeEyeMovementEvent;
+import com.example.enactusapp.Event.MessageEvent.ReceiveMessageEvent;
+import com.example.enactusapp.Event.NotificationEvent;
+import com.example.enactusapp.Event.SelectObjectEvent;
 import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlLeftEvents;
 import com.example.enactusapp.Event.MuscleControlEvent.MuscleControlRightEvents;
-import com.example.enactusapp.Event.NotificationEvent;
-import com.example.enactusapp.Event.ChatEvent.StartChatEvent;
-import com.example.enactusapp.EyeTracker.CalibrationViewer;
-import com.example.enactusapp.EyeTracker.GazeDevice;
-import com.example.enactusapp.EyeTracker.GazeHelper;
-import com.example.enactusapp.EyeTracker.GazeListener;
+import com.example.enactusapp.Event.UpdateTokenEvent;
+import com.example.enactusapp.Event.WebSocketEvent;
 import com.example.enactusapp.EyeTracker.PointView;
 import com.example.enactusapp.Fragment.Contact.ContactFragment;
 import com.example.enactusapp.Fragment.Dialog.DialogFragment;
@@ -64,72 +47,57 @@ import com.example.enactusapp.R;
 import com.example.enactusapp.STT.Listener.STTListener;
 import com.example.enactusapp.STT.RecogResult;
 import com.example.enactusapp.STT.STTHelper;
+import com.example.enactusapp.Service.GazeService;
+import com.example.enactusapp.Service.WebSocketService;
 import com.example.enactusapp.TTS.TTSHelper;
 import com.example.enactusapp.TTS.Listener.TTSListener;
 import com.example.enactusapp.Thread.CustomThreadPool;
 import com.example.enactusapp.UI.BottomBar;
 import com.example.enactusapp.UI.BottomBarTab;
 import com.example.enactusapp.Config.Config;
-import com.example.enactusapp.UI.TextureViewOutlineProvider;
+import com.example.enactusapp.Utils.AppUtils;
 import com.example.enactusapp.Utils.ContextUtils;
-import com.example.enactusapp.Utils.GPSUtils;
-import com.example.enactusapp.Utils.ImageUtils;
 import com.example.enactusapp.Utils.ScreenUtils;
 import com.example.enactusapp.Utils.SimulateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
-import com.example.enactusapp.WebSocket.Callback.IClientMessageCallback;
-import com.example.enactusapp.WebSocket.WebSocketClientManager;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.hc.bluetoothlibrary.DeviceModule;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONObject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import camp.visual.gazetracker.GazeTracker;
-import camp.visual.gazetracker.constant.CalibrationModeType;
-import camp.visual.gazetracker.constant.InitializationErrorType;
-import camp.visual.gazetracker.constant.StatusErrorType;
 import camp.visual.gazetracker.state.EyeMovementState;
 import camp.visual.gazetracker.state.TrackingState;
-import camp.visual.gazetracker.util.ViewLayoutChecker;
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 import pl.droidsonroids.gif.GifImageView;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
-public class MainFragment extends SupportFragment implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, TTSListener, STTListener, OnTaskCompleted, OnReadDataListener, IClientMessageCallback, MarkovListener {
+public class MainFragment extends SupportFragment implements TTSListener, STTListener, OnTaskCompleted, OnReadDataListener, MarkovListener {
 
-    private static final String TAG = "MainFragment";
+    private static final String TAG = MainFragment.class.getSimpleName();
 
-    private static final int START_LOCATION_ACTIVITY = 99;
     private static final int UPDATE_TOKEN = 1;
-
-    private static final int MIDDLE_TAB = 2;
-    private static final int OBJECT_DETECTION_TAB = 3;
 
     private static final int FIRST = 0;
     private static final int SECOND = 1;
     private static final int THIRD = 2;
-    private static final int FOURTH = 3;
-    private static final int FIFTH = 4;
-    private static final int TOTAL_TABS = 5;
+    private static final int TOTAL_TABS = 3;
+
+    private static final int CONTACT_TAB = FIRST;
+    private static final int OBJECT_DETECTION_TAB = SECOND;
+    private static final int SPEAK_TAB = 2;
+    private static final int GAZE_TAB = 3;
+    private static final int PROFILE_TAB = THIRD + 2;
 
     private static final int EYE_CONTROL_ID = 1;
     private static final int GREETING_ID = 2;
@@ -140,38 +108,32 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     private static final int MUSCLE_CONTROL_RIGHT_ID = 2;
     private static final int MUSCLE_CONTROL_BOTH_ID = 3;
 
-    private static final boolean IS_USE_GAZE_FILER = true;
+    private final SupportFragment[] mFragments = new SupportFragment[TOTAL_TABS];
 
-    private SupportFragment[] mFragments = new SupportFragment[5];
+    // 当前tab的位置
+    private int curPosition = 0;
+    // 肌肉控制tab的位置
+    private int muscleControlPosition = 0;
+    // 前一个FRAGMENT的位置（不包括MIDDLE_TAB和GAZE_TAB）
+    private int preFragmentPosition = 0;
 
-    private RelativeLayout mRlFrontCameraContainer;
-    private TextureView mTvFrontCamera;
-    private ProgressBar mPbGaze;
-    private BottomBar mBottomBar;
-    private PointView mPvPoint;
-    private CalibrationViewer mVcCalibration;
-    private Button btnStopCalibration;
-    private GifImageView mGivLoading;
-
+    // 凝视点
+    private final GazeCoordEvent mGazeCoordEvent = new GazeCoordEvent(new GazePoint());
+    private final GazeEyeMovementEvent mGazeEyeMovementEvent = new GazeEyeMovementEvent(new GazePoint());
     // 眼睛是在凝视或在移动
     private int fixationCounter = 0;
-    private int currentEyeMovementState = EyeMovementState.FIXATION;
+    private int preEyeMovementState = EyeMovementState.FIXATION;
 
-    // 肌肉控制的Fragment
-    private int muscleControlPreFragmentId = 0;
-    private int muscleControlFragmentId = 0;
+    // Web Socket数据
+    private final WebSocketEvent mWebSocketEvent = new WebSocketEvent();
+    private Coordinate preCoordinate = new Coordinate();
 
-    private GazePoint mGazePoint;
-    private Coordinate mCurrentCoordinate;
+    private static final CustomThreadPool sThreadPoolFirebase = new CustomThreadPool(Thread.NORM_PRIORITY);
+    private static final CustomThreadPool sThreadPoolLoadDataSets = new CustomThreadPool(Thread.NORM_PRIORITY);
 
     private Handler backgroundHandler;
-    private HandlerThread backgroundThread = new HandlerThread("background");
-    private ViewLayoutChecker viewLayoutChecker = new ViewLayoutChecker();
 
-    private static CustomThreadPool sThreadPoolFirebase = new CustomThreadPool(Thread.NORM_PRIORITY);
-    private static CustomThreadPool sThreadPoolLoadDataSets = new CustomThreadPool(Thread.NORM_PRIORITY);
-
-    private static SparseIntArray ORIENTATIONS = new SparseIntArray();
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 0);
@@ -180,11 +142,16 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         ORIENTATIONS.append(Surface.ROTATION_270, 270);
     }
 
+    private ProgressBar mPbGaze;
+    private PointView mPvPoint;
+    private BottomBar mBottomBar;
+    private GifImageView mGivLoading;
+
     private static class CompareSizeByArea implements Comparator<Size> {
         @Override
         public int compare(Size lhs, Size rhs) {
-            return Long.signum((long) (lhs.getWidth() * lhs.getHeight()) -
-                    (long) (rhs.getWidth() * rhs.getHeight()));
+            return Long.signum(((long) lhs.getWidth() * lhs.getHeight()) -
+                    ((long) rhs.getWidth() * rhs.getHeight()));
         }
     }
 
@@ -199,9 +166,9 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
+        EventBus.getDefault().register(this);
         EventBusActivityScope.getDefault(_mActivity).register(this);
         initView(view);
-        initHandler();
         return view;
     }
 
@@ -212,78 +179,40 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         SupportFragment firstFragment = findFragment(ContactFragment.class);
         if (firstFragment == null) {
             mFragments[FIRST] = ContactFragment.newInstance();
-            mFragments[SECOND] = DialogFragment.newInstance();
-            mFragments[THIRD] = ObjectDetectionFragment.newInstance();
-            mFragments[FOURTH] = ProfileFragment.newInstance();
-            mFragments[FIFTH] = NotificationFragment.newInstance();
+            mFragments[SECOND] = ObjectDetectionFragment.newInstance();
+            mFragments[THIRD] = ProfileFragment.newInstance();
 
             loadMultipleRootFragment(R.id.fl_main_container, FIRST,
                     mFragments[FIRST],
                     mFragments[SECOND],
-                    mFragments[THIRD],
-                    mFragments[FOURTH],
-                    mFragments[FIFTH]
+                    mFragments[THIRD]
             );
         } else {
             mFragments[FIRST] = firstFragment;
-            mFragments[SECOND] = findFragment(DialogFragment.class);
-            mFragments[THIRD] = findFragment(ObjectDetectionFragment.class);
-            mFragments[FOURTH] = findFragment(ProfileFragment.class);
-            mFragments[FIFTH] = findFragment(NotificationFragment.class);
+            mFragments[SECOND] = findFragment(ObjectDetectionFragment.class);
+            mFragments[THIRD] = findFragment(ProfileFragment.class);
         }
     }
 
     private void initView(View view) {
-
         mGivLoading = (GifImageView) view.findViewById(R.id.giv_loading);
-        mRlFrontCameraContainer = (RelativeLayout) view.findViewById(R.id.rl_front_camera_container);
-        mTvFrontCamera = (TextureView) view.findViewById(R.id.tv_front_camera);
         mPbGaze = (ProgressBar) view.findViewById(R.id.pb_gaze);
-        mTvFrontCamera.getViewTreeObserver().addOnGlobalLayoutListener(this);
-        mTvFrontCamera.setOutlineProvider(new TextureViewOutlineProvider(ImageUtils.dp2px(_mActivity, 5)));
-        mTvFrontCamera.setClipToOutline(true);
         mPvPoint = (PointView) view.findViewById(R.id.pv_point);
-        mVcCalibration = (CalibrationViewer) view.findViewById(R.id.cv_calibration);
-        mVcCalibration.bringToFront();
-        btnStopCalibration = (Button) view.findViewById(R.id.btn_stop_calibration);
-        btnStopCalibration.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                GazeHelper.getInstance().stopCalibration();
-                hideCalibrationView();
-            }
-        });
-
+        mPvPoint.setPosition(-1, -1);
         mBottomBar = (BottomBar) view.findViewById(R.id.bottomBar);
-
-        mBottomBar.addItem(new BottomBarTab(_mActivity, R.drawable.ic_contact, getString(R.string.contact)))
-                .addItem(new BottomBarTab(_mActivity, R.drawable.ic_dialog, getString(R.string.dialog)))
-                .addItem(new BottomBarTab(_mActivity, R.drawable.ic_mic, getString(R.string.speak)))
-                .addItem(new BottomBarTab(_mActivity, R.drawable.ic_object_detection, getString(R.string.objectDetection)))
-                .addItem(new BottomBarTab(_mActivity, R.drawable.ic_profile, getString(R.string.profile)));
-
+        mBottomBar.addItem(new BottomBarTab(ContextUtils.getContext(), R.drawable.ic_contact, getString(R.string.contact)))
+                .addItem(new BottomBarTab(ContextUtils.getContext(), R.drawable.ic_object_detection, getString(R.string.objectDetection)))
+                .addItem(new BottomBarTab(ContextUtils.getContext(), R.drawable.ic_mic, getString(R.string.speak)))
+                .addItem(new BottomBarTab(ContextUtils.getContext(), R.drawable.ic_gaze, getString(R.string.gaze)))
+                .addItem(new BottomBarTab(ContextUtils.getContext(), R.drawable.ic_profile, getString(R.string.profile)));
+        mBottomBar.setSpeakTabPositions(SPEAK_TAB);
+        mBottomBar.setGazeTabPositions(GAZE_TAB);
         mBottomBar.setOnTabSelectedListener(new BottomBar.OnTabSelectedListener() {
             @Override
             public void onTabSelected(int position, int prePosition) {
-                if (prePosition == OBJECT_DETECTION_TAB && position != OBJECT_DETECTION_TAB) {
-                    EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(false));
-                } else if (prePosition != OBJECT_DETECTION_TAB && position == OBJECT_DETECTION_TAB) {
-                    EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(true));
-                }
-                if (position != MIDDLE_TAB) {
-                    if (position > 2) {
-                        position = position - 1;
-                    }
-                    if (prePosition > 2) {
-                        prePosition = prePosition - 1;
-                    }
-                    muscleControlFragmentId = position;
-                    showHideFragment(mFragments[position], mFragments[prePosition]);
-                } else {
-                    ToastUtils.showShortSafe("Start Speaking");
-                    STTHelper.getInstance().setSpeaking(true);
-                    STTHelper.getInstance().start();
-                }
+                Log.i(TAG, "Current Position: " + position + ", Previous Position: " + prePosition);
+                curPosition = position;
+                moveTab(curPosition);
             }
 
             @Override
@@ -293,122 +222,103 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
 
             @Override
             public void onTabReselected(int position) {
-                if (position == MIDDLE_TAB) {
+                Log.i(TAG, "Current Position: " + position);
+                curPosition = position;
+                if (position == SPEAK_TAB) {
                     ToastUtils.showShortSafe("Stop Speaking");
                     STTHelper.getInstance().stop();
                     STTHelper.getInstance().setSpeaking(false);
                 }
             }
         });
-
-        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mGreetingBroadcastReceiver, new IntentFilter(MessageType.GREETING.getValue()));
-        LocalBroadcastManager.getInstance(_mActivity.getApplicationContext()).registerReceiver(mNormalBroadcastReceiver, new IntentFilter(MessageType.NORMAL.getValue()));
-
-        setOffsetOfView();
     }
 
-    @SuppressLint("ResourceType")
-    private void updateStatusBar(boolean isShowed) {
-        Window window = _mActivity.getWindow();
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        if (isShowed) {
-            window.setStatusBarColor(Color.parseColor(getResources().getString(R.color.calibration_bg)));
-            window.getDecorView().setSystemUiVisibility(0);
-        } else {
-            window.setStatusBarColor(Color.WHITE);
-            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+    @Override
+    public void onEnterAnimationEnd(Bundle savedInstanceState) {
+        sThreadPoolFirebase.execute(() -> {
+            // APP多次重启后token就失效，因此每次启动都直接删除旧的token，重新刷新新的token
+            // FirebaseMessaging.getInstance().deleteToken();
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String token) {
+                            // Get new Instance ID token
+                            Log.i(TAG, "Firebase Token: " + token);
+                            Config.setFirebaseToken(token);
+                            HttpAsyncTaskPost updateTokenTask = new HttpAsyncTaskPost(MainFragment.this, UPDATE_TOKEN);
+                            String jsonData = convertToJSONUpdateToken(Config.sUserId, token);
+                            updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken", jsonData, null);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            ToastUtils.showShortSafe("FireBase Token Error: " + e.getMessage());
+                        }
+                    });
+        });
+        TTSHelper.getInstance().initTTS(this);
+        STTHelper.getInstance().initSTT(this);
+        if (!MarkovHelper.getInstance().isInitialized()) {
+            MarkovHelper.getInstance().initMarkov(ContextUtils.getContext());
+        }
+        if (!MarkovHelper.getInstance().isDataSetsLoaded()) {
+            mGivLoading.setVisibility(View.VISIBLE);
+            sThreadPoolLoadDataSets.execute(() -> {
+                MarkovHelper.getInstance().addMarkovListener(this);
+                MarkovHelper.getInstance().loadDataSets();
+            });
+        }
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
+                startGazeService();
+            } if (Config.sUseMode == SpUtilValueConstants.SOCKET_MODE) {
+                startWebSocketService();
+            }
+        } else if (Config.sUseMode == SpUtilValueConstants.MUSCLE_CONTROL_MODE) {
+            BluetoothHelper.getInstance().initBluetooth(ContextUtils.getContext(), this);
         }
     }
 
-    public GazePoint getGazePoint() {
-        return mGazePoint;
+    public void startGazeService() {
+        Intent serviceIntent = new Intent(ContextUtils.getContext(), GazeService.class);
+        serviceIntent.setAction(Constants.GAZE_SERVICE_START);
+        ContextUtils.getContext().startForegroundService(serviceIntent);
     }
 
-    private void setCalibrationPoint(final float x, final float y) {
-        _mActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                updateStatusBar(true);
-                mRlFrontCameraContainer.setVisibility(View.INVISIBLE);
-                btnStopCalibration.setVisibility(View.VISIBLE);
-                mVcCalibration.setVisibility(View.VISIBLE);
-                mVcCalibration.changeDraw(true, null);
-                mVcCalibration.setPointPosition(x, y);
-                mVcCalibration.setPointAnimationPower(0);
-            }
-        });
+    public void stopGazeService() {
+        Intent serviceIntent = new Intent(ContextUtils.getContext(), GazeService.class);
+        serviceIntent.setAction(Constants.GAZE_SERVICE_STOP);
+        ContextUtils.getContext().stopService(serviceIntent);
     }
 
-    private void setCalibrationProgress(final float progress) {
-        _mActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mVcCalibration.setPointAnimationPower(progress);
-            }
-        });
+    public void startWebSocketService() {
+        Intent serviceIntent = new Intent(ContextUtils.getContext(), WebSocketService.class);
+        serviceIntent.setAction(Constants.WEB_SOCKET_SERVICE_START);
+        ContextUtils.getContext().startForegroundService(serviceIntent);
     }
 
-    private void hideCalibrationView() {
-        _mActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mVcCalibration.setVisibility(View.GONE);
-                btnStopCalibration.setVisibility(View.GONE);
-                mRlFrontCameraContainer.setVisibility(View.VISIBLE);
-                updateStatusBar(false);
-            }
-        });
+    public void stopWebSocketService() {
+        Intent serviceIntent = new Intent(ContextUtils.getContext(), WebSocketService.class);
+        serviceIntent.setAction(Constants.WEB_SOCKET_SERVICE_STOP);
+        ContextUtils.getContext().stopService(serviceIntent);
     }
 
-    // 注视坐标或校准坐标仅作为绝对坐标（即全屏屏幕）传输，但是Android视图的坐标系是相对坐标系，不考虑操作栏，状态栏和导航栏
-    private void setOffsetOfView() {
-        viewLayoutChecker.setOverlayView(mPvPoint, new ViewLayoutChecker.ViewLayoutListener() {
-            @Override
-            public void getOffset(int x, int y) {
-                mPvPoint.setOffset(x, y);
-                mVcCalibration.setOffset(x, y);
-                if (Config.sUseMode != SpUtilValueConstants.DEFAULT_MODE) {
-                    mPvPoint.setPosition(-1, -1);
-                }
-            }
-        });
+    @Override
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault().post(new GazeEvent(false));
     }
 
-    private void showGazePoint(final float x, final float y, final int type) {
-        _mActivity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
-                    mPvPoint.setType(type == TrackingState.TRACKING ? PointView.TYPE_DEFAULT : PointView.TYPE_OUT_OF_SCREEN);
-                    mPvPoint.setPosition(x, y);
-                }
-            }
-        });
-    }
-
-    private void initHandler() {
-        backgroundThread.start();
-        if (backgroundHandler == null) {
-            backgroundHandler = new Handler(backgroundThread.getLooper());
-        }
-    }
-
-    private void releaseHandler() {
-        if (backgroundHandler != null) {
-            backgroundHandler.removeCallbacksAndMessages(null);
-            backgroundHandler = null;
-        }
-        backgroundThread.quitSafely();
-    }
-
-    public void showNotificationFragment() {
-        showHideFragment(mFragments[FIFTH], mFragments[mBottomBar.getCurrentItemPosition() > 2 ? mBottomBar.getCurrentItemPosition() - 1 : mBottomBar.getCurrentItemPosition()]);
-        mBottomBar.setVisibility(View.GONE);
-    }
-
-    public void hideNotificationFragment() {
-        showHideFragment(mFragments[mBottomBar.getCurrentItemPosition() > 2 ? mBottomBar.getCurrentItemPosition() - 1 : mBottomBar.getCurrentItemPosition()], mFragments[FIFTH]);
-        mBottomBar.setVisibility(View.VISIBLE);
+    @Subscribe
+    public void onUpdateTokenEvent(UpdateTokenEvent updateTokenEvent) {
+        // Get new Instance ID token
+        String firebaseToken = updateTokenEvent.getToken();
+        Log.i(TAG, "Firebase Token: " + firebaseToken);
+        Config.setFirebaseToken(firebaseToken);
+        HttpAsyncTaskPost updateTokenTask = new HttpAsyncTaskPost(MainFragment.this, UPDATE_TOKEN);
+        String jsonData = convertToJSONUpdateToken(Config.sUserId, firebaseToken);
+        updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken", jsonData, null);
     }
 
     private String convertToJSONUpdateToken(int userId, String firebaseToken) {
@@ -437,296 +347,173 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         }
     }
 
-    @Override
-    public void onEnterAnimationEnd(Bundle savedInstanceState) {
-        sThreadPoolFirebase.execute(() -> {
-            // APP多次重启后token就失效，因此每次启动都直接删除旧的token，重新刷新新的token
-            try {
-                FirebaseInstanceId.getInstance().deleteInstanceId();
-            } catch (Exception e) {
-                e.fillInStackTrace();
-            }
-            FirebaseInstanceId.getInstance().getInstanceId()
-                    .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                            if (!task.isSuccessful()) {
-                                ToastUtils.showShortSafe("FireBase Token Error!");
-                                return;
-                            }
-                            try {
-                                // Get new Instance ID token
-                                String fireBaseToken = task.getResult().getToken();
-                                Log.i(TAG, "fireBaseToken: " + fireBaseToken);
-                                Config.setFirebaseToken(fireBaseToken);
-                                HttpAsyncTaskPost updateTokenTask = new HttpAsyncTaskPost(MainFragment.this, UPDATE_TOKEN);
-                                String jsonData = convertToJSONUpdateToken(Config.sUserId, fireBaseToken);
-                                updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken", jsonData, null);
-                            } catch (Exception e) {
-                                ToastUtils.showShortSafe("FireBase Token Error!");
-                            }
-                        }
-                    });
-        });
-        if (!GPSUtils.isOpenGPS(_mActivity)) {
-            startLocation();
+    @Subscribe
+    public void onGazeCoordEvent(GazeCoordEvent gazeCoordEvent) {
+        if (!(getTopFragment() instanceof MainFragment)) {
+            return;
         }
-        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
-            Log.i(TAG, "Gaze Version: " + GazeTracker.getVersionName());
-            GazeHelper.getInstance().initGaze(_mActivity, this);
-        }
-        TTSHelper.getInstance().initTTS(this);
-        STTHelper.getInstance().initSTT(this);
-        if (!MarkovHelper.getInstance().isInitialized()) {
-            MarkovHelper.getInstance().initMarkov(ContextUtils.getContext());
-        }
-        if (!MarkovHelper.getInstance().isDataSetsLoaded()) {
-            mGivLoading.setVisibility(View.VISIBLE);
-            sThreadPoolLoadDataSets.execute(() -> {
-                MarkovHelper.getInstance().addMarkovListener(this);
-                MarkovHelper.getInstance().loadDataSets();
-            });
-        }
-        BluetoothHelper.getInstance().initBluetooth(_mActivity, this);
-        if (Config.sUseMode == SpUtilValueConstants.SOCKET_MODE) {
-            if (!WebSocketClientManager.getInstance().isConnected()) {
-                WebSocketClientManager.getInstance().connect(Config.sSocketAddress);
-            }
-            WebSocketClientManager.getInstance().setClientMessageCallback(this);
-        }
-    }
-
-    @Override
-    public void onGlobalLayout() {
-        mTvFrontCamera.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-    }
-
-    @Override
-    public void onGazeInitSuccess() {
-        GazeHelper.getInstance().showAvailableDevices();
-        GazeDevice.Info gazeDeviceInfo = GazeHelper.getInstance().showCurrentDeviceInfo();
-        ToastUtils.showShortSafe(gazeDeviceInfo.modelName + " x: " + gazeDeviceInfo.screen_origin_x + ", y: " + gazeDeviceInfo.screen_origin_y + " " + GazeHelper.getInstance().isCurrentDeviceFound());
-        if (mTvFrontCamera.isAvailable()) {
-            GazeHelper.getInstance().setCameraPreview(mTvFrontCamera);
-        }
-        GazeHelper.getInstance().startTracking();
-    }
-
-    @Override
-    public void onGazeInitFail(int error) {
-        String err = "";
-        if (error == InitializationErrorType.ERROR_CAMERA_PERMISSION) {
-            err = "Gaze required permission not granted";
-        } else if (error == InitializationErrorType.ERROR_AUTHENTICATE) {
-            err = "Gaze authentication failed";
-        } else  {
-            err = "Init gaze library fail";
-        }
-        ToastUtils.showShortSafe(err);
-    }
-
-    @Override
-    public void onGazeCoord(long timestamp, float x, float y, int state) {
-        if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
-            if (!IS_USE_GAZE_FILER) {
-                if (state == TrackingState.TRACKING) {
-                    mGazePoint = new GazePoint(x, y);
-                    showGazePoint(x, y, state);
-                } else {
-                    fixationCounter = 0;
-                    _mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mPbGaze.setProgress(0);
-                        }
-                    });
-                }
+        synchronized (mGazeCoordEvent) {
+            mGazeCoordEvent.setGazePoint(gazeCoordEvent.getGazePoint());
+            int state = mGazeCoordEvent.getGazePoint().getState();
+            if (state == TrackingState.TRACKING) {
+                showGazePoint(mGazeCoordEvent.getGazePoint());
+            } else {
+                fixationCounter = 0;
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPbGaze.setProgress(0);
+                    }
+                });
             }
         }
     }
 
-    @Override
-    public void onFilteredGazeCoord(long timestamp, float x, float y, int state) {
-        if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
-            if (IS_USE_GAZE_FILER) {
-                if (state == TrackingState.TRACKING) {
-                    Log.i(TAG, "showGazePoint: (" + x + "x" + y + ")");
-                    mGazePoint = new GazePoint(x, y);
-                    showGazePoint(x, y, state);
-                } else {
-                    fixationCounter = 0;
-                    _mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mPbGaze.setProgress(0);
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onGazeCalibrationProgress(float progress) {
-        setCalibrationProgress(progress);
-    }
-
-    @Override
-    public void onGazeCalibrationNextPoint(float x, float y) {
-        setCalibrationPoint(x, y);
-        // 设置好校准坐标后，等待1秒钟，收集样品，然后在眼睛找到坐标后进行校准
-        backgroundHandler.postDelayed(new Runnable() {
+    private void showGazePoint(GazePoint gazePoint) {
+        _mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                GazeHelper.getInstance().startCollectSamples();
+                mPvPoint.setType(gazePoint.getState() == TrackingState.TRACKING ? PointView.TYPE_DEFAULT : PointView.TYPE_OUT_OF_SCREEN);
+                mPvPoint.setPosition(gazePoint.getGazePointX(), gazePoint.getGazePointY());
             }
-        }, 1000);
+        });
     }
 
-    @Override
-    public void onGazeCalibrationFinished() {
-        hideCalibrationView();
-        Config.setLastCalibratedTime(System.currentTimeMillis());
-        Config.setIsCalibrated(true);
+    @Subscribe
+    public void onGazeEyeMovementEvent(GazeEyeMovementEvent gazeEyeMovementEvent) {
+        if (!(getTopFragment() instanceof MainFragment)) {
+            return;
+        }
+        synchronized (mGazeEyeMovementEvent) {
+            mGazeEyeMovementEvent.setGazePoint(gazeEyeMovementEvent.getGazePoint());
+            countFixation(mGazeEyeMovementEvent);
+        }
     }
 
-    @Override
-    public void onGazeEyeMovement(long timestamp, long duration, float x, float y, int state) {
-        if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
-            // Log.i(TAG, "check eyeMovement timestamp: " + timestamp + " (" + x + "x" + y + ") : " + type);
-            if (state == EyeMovementState.FIXATION) {
-                if (currentEyeMovementState == EyeMovementState.FIXATION) {
-                    fixationCounter++;
-                    if (fixationCounter <= 25) {
-                        _mActivity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mPbGaze.setProgress(fixationCounter * 4);
-                            }
-                        });
-                        if (fixationCounter == 25) {
-                            SimulateUtils.simulateClick(_mActivity, (int)x, (int)y);
-                            if (mBottomBar.getCurrentItemPosition() == 3 && getGazePoint() != null) {
-                                EventBusActivityScope.getDefault(_mActivity).post(new GazePointEvent(getGazePoint()));
+    @Subscribe
+    public void onWebSocketEvent(WebSocketEvent webSocketEvent) {
+        if (!(getTopFragment() instanceof MainFragment)) {
+            return;
+        }
+        synchronized (mWebSocketEvent) {
+            mWebSocketEvent.setMessage(webSocketEvent.getMessage());
+            try {
+                JSONObject messageJSON = new JSONObject(mWebSocketEvent.getMessage());
+                int id = messageJSON.getInt("id");
+                if (id == EYE_CONTROL_ID) {
+                    JSONObject contentJSON = messageJSON.getJSONObject("coordinate");
+                    int x = contentJSON.getInt("x");
+                    int y = contentJSON.getInt("y");
+                    int height = contentJSON.getInt("height");
+                    int width = contentJSON.getInt("width");
+                    int newX = (int) (x / (width * 1.0) * ScreenUtils.getScreenRealWidth(ContextUtils.getContext()));
+                    int newY = (int) (y / (height * 1.0) * ScreenUtils.getScreenRealHeight(ContextUtils.getContext()));
+                    mPvPoint.setPosition(newX, newY);
+                    Coordinate coordinate = new Coordinate(newX, newY);
+                    countFixation(coordinate);
+                } else if (id == GREETING_ID) {
+                    String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + 2 + ".jpg";
+                    User user = new User(2, "C1234567D", "Zhang Zhiyao", thumbnail, Constants.UNSPECIFIED_FIREBASE_TOKEN, 103.81, 1.272);
+                    EventBus.getDefault().post(new NotificationEvent(user, "Zhang Zhiyao says hello to you", MessageType.GREETING));
+                } else if (id == QNA_ID) {
+                    JSONObject contentJSON = messageJSON.getJSONObject("content");
+                    String qna = contentJSON.getString("qna");
+                    startBrotherFragment(DialogFragment.newInstance(2, Constants.UNSPECIFIED_FIREBASE_TOKEN, qna, false));
+                } else if (id == MUSCLE_CONTROL_ID) {
+                    JSONObject contentJSON = messageJSON.getJSONObject("content");
+                    int action = contentJSON.getInt("muscle");
+                    if (action == MUSCLE_CONTROL_LEFT_ID) {
+                        EventBusActivityScope.getDefault(_mActivity).post(new MuscleControlLeftEvents(muscleControlPosition));
+                    } else if (action == MUSCLE_CONTROL_RIGHT_ID) {
+                        EventBusActivityScope.getDefault(_mActivity).post(new MuscleControlRightEvents(muscleControlPosition));
+                    } else {
+                        if (curPosition < PROFILE_TAB) {
+                            curPosition++;
+                            // 肌肉控制还不支持GAZE功能
+                            if (curPosition == GAZE_TAB) {
+                                curPosition++;
                             }
                         }
-                    } else {
-                        fixationCounter = 0;
+                        if (curPosition > PROFILE_TAB) {
+                            curPosition = 0;
+                        }
+                        moveTab(curPosition);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void moveTab(int curPosition) {
+        if (curPosition == CONTACT_TAB || curPosition == OBJECT_DETECTION_TAB || curPosition == PROFILE_TAB) {
+            if (curPosition == PROFILE_TAB) {
+                curPosition = THIRD;
+            }
+            if (preFragmentPosition == OBJECT_DETECTION_TAB && curPosition != OBJECT_DETECTION_TAB) {
+                EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(false));
+            } else if (preFragmentPosition != OBJECT_DETECTION_TAB && curPosition == OBJECT_DETECTION_TAB) {
+                EventBusActivityScope.getDefault(_mActivity).post(new BackCameraEvent(true));
+            }
+            showHideFragment(mFragments[curPosition], mFragments[preFragmentPosition]);
+            // 记录当前Fragment的位置
+            preFragmentPosition = curPosition;
+            muscleControlPosition = curPosition;
+        } else {
+            mBottomBar.setCurrentItem(CONTACT_TAB);
+            if (curPosition == SPEAK_TAB) {
+                ToastUtils.showShortSafe("Start Speaking");
+                STTHelper.getInstance().setSpeaking(true);
+                STTHelper.getInstance().start();
+            }
+            if (curPosition == GAZE_TAB) {
+                EventBus.getDefault().post(new GazeEvent(true));
+                AppUtils.hideApp(ContextUtils.getContext());
+            }
+        }
+    }
+
+    private void countFixation(GazeEyeMovementEvent gazeEyeMovementEvent) {
+        int state = gazeEyeMovementEvent.getGazePoint().getState();
+        if (state == EyeMovementState.FIXATION) {
+            if (preEyeMovementState == EyeMovementState.FIXATION) {
+                fixationCounter++;
+                if (fixationCounter <= 25) {
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPbGaze.setProgress(fixationCounter * 4);
+                        }
+                    });
+                    if (fixationCounter == 25) {
+                        int x = (int) gazeEyeMovementEvent.getGazePoint().getGazePointX();
+                        int y = (int) gazeEyeMovementEvent.getGazePoint().getGazePointY();
+                        SimulateUtils.simulateClick(_mActivity, x, y);
+                        if (mBottomBar.getCurrentItemPosition() == OBJECT_DETECTION_TAB) {
+                            EventBusActivityScope.getDefault(_mActivity).post(new SelectObjectEvent(gazeEyeMovementEvent.getGazePoint()));
+                        }
                     }
                 } else {
-                    currentEyeMovementState = EyeMovementState.FIXATION;
-                    fixationCounter = 0;
-                }
-            } else if (state == EyeMovementState.SACCADE) {
-                if (currentEyeMovementState != EyeMovementState.SACCADE) {
-                    currentEyeMovementState = EyeMovementState.SACCADE;
                     fixationCounter = 0;
                 }
             } else {
+                preEyeMovementState = EyeMovementState.FIXATION;
                 fixationCounter = 0;
             }
-        }
-    }
-
-    @Override
-    public void onGazeImage(long timestamp, byte[] image) {
-        // Log.i(TAG, "onGazeImage");
-        // FileUtils.writeYuvToDisk(640, 480, 100, image, Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tensorflow" + File.separator + "GAZE.jpg");
-    }
-
-    @Override
-    public void onGazeStarted() {
-        Log.i(TAG, "onGazeStarted");
-        GazeHelper.getInstance().startCalibration(CalibrationModeType.FIVE_POINT);
-    }
-
-    @Override
-    public void onGazeStopped(int error) {
-        Log.i(TAG, "onGazeStopped");
-        if (error != StatusErrorType.ERROR_NONE) {
-            switch (error) {
-                case StatusErrorType.ERROR_CAMERA_START:
-                    ToastUtils.showShortSafe("ERROR_CAMERA_START");
-                    break;
-                case StatusErrorType.ERROR_CAMERA_INTERRUPT:
-                    ToastUtils.showShortSafe("ERROR_CAMERA_INTERRUPT");
-                    break;
+        } else if (state == EyeMovementState.SACCADE) {
+            if (preEyeMovementState != EyeMovementState.SACCADE) {
+                preEyeMovementState = EyeMovementState.SACCADE;
+                fixationCounter = 0;
             }
-        }
-    }
-
-    // Web Socket
-    @Override
-    public void onMessage(String message) {
-        try {
-            JSONObject messageJSON = new JSONObject(message);
-            int id = messageJSON.getInt("id");
-            if (id == EYE_CONTROL_ID) {
-                JSONObject contentJSON = messageJSON.getJSONObject("coordinate");
-                int x = contentJSON.getInt("x");
-                int y = contentJSON.getInt("y");
-                int height = contentJSON.getInt("height");
-                int width = contentJSON.getInt("width");
-                int newX = (int)(x  / (width * 1.0) * ScreenUtils.getScreenRealWidth(_mActivity));
-                int newY = (int)(y  / (height * 1.0) * ScreenUtils.getScreenRealHeight(_mActivity));
-                mPvPoint.setPosition(newX, newY);
-                Coordinate coordinate = new Coordinate(newX, newY);
-                countFixation(coordinate);
-            } else if (id == GREETING_ID) {
-                Intent notificationIntent = new Intent(MessageType.GREETING.getValue());
-                notificationIntent.putExtra("id", 2);
-                notificationIntent.putExtra("username", "C1234567D");
-                notificationIntent.putExtra("name", "Zhang Zhiyao");
-                notificationIntent.putExtra("longitude", 103.81);
-                notificationIntent.putExtra("latitude", 1.272);
-                notificationIntent.putExtra("message", "Zhang Zhiyao says hello to you");
-                LocalBroadcastManager.getInstance(_mActivity).sendBroadcast(notificationIntent);
-            } else if (id == QNA_ID) {
-                JSONObject contentJSON = messageJSON.getJSONObject("content");
-                String qna = contentJSON.getString("qna");
-                Intent notificationIntent = new Intent(MessageType.NORMAL.getValue());
-                notificationIntent.putExtra("id", 2);
-                notificationIntent.putExtra("username", "C1234567D");
-                notificationIntent.putExtra("name", "Zhang Zhiyao");
-                notificationIntent.putExtra("longitude", 103.81);
-                notificationIntent.putExtra("latitude", 1.272);
-                notificationIntent.putExtra("message", qna);
-                LocalBroadcastManager.getInstance(_mActivity).sendBroadcast(notificationIntent);
-            } else if (id == MUSCLE_CONTROL_ID) {
-                JSONObject contentJSON = messageJSON.getJSONObject("content");
-                int action = contentJSON.getInt("muscle");
-                if (action == MUSCLE_CONTROL_LEFT_ID) {
-                    EventBusActivityScope.getDefault(_mActivity).post(new MuscleControlLeftEvents(muscleControlFragmentId));
-                } else if (action == MUSCLE_CONTROL_RIGHT_ID) {
-                    EventBusActivityScope.getDefault(_mActivity).post(new MuscleControlRightEvents(muscleControlFragmentId));
-                } else {
-                    muscleControlFragmentId++;
-                    if (muscleControlFragmentId == 0) {
-                        showHideFragment(mFragments[0], mFragments[3]);
-                        mBottomBar.setCurrentItem(0);
-                    } if (muscleControlFragmentId == 1) {
-                        showHideFragment(mFragments[1], mFragments[0]);
-                        mBottomBar.setCurrentItem(1);
-                    } else if (muscleControlFragmentId == 2) {
-                        showHideFragment(mFragments[2], mFragments[1]);
-                        mBottomBar.setCurrentItem(3);
-                    } else if (muscleControlFragmentId == 3) {
-                        showHideFragment(mFragments[3], mFragments[2]);
-                        mBottomBar.setCurrentItem(4);
-                    } else {
-                        muscleControlFragmentId = 0;
-                        showHideFragment(mFragments[0], mFragments[3]);
-                        mBottomBar.setCurrentItem(0);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            fixationCounter = 0;
         }
     }
 
     private void countFixation(Coordinate coordinate) {
-        if ((mCurrentCoordinate != null) && (Math.abs(mCurrentCoordinate.getX() - coordinate.getX()) < 80) && (Math.abs(mCurrentCoordinate.getY() - coordinate.getY()) < 80)) {
+        // FIXATION
+        if ((Math.abs(preCoordinate.getX() - coordinate.getX()) < 80) && (Math.abs(preCoordinate.getY() - coordinate.getY()) < 80)) {
             fixationCounter++;
             if (fixationCounter <= 50) {
                 _mActivity.runOnUiThread(new Runnable() {
@@ -738,17 +525,30 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
                 if (fixationCounter == 50) {
                     SimulateUtils.simulateClick2(_mActivity, coordinate.getX(), coordinate.getY());
                     ToastUtils.showShortSafe("Click: " +  coordinate.getX() + ", " + coordinate.getY());
-                    if (mBottomBar.getCurrentItemPosition() == 3 && getGazePoint() != null) {
-                        EventBusActivityScope.getDefault(_mActivity).post(new GazePointEvent(getGazePoint()));
+                    if (mBottomBar.getCurrentItemPosition() == OBJECT_DETECTION_TAB) {
+                        GazePoint gazePoint = new GazePoint(coordinate.getX(), coordinate.getY(), TrackingState.TRACKING);
+                        EventBusActivityScope.getDefault(_mActivity).post(new SelectObjectEvent(gazePoint));
                     }
                 }
             } else {
                 fixationCounter = 0;
             }
-        } else {
-            mCurrentCoordinate = new Coordinate(coordinate.getX(), coordinate.getY());
+        }
+        // SACCADE
+        else {
+            preCoordinate = coordinate;
             fixationCounter = 0;
         }
+    }
+
+    @Subscribe
+    public void onNotificationEvent(NotificationEvent event) {
+        User user = event.getUser();
+        int id = user.getId();
+        String firebaseToken = user.getFirebaseToken();
+        String name = user.getName();
+        String message = event.getMessage();
+        startWithPopTo(NotificationFragment.newInstance(id, firebaseToken, name, message), MainFragment.class, false);
     }
 
     // TTS
@@ -830,19 +630,15 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onSTTAsrFinalResult(String[] results, RecogResult recogResult) {
         Log.i(TAG, "onSTTAsrFinalResult results: " + Arrays.toString(results) + ", recogResult: " + recogResult.toString());
-        EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(null, results[0]));
-        if (mBottomBar.getCurrentItemPosition() == 0) {
-            showHideFragment(mFragments[1], mFragments[0]);
-            mBottomBar.setCurrentItem(1);
-            muscleControlFragmentId = 1;
-        } else if (mBottomBar.getCurrentItemPosition() == 3) {
-            showHideFragment(mFragments[1], mFragments[2]);
-            mBottomBar.setCurrentItem(1);
-            muscleControlFragmentId = 1;
-        } else if (mBottomBar.getCurrentItemPosition() == 4) {
-            showHideFragment(mFragments[1], mFragments[3]);
-            mBottomBar.setCurrentItem(1);
-            muscleControlFragmentId = 1;
+        mBottomBar.setCurrentItem(CONTACT_TAB);
+        String message = results.length > 0 ? results[0] : "";
+        // 若当前位置MainFragment
+        if (getTopFragment() instanceof MainFragment) {
+            startBrotherFragment(DialogFragment.newInstance(Constants.UNSPECIFIED_USER_ID, Constants.UNSPECIFIED_FIREBASE_TOKEN, message, false));
+        }
+        // 若当前位置DialogFragment
+        if (getTopFragment() instanceof DialogFragment) {
+            EventBusActivityScope.getDefault(_mActivity).post(new ReceiveMessageEvent(message));
         }
     }
 
@@ -875,8 +671,21 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     @Override
     public void onSTTAsrExit() {
         Log.i(TAG, "onSTTAsrExit");
-        if (STTHelper.getInstance().isSpeaking()) {
-            mBottomBar.setCurrentItem(MIDDLE_TAB);
+        // 若当前位置MainFragment
+        if (getTopFragment() instanceof MainFragment) {
+            // 需要再次点击SPEAK_TAB结束STT
+            if (STTHelper.getInstance().isSpeaking()) {
+                mBottomBar.setCurrentItem(SPEAK_TAB);
+            }
+        }
+        // 若当前位置DialogFragment
+        if (getTopFragment() instanceof DialogFragment) {
+            // 需要再次点击SPEAK_TAB结束STT
+            int dialogFragmentSpeakTabPosition = ((DialogFragment) getTopFragment()).getSpeakTabPosition();
+            BottomBar dialogFragmentBottomBar = ((DialogFragment) getTopFragment()).getBottomBar();
+            if (dialogFragmentBottomBar != null && STTHelper.getInstance().isSpeaking()) {
+                dialogFragmentBottomBar.setCurrentItem(dialogFragmentSpeakTabPosition);
+            }
         }
     }
 
@@ -957,7 +766,7 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
     }
 
     @Override
-    public void onTaskCompleted(String response, int requestId) {
+    public void onTaskCompleted(String response, int requestId, String... others) {
         if (requestId == UPDATE_TOKEN) {
             retrieveFromJSONUpdateToken(response);
         }
@@ -971,142 +780,21 @@ public class MainFragment extends SupportFragment implements ViewTreeObserver.On
         return mBottomBar.getCurrentItemPosition();
     }
 
-    private BroadcastReceiver mGreetingBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int id = intent.getIntExtra("id", -1);
-            String username = intent.getStringExtra("username");
-            String name = intent.getStringExtra("name");
-            String firebaseToken = intent.getStringExtra("firebaseToken");
-            double longitude = intent.getDoubleExtra("longitude", 9999);
-            double latitude = intent.getDoubleExtra("latitude", 9999);
-            String message = intent.getStringExtra("message");
-            String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + id + ".jpg";
-            showNotificationFragment();
-            muscleControlPreFragmentId = muscleControlFragmentId;
-            muscleControlFragmentId = 99;
-            EventBusActivityScope.getDefault(_mActivity).post(new NotificationEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
-        }
-    };
-
-    private BroadcastReceiver mNormalBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int id = intent.getIntExtra("id", -1);
-            String username = intent.getStringExtra("username");
-            String name = intent.getStringExtra("name");
-            String firebaseToken = intent.getStringExtra("firebaseToken");
-            double longitude = intent.getDoubleExtra("longitude", 9999);
-            double latitude = intent.getDoubleExtra("latitude", 9999);
-            String message = intent.getStringExtra("message");
-            String thumbnail = Constants.IP_ADDRESS + "Images" + File.separator + id + ".jpg";
-            EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(new User(id, username, name, thumbnail, firebaseToken, longitude, latitude), message));
-            if (mBottomBar.getCurrentItemPosition() == 0) {
-                showHideFragment(mFragments[1], mFragments[0]);
-                mBottomBar.setCurrentItem(1);
-                muscleControlFragmentId = 1;
-            } else if (mBottomBar.getCurrentItemPosition() == 3) {
-                showHideFragment(mFragments[1], mFragments[2]);
-                mBottomBar.setCurrentItem(1);
-                muscleControlFragmentId = 1;
-            } else if (mBottomBar.getCurrentItemPosition() == 4) {
-                showHideFragment(mFragments[1], mFragments[3]);
-                mBottomBar.setCurrentItem(1);
-                muscleControlFragmentId = 1;
-            }
-        }
-    };
-
-    //开启位置权限
-    private void startLocation() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(_mActivity);
-        builder.setTitle("Tips")
-                .setMessage("Please turn on your GPS")
-                .setCancelable(false)
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        startActivityForResult(intent, START_LOCATION_ACTIVITY);
-                    }
-                }).show();
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode,Intent data) {
-        if (requestCode == START_LOCATION_ACTIVITY) {
-            if (!GPSUtils.isOpenGPS(_mActivity)) {
-                startLocation();
-            }
-        }
-    }
-
-    @Subscribe
-    public void onStartChatEvent(StartChatEvent event) {
-        EventBusActivityScope.getDefault(_mActivity).post(new MessageEvent(event.getUser(), "Hi, " + Config.sName + ", How are you?"));
-        hideNotificationFragment();
-        if (mBottomBar.getCurrentItemPosition() == 0) {
-            showHideFragment(mFragments[1], mFragments[0]);
-            mBottomBar.setCurrentItem(1);
-            muscleControlFragmentId = 1;
-        } else if (mBottomBar.getCurrentItemPosition() == 1) {
-            muscleControlFragmentId = 1;
-        } else if (mBottomBar.getCurrentItemPosition() == 3) {
-            showHideFragment(mFragments[1], mFragments[2]);
-            mBottomBar.setCurrentItem(1);
-            muscleControlFragmentId = 1;
-        } else if (mBottomBar.getCurrentItemPosition() == 4) {
-            showHideFragment(mFragments[1], mFragments[3]);
-            mBottomBar.setCurrentItem(1);
-            muscleControlFragmentId = 1;
-        }
-    }
-
-    @Subscribe
-    public void onStopChatEvent(StopChatEvent event) {
-        muscleControlFragmentId = muscleControlPreFragmentId;
-    }
-
-    @Subscribe
-    public void onCalibrationEvent(CalibrationEvent event) {
-        if (event.isStartCalibration()) {
-            GazeHelper.getInstance().startCalibration(CalibrationModeType.FIVE_POINT);
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
-            setOffsetOfView();
-            GazeHelper.getInstance().setCameraPreview(mTvFrontCamera);
-            GazeHelper.getInstance().startTracking();
-        }
-    }
-
-    @Override
-    public void onPause() {
-        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
-            GazeHelper.getInstance().stopTracking();
-            GazeHelper.getInstance().removeCameraPreview();
-        }
-        super.onPause();
-    }
-
     @Override
     public void onDestroyView() {
-        releaseHandler();
-        if (viewLayoutChecker != null) {
-            viewLayoutChecker.releaseChecker();
+        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
+            if (Config.sUseMode == SpUtilValueConstants.DEFAULT_MODE) {
+                stopGazeService();
+            } if (Config.sUseMode == SpUtilValueConstants.SOCKET_MODE) {
+                stopWebSocketService();
+            }
+        } else if (Config.sUseMode == SpUtilValueConstants.MUSCLE_CONTROL_MODE) {
+            BluetoothHelper.getInstance().releaseBluetooth();
         }
-        BluetoothHelper.getInstance().releaseBluetooth();
         STTHelper.getInstance().releaseSTT();
         TTSHelper.getInstance().releaseTTS();
-        if (Config.sControlMode == SpUtilValueConstants.EYE_TRACKING_MODE) {
-            GazeHelper.getInstance().stopTracking();
-            GazeHelper.getInstance().releaseGaze();
-        }
         EventBusActivityScope.getDefault(_mActivity).unregister(this);
+        EventBus.getDefault().unregister(this);
         super.onDestroyView();
     }
 }

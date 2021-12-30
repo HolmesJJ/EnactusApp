@@ -18,8 +18,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class SpUtils {
-    private static Map<String, SpUtils> sSPMap = new ConcurrentHashMap();
-    private SharedPreferences sp;
+    private static final Map<String, SpUtils> sSPMap = new ConcurrentHashMap<>();
+    private final SharedPreferences sp;
 
     private SpUtils(Context context, String spName) {
         this.sp = new SecuritySharedPreference(context, spName, 0);
@@ -42,10 +42,8 @@ public final class SpUtils {
         if (sp == null) {
             Class var2 = SpUtils.class;
             synchronized(SpUtils.class) {
-                if (sp == null) {
-                    sp = new SpUtils(ContextUtils.getContext(), spName);
-                    sSPMap.put(spName, sp);
-                }
+                sp = new SpUtils(ContextUtils.getContext(), spName);
+                sSPMap.put(spName, sp);
             }
         }
 
@@ -61,10 +59,8 @@ public final class SpUtils {
         if (sp == null) {
             Class var3 = SpUtils.class;
             synchronized(SpUtils.class) {
-                if (sp == null) {
-                    sp = new SpUtils(context, spName);
-                    sSPMap.put(spName, sp);
-                }
+                sp = new SpUtils(context, spName);
+                sSPMap.put(spName, sp);
             }
         }
 
@@ -160,7 +156,7 @@ public final class SpUtils {
     }
 
     public void put(@NonNull String key, Serializable obj) {
-        if (obj instanceof Serializable) {
+        if (obj != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
             try {
@@ -183,8 +179,8 @@ public final class SpUtils {
         try {
             ObjectInputStream ois = new ObjectInputStream(bais);
             obj = (Serializable)ois.readObject();
-        } catch (IOException var6) {
-        } catch (ClassNotFoundException var7) {
+        } catch (IOException | ClassNotFoundException var6) {
+            var6.printStackTrace();
         }
 
         return obj;

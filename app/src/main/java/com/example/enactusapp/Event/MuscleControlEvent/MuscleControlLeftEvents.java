@@ -2,7 +2,7 @@ package com.example.enactusapp.Event.MuscleControlEvent;
 
 public class MuscleControlLeftEvents {
 
-    private int fragmentId;
+    private final int fragmentId;
 
     public MuscleControlLeftEvents(int fragmentId) {
         this.fragmentId = fragmentId;
@@ -10,9 +10,5 @@ public class MuscleControlLeftEvents {
 
     public int getFragmentId() {
         return fragmentId;
-    }
-
-    public void setFragmentId(int fragmentId) {
-        this.fragmentId = fragmentId;
     }
 }

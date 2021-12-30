@@ -32,9 +32,11 @@ import camp.visual.libgaze.camera.CameraStatusCallback;
 
 public class GazeTracker {
     private static final String TAG = GazeTracker.class.getSimpleName();
-    private HandlerThread lifeThread = new HandlerThread("lifeThread");
-    private Handler lifeHandler;
-    private Context context;
+
+    private final HandlerThread lifeThread = new HandlerThread("lifeThread");
+    private final Handler lifeHandler;
+    private final Context context;
+
     private InitializationCallback initializationCallback;
     private GazeCallback gazeCallback;
     private CalibrationCallback calibrationCallback;
@@ -47,10 +49,10 @@ public class GazeTracker {
     private static final int RELEASE_TRY = 1;
     private static final int RELEASE_DONE = 2;
     private int currentReleaseState = 0;
-    private ReentrantLock lock = new ReentrantLock(true);
+    private final ReentrantLock lock = new ReentrantLock(true);
     @Keep
     private static final String VERSION_NAME = "2.0.0";
-    private LibGazeInitializationCallback libGazeInitializationCallback = new LibGazeInitializationCallback() {
+    private final LibGazeInitializationCallback libGazeInitializationCallback = new LibGazeInitializationCallback() {
         public void onInitialize(Gaze gaze, int error) {
             if (GazeTracker.this.initializationCallback != null) {
                 if (gaze != null) {
@@ -60,10 +62,10 @@ public class GazeTracker {
                     }
 
                     gaze.setCameraStatusCallback(GazeTracker.this.cameraErrorCallback);
-                    DebugLogger.i(GazeTracker.TAG, new Object[]{"init success"});
+                    DebugLogger.i(GazeTracker.TAG, "init success");
                     GazeTracker.this.initializationCallback.onInitialized(GazeTracker.this, 0);
                 } else {
-                    DebugLogger.i(GazeTracker.TAG, new Object[]{"init fail " + error});
+                    DebugLogger.i(GazeTracker.TAG, "init fail " + error);
                     int returnError = 0;
                     switch(error) {
                         case 1:
@@ -84,7 +86,7 @@ public class GazeTracker {
         }
     };
     long befTimestamp = -1L;
-    private LibGazeCallback libGazeCallback = new LibGazeCallback() {
+    private final LibGazeCallback libGazeCallback = new LibGazeCallback() {
         public void onGaze(long timestamp, float x, float y, boolean isCalibrating) {
             if (GazeTracker.this.isAvailable()) {
                 if (GazeTracker.this.befTimestamp == -1L) {
@@ -93,9 +95,9 @@ public class GazeTracker {
 
                 PointF screenPx = CalibrationHelper.modifyCamera2Screen(new PointF(x, y));
                 int type = 0;
-                DebugLogger.i(GazeTracker.TAG, new Object[]{"chk onGaze duration " + (timestamp - GazeTracker.this.befTimestamp) + " at " + timestamp});
+                DebugLogger.i(GazeTracker.TAG, "chk onGaze duration " + (timestamp - GazeTracker.this.befTimestamp) + " at " + timestamp);
                 if (x != -1001.0F && y != -1001.0F) {
-                    DebugLogger.i(GazeTracker.TAG, new Object[]{"chk onGaze " + x + "x" + y + " to " + screenPx.x + "x" + screenPx.y + ", isCalibrating " + isCalibrating});
+                    DebugLogger.i(GazeTracker.TAG, "chk onGaze " + x + "x" + y + " to " + screenPx.x + "x" + screenPx.y + ", isCalibrating " + isCalibrating);
                     ScreenSize screenSize = new ScreenSize();
                     screenSize.setScreenSize(GazeTracker.this.context);
                     if (0.0F > screenPx.x || 0.0F > screenPx.y || (float)screenSize.screenWidth < screenPx.x || (float)screenSize.screenHeight < screenPx.y) {
@@ -112,9 +114,9 @@ public class GazeTracker {
                             PointF filteredPx = GazeTracker.this.oneEuroFilterManager.getFilteredPoint();
                             if (Float.isNaN(filteredPx.x) && Float.isNaN(filteredPx.y)) {
                                 GazeTracker.this.oneEuroFilterManager = new OneEuroFilterManager(30.0F);
-                                DebugLogger.w(GazeTracker.TAG, new Object[]{"chk filter nan scr " + screenPx + " reinit oneEuro Filter"});
+                                DebugLogger.w(GazeTracker.TAG, "chk filter nan scr " + screenPx + " reinit oneEuro Filter");
                             } else {
-                                DebugLogger.i(GazeTracker.TAG, new Object[]{"chk filter okay scr " + screenPx + ", filter " + filteredPx});
+                                DebugLogger.i(GazeTracker.TAG, "chk filter okay scr " + screenPx + ", filter " + filteredPx);
                                 GazeTracker.this.gazeCallback.onFilteredGaze(timestamp, filteredPx.x, filteredPx.y, type);
                             }
                         }
@@ -143,7 +145,7 @@ public class GazeTracker {
         }
 
         public void onCalibrationProgress(float progress) {
-            DebugLogger.d(GazeTracker.TAG, new Object[]{"onCalibrationProgress"});
+            DebugLogger.d(GazeTracker.TAG, "onCalibrationProgress");
             if (GazeTracker.this.calibrationCallback != null) {
                 GazeTracker.this.calibrationCallback.onCalibrationProgress(progress);
             }
@@ -151,7 +153,7 @@ public class GazeTracker {
         }
 
         public void onCalibrationNextPoint(float x, float y) {
-            DebugLogger.d(GazeTracker.TAG, new Object[]{"onCalibrationNextPoint"});
+            DebugLogger.d(GazeTracker.TAG, "onCalibrationNextPoint");
             if (GazeTracker.this.calibrationCallback != null) {
                 PointF px = CalibrationHelper.modifyCamera2Screen(new PointF(x, y));
                 GazeTracker.this.calibrationCallback.onCalibrationNextPoint(px.x, px.y);
@@ -160,16 +162,16 @@ public class GazeTracker {
         }
 
         public void onCalibrationFinished() {
-            DebugLogger.i(GazeTracker.TAG, new Object[]{"onCalibrationFinished"});
+            DebugLogger.i(GazeTracker.TAG, "onCalibrationFinished");
             if (GazeTracker.this.calibrationCallback != null) {
                 GazeTracker.this.calibrationCallback.onCalibrationFinished();
             }
 
         }
     };
-    private CameraStatusCallback cameraErrorCallback = new CameraStatusCallback() {
+    private final CameraStatusCallback cameraErrorCallback = new CameraStatusCallback() {
         public void onCameraOpen() {
-            DebugLogger.i(GazeTracker.TAG, new Object[]{"onCameraOpened"});
+            DebugLogger.i(GazeTracker.TAG, "onCameraOpened");
             if (GazeTracker.this.statusCallback != null) {
                 GazeTracker.this.statusCallback.onStarted();
             }
@@ -177,7 +179,7 @@ public class GazeTracker {
         }
 
         public void onCameraClose() {
-            DebugLogger.i(GazeTracker.TAG, new Object[]{"onCameraClose"});
+            DebugLogger.i(GazeTracker.TAG, "onCameraClose");
             if (GazeTracker.this.statusCallback != null) {
                 GazeTracker.this.statusCallback.onStopped(0);
             }
@@ -185,7 +187,7 @@ public class GazeTracker {
         }
 
         public void onCameraError() {
-            DebugLogger.i(GazeTracker.TAG, new Object[]{"onCameraError"});
+            DebugLogger.i(GazeTracker.TAG, "onCameraError");
             if (GazeTracker.this.statusCallback != null) {
                 GazeTracker.this.statusCallback.onStopped(1);
             }
@@ -193,14 +195,14 @@ public class GazeTracker {
         }
 
         public void onCameraDisconnect() {
-            DebugLogger.i(GazeTracker.TAG, new Object[]{"onCameraDisconnect"});
+            DebugLogger.i(GazeTracker.TAG, "onCameraDisconnect");
             if (GazeTracker.this.statusCallback != null) {
                 GazeTracker.this.statusCallback.onStopped(2);
             }
 
         }
     };
-    private CameraImageCallback cameraBufferCallback = new CameraImageCallback() {
+    private final CameraImageCallback cameraBufferCallback = new CameraImageCallback() {
         public void onImage(long timestamp, byte[] buffer) {
             if (GazeTracker.this.imageCallback != null) {
                 GazeTracker.this.imageCallback.onImage(timestamp, buffer);
@@ -371,11 +373,11 @@ public class GazeTracker {
     }
 
     public boolean isTracking() {
-        return !this.isAvailable() ? false : this.gaze.isTracking();
+        return this.isAvailable() && this.gaze.isTracking();
     }
 
     public boolean setTrackingFPS(int fps) {
-        return !this.isAvailable() ? false : this.gaze.setTrackingFPS(fps);
+        return this.isAvailable() && this.gaze.setTrackingFPS(fps);
     }
 
     public boolean startCalibration(int mode, float left, float top, float right, float bottom) {
@@ -384,7 +386,7 @@ public class GazeTracker {
         } else if (!this.setCalibrationScreenRegion(left, top, right, bottom)) {
             return false;
         } else if (mode != 0 && mode != 5) {
-            return mode == 1 ? this.gaze.startOnePointCalibration() : false;
+            return mode == 1 && this.gaze.startOnePointCalibration();
         } else {
             return this.gaze.startCalibration();
         }
@@ -404,7 +406,7 @@ public class GazeTracker {
     }
 
     public boolean startCollectSamples() {
-        return !this.isAvailable() ? false : this.gaze.startCollectSamples();
+        return this.isAvailable() && this.gaze.startCollectSamples();
     }
 
     public void stopCalibration() {
@@ -417,7 +419,7 @@ public class GazeTracker {
         if (!this.isAvailable()) {
             return false;
         } else {
-            return !CalibrationHelper.isRegionInWholeScreen(min_x, min_y, max_x, max_y) ? false : this.setCalibrationCameraRegion(min_x, min_y, max_x, max_y);
+            return CalibrationHelper.isRegionInWholeScreen(min_x, min_y, max_x, max_y) && this.setCalibrationCameraRegion(min_x, min_y, max_x, max_y);
         }
     }
 
@@ -427,7 +429,7 @@ public class GazeTracker {
     }
 
     public boolean setCameraPreview(TextureView cameraPreview) {
-        return !this.isAvailable() ? false : this.gaze.setCameraPreview(cameraPreview);
+        return this.isAvailable() && this.gaze.setCameraPreview(cameraPreview);
     }
 
     public void removeCameraPreview() {
@@ -437,7 +439,8 @@ public class GazeTracker {
     }
 
     private void releaseTrueGaze() {
-        if (this.isInitialized() && Gaze.deinitGaze(this.gaze)) {
+        if (this.isInitialized()) {
+            Gaze.deinitGaze(this.gaze);
             this.gaze = null;
         }
 

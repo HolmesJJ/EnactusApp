@@ -1,15 +1,8 @@
 package com.example.enactusapp.Event.PossibleWordEvent;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class PossibleWordEvent {
 
-    private String possibleWord;
+    private final String possibleWord;
 
     public PossibleWordEvent(String possibleWord) {
         this.possibleWord = possibleWord;
@@ -17,9 +10,5 @@ public class PossibleWordEvent {
 
     public String getPossibleWord() {
         return possibleWord;
-    }
-
-    public void setPossibleWord(String possibleWord) {
-        this.possibleWord = possibleWord;
     }
 }

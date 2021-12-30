@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -66,14 +68,19 @@
             android:name="com.baidu.speech.SECRET_KEY"
             android:value="l1z1zrxebAuHdlbPennGEpp7EnjSBruU"/>
 
-        <activity android:name=".MainActivity"></activity>
-        <activity android:name=".LoginActivity">
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTop"
+            android:exported="true"/>
+        <activity android:name=".LoginActivity"
+            android:launchMode="singleTop"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".Service.FcmMessagingService">
+        <service android:name=".Service.FcmMessagingService"
+            android:exported="false">
             <intent-filter
                 android:enabled="true"
                 android:exported="true">
@@ -81,7 +88,12 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <service android:name=".Service.LocationService"></service>
+        <service android:name=".Service.LocationService"
+            android:exported="false"/>
+        <service android:name=".Service.GazeService"
+            android:exported="false"/>
+        <service android:name=".Service.WebSocketService"
+            android:exported="false"/>
     </application>
 
 </manifest>

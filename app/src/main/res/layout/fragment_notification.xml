@@ -5,23 +5,39 @@
     android:background="@color/WHITE"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
-        android:id="@+id/tv_title"
+    <LinearLayout
+        android:id="@+id/ll_title_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
         android:layout_marginTop="32dp"
-        android:gravity="center"
-        android:text="@string/notification"
-        android:textColor="@color/BLACK"
-        android:textSize="30sp" />
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/iv_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:src="@drawable/ic_toolbar_back"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:gravity="center"
+            android:text="@string/notification"
+            android:textColor="@color/BLACK"
+            android:textSize="30sp" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tv_selection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
         android:gravity="center"
         android:textColor="@color/BLACK"
         android:textSize="15sp" />
@@ -29,7 +45,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/tv_title">
+        android:layout_below="@+id/ll_title_container">
 
         <View
             android:id="@+id/split_line1"
@@ -89,7 +105,16 @@
 
     </RelativeLayout>
 
+    <ProgressBar
+        android:id="@+id/pb_gaze"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ll_btn_container"
+        style="@style/pb_gaze"
+        android:progressDrawable="@drawable/pb_gaze"/>
+
     <LinearLayout
+        android:id="@+id/ll_btn_container"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
@@ -122,5 +147,10 @@
             android:textSize="20sp" />
 
     </LinearLayout>
+
+    <com.example.enactusapp.EyeTracker.PointView
+        android:id="@+id/pv_point"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </RelativeLayout>

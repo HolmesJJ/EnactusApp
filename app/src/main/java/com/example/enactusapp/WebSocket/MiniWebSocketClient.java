@@ -13,8 +13,9 @@ import java.nio.ByteBuffer;
 
 public class MiniWebSocketClient extends WebSocketClient {
 
-    private static final String TAG = "MiniWebSocketClient";
-    private WebSocketClientManager webSocketClientManager;
+    private static final String TAG = MiniWebSocketClient.class.getSimpleName();
+
+    private final WebSocketClientManager webSocketClientManager;
 
     public MiniWebSocketClient(WebSocketClientManager webSocketClientManager, URI serverURI) {
         super(serverURI);

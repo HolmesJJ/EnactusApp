@@ -1,6 +1,5 @@
 package com.example.enactusapp.Adapter;
 
-
 import com.example.enactusapp.Fragment.Dialog.Child.PossibleAnswersFragment;
 import com.example.enactusapp.Fragment.Dialog.Child.T26KeyboardFragment;
 import com.example.enactusapp.Fragment.Dialog.Child.T2KeyboardFragment;
@@ -9,13 +8,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class DialogChildAdapter extends FragmentPagerAdapter {
 
     private String[] mTitles;

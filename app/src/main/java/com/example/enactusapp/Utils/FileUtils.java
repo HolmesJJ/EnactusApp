@@ -61,7 +61,7 @@ public class FileUtils {
         FileOutputStream fops = null;
         try {
             File file = new File(fileName);
-            if(!file.getParentFile().exists()){
+            if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
             fops = new FileOutputStream(file);
@@ -85,7 +85,7 @@ public class FileUtils {
         FileOutputStream fops = null;
         try {
             File file = new File(fileName);
-            if(!file.getParentFile().exists()){
+            if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
             fops = new FileOutputStream(file);
@@ -110,7 +110,7 @@ public class FileUtils {
         FileOutputStream fops = null;
         try {
             File file = new File(fileName);
-            if(!file.getParentFile().exists()){
+            if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
             fops = new FileOutputStream(file);
@@ -134,7 +134,7 @@ public class FileUtils {
         FileOutputStream fops = null;
         try {
             File file = new File(fileName);
-            if(!file.getParentFile().exists()){
+            if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
             fops = new FileOutputStream(file);
@@ -152,7 +152,7 @@ public class FileUtils {
         FileOutputStream fops = null;
         try {
             File file = new File(fileName);
-            if(!file.getParentFile().exists()){
+            if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
             fops = new FileOutputStream(file);
@@ -174,7 +174,7 @@ public class FileUtils {
 
     public static void delDir(File f) {
         // 判断是否是一个目录, 不是的话跳过, 直接删除; 如果是一个目录, 先将其内容清空.
-        if(f.isDirectory()) {
+        if (f.isDirectory()) {
             // 获取子文件/目录
             File[] subFiles = f.listFiles();
             // 遍历该目录
@@ -193,7 +193,7 @@ public class FileUtils {
         String tmpDir = Environment.getExternalStorageDirectory().toString() + "/" + dirPath;
         if (!FileUtils.makeDir(tmpDir)) {
             tmpDir = context.getExternalFilesDir(dirPath).getAbsolutePath();
-            if (tmpDir == null || !FileUtils.makeDir(tmpDir)) {
+            if (!FileUtils.makeDir(tmpDir)) {
                 throw new RuntimeException("create model resources dir failed :" + tmpDir);
             }
         }
@@ -217,13 +217,12 @@ public class FileUtils {
     public static void copyFromAssets(AssetManager assets, String source, String dest, boolean isCover)
             throws IOException {
         File file = new File(dest);
-        if (isCover || (!isCover && !file.exists())) {
+        if (isCover || !file.exists()) {
             InputStream is = null;
             FileOutputStream fos = null;
             try {
                 is = assets.open(source);
-                String path = dest;
-                fos = new FileOutputStream(path);
+                fos = new FileOutputStream(dest);
                 byte[] buffer = new byte[1024];
                 int size = 0;
                 while ((size = is.read(buffer, 0, 1024)) >= 0) {

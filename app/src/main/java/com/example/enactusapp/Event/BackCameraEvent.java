@@ -1,15 +1,8 @@
 package com.example.enactusapp.Event;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class BackCameraEvent {
 
-    private boolean isEnabled;
+    private final boolean isEnabled;
 
     public BackCameraEvent(boolean isEnabled) {
         this.isEnabled = isEnabled;
@@ -17,9 +10,5 @@ public class BackCameraEvent {
 
     public boolean isEnabled() {
         return isEnabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        isEnabled = enabled;
     }
 }

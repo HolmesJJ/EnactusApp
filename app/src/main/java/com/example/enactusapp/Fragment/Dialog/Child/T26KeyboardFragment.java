@@ -11,13 +11,6 @@ import com.example.enactusapp.R;
 import androidx.annotation.NonNull;
 import me.yokeyword.fragmentation.SupportFragment;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class T26KeyboardFragment extends SupportFragment implements OnTaskCompleted {
 
     public static T26KeyboardFragment newInstance() {
@@ -48,7 +41,7 @@ public class T26KeyboardFragment extends SupportFragment implements OnTaskComple
     }
 
     @Override
-    public void onTaskCompleted(String response, int requestId) {
+    public void onTaskCompleted(String response, int requestId, String... others) {
 
     }
 }

@@ -60,13 +60,11 @@ import java.util.TreeSet;
 public class AutoCheck {
 
     private static AutoCheck instance;
-
-    private LinkedHashMap<String, Check> checks;
-
     private static Context context;
 
-    private boolean hasError = false;
+    private final LinkedHashMap<String, Check> checks;
 
+    private boolean hasError = false;
     volatile boolean isFinished = false;
 
     /**
@@ -166,7 +164,7 @@ public class AutoCheck {
                 sb.append("【请手动检查】【").append(testName).append("】 ").append(check.getInfoMessage()).append("\n");
             }
             if (config.withLog && (config.withLogOnSuccess || hasError) && check.hasLog()) {
-                sb.append("【log】:" + check.getLogMessage()).append("\n");
+                sb.append("【log】:").append(check.getLogMessage()).append("\n");
             }
         }
         if (!hasError) {
@@ -193,7 +191,7 @@ public class AutoCheck {
     }
 
     private static class PermissionCheck extends Check {
-        private Context context;
+        private final Context context;
 
         public PermissionCheck(Context context) {
             this.context = context;
@@ -227,9 +225,8 @@ public class AutoCheck {
     }
 
     private static class JniCheck extends Check {
-        private Context context;
-
-        private String[] soNames;
+        private final Context context;
+        private final String[] soNames;
 
         public JniCheck(Context context, boolean isOnlineSdk) {
             this.context = context;
@@ -266,9 +263,9 @@ public class AutoCheck {
     }
 
     private static class ParamKeyExistCheck extends Check {
-        private Map<String, String> params;
-        private String key;
-        private String prefixErrorMessage;
+        private final Map<String, String> params;
+        private final String key;
+        private final String prefixErrorMessage;
 
         public ParamKeyExistCheck(Map<String, String> params, String key, String prefixErrorMessage) {
             this.params = params;
@@ -286,7 +283,7 @@ public class AutoCheck {
     }
 
     private static class OfflineResourceFileCheck extends Check {
-        private String filename;
+        private final String filename;
 
         public OfflineResourceFileCheck(String filename) {
             this.filename = filename;
@@ -310,8 +307,8 @@ public class AutoCheck {
 
     private static class ApplicationIdCheck extends Check {
 
-        private String appId;
-        private Context context;
+        private final String appId;
+        private final Context context;
 
         public ApplicationIdCheck(Context context, String appId) {
             this.appId = appId;
@@ -332,16 +329,15 @@ public class AutoCheck {
 
 
     private static class AppInfoCheck extends Check {
-        private String appId;
-        private String appKey;
-        private String secretKey;
+        private final String appId;
+        private final String appKey;
+        private final String secretKey;
 
         public AppInfoCheck(String appId, String appKey, String secretKey) {
             this.appId = appId;
             this.appKey = appKey;
             this.secretKey = secretKey;
         }
-
 
         public void check() {
             do {
@@ -393,16 +389,14 @@ public class AutoCheck {
             appendLogMessage("openapi return " + res);
             JSONObject jsonObject = new JSONObject(res);
             String error = jsonObject.optString("error");
-            if (error != null && !error.isEmpty()) {
+            if (!error.isEmpty()) {
                 throw new Exception("appkey secretKey 错误" + ", error:" + error + ", json is" + result);
             }
             String token = jsonObject.getString("access_token");
-            if (token == null || !token.endsWith("-" + appId)) {
+            if (!token.endsWith("-" + appId)) {
                 throw new Exception("appId 与 appkey及 appSecret 不一致。appId = " + appId + " ,token = " + token);
             }
         }
-
-
     }
 
     private abstract static class Check {
@@ -437,7 +431,7 @@ public class AutoCheck {
         }
 
         public void appendLogMessage(String message) {
-            logMessage.append(message + "\n");
+            logMessage.append(message).append("\n");
         }
 
         public String getErrorMessage() {

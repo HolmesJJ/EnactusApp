@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#ffffff</color>
     <color name="colorPrimaryDark">#ffffff</color>
-    <color name="colorAccent">#ffffff</color>
+    <color name="colorAccent">#000000</color>
 
     <color name="tab_select">#20c793</color>
     <color name="tab_unselect">#cccccc</color>
@@ -19,6 +19,10 @@
 
     <color name="control_mode_radio_button_unselect">#cccccc</color>
     <color name="control_mode_radio_button_select">#20c793</color>
+
+    <color name="cross_point_bg">#0201ff</color>
+    <color name="horizontal_line_bg">#0201ff</color>
+    <color name="vertical_line_bg">#0201ff</color>
 
     <color name="light_green">#20c793</color>
 </resources>

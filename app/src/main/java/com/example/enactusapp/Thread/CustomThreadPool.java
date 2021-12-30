@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CustomThreadPool {
 
-    private ExecutorService mExecutorService;
+    private final ExecutorService mExecutorService;
 
     public CustomThreadPool(int poolSize){
         mExecutorService = new ThreadPoolExecutor(
@@ -50,17 +50,17 @@ public class CustomThreadPool {
     }
 
     public void execute(Runnable runnable){
-        if(mExecutorService == null || mExecutorService.isShutdown()) return;
+        if(mExecutorService.isShutdown()) return;
         mExecutorService.execute(runnable);
     }
 
     public boolean isShutdown(){
-        if(mExecutorService == null || mExecutorService.isShutdown()) return true;
+        if(mExecutorService.isShutdown()) return true;
         return false;
     }
 
     public void release(){
-        if(mExecutorService == null || isShutdown()) return;
+        if(isShutdown()) return;
         mExecutorService.shutdown();
     }
 }

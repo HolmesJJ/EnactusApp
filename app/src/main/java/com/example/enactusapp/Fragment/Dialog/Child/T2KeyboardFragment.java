@@ -3,7 +3,6 @@ package com.example.enactusapp.Fragment.Dialog.Child;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +11,9 @@ import android.widget.TextView;
 
 import com.example.enactusapp.Adapter.DialogPossibleWordsAdapter;
 import com.example.enactusapp.Event.BlinkEvent;
+import com.example.enactusapp.Event.MessageEvent.SendMessageEvent;
 import com.example.enactusapp.Event.PossibleWordEvent.ConfirmPossibleWordEvent;
 import com.example.enactusapp.Event.PossibleWordEvent.PossibleWordEvent;
-import com.example.enactusapp.Event.PossibleAnswerEvent.SpeakPossibleAnswerEvent;
 import com.example.enactusapp.Event.PossibleWordEvent.PossibleWordsEvent;
 import com.example.enactusapp.Event.PossibleWordEvent.SelectPossibleWordEvent;
 import com.example.enactusapp.Event.T2KeyboardEvent.ConfirmT2KeyboardEvent;
@@ -22,6 +21,7 @@ import com.example.enactusapp.Event.T2KeyboardEvent.SelectT2KeyboardEvent;
 import com.example.enactusapp.Listener.OnItemClickListener;
 import com.example.enactusapp.Markov.MarkovHelper;
 import com.example.enactusapp.R;
+import com.example.enactusapp.Utils.ContextUtils;
 
 import org.greenrobot.eventbus.Subscribe;
 
@@ -35,13 +35,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 import me.yokeyword.fragmentation.SupportFragment;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class T2KeyboardFragment extends SupportFragment implements OnItemClickListener {
 
     private static final int LEFT_BUTTON_ID = 3;
@@ -54,7 +47,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
     private RecyclerView mDialogPossibleWordsRecyclerView;
     private DialogPossibleWordsAdapter mDialogPossibleWordsAdapter;
 
-    private List<String> possibleWordsList = new ArrayList<>();
+    private final List<String> possibleWordsList = new ArrayList<>();
     private Button t2KeyboardLeftBtn;
     private Button t2KeyboardRightBtn;
     private Button t2keyboardBackBtn;
@@ -94,7 +87,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         t2KeyboardPrevBtn = (Button) view.findViewById(R.id.t2keyboard_prev_button);
         t2keyboardNextBtn = (Button) view.findViewById(R.id.t2keyboard_next_button);
         inputTv = (TextView) view.findViewById(R.id.input_tv);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(_mActivity);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ContextUtils.getContext());
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mDialogPossibleWordsRecyclerView.getContext(), linearLayoutManager.getOrientation());
         mDialogPossibleWordsRecyclerView.setLayoutManager(linearLayoutManager);
         mDialogPossibleWordsRecyclerView.addItemDecoration(dividerItemDecoration);
@@ -148,7 +141,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         t2KeyboardSendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EventBusActivityScope.getDefault(_mActivity).post(new SpeakPossibleAnswerEvent(null));
+                EventBusActivityScope.getDefault(_mActivity).post(new SendMessageEvent(null));
             }
         });
 
@@ -279,6 +272,12 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
     public void onSelectPossibleWordEvent(SelectPossibleWordEvent event) {
         if (lastSelectedPosition != -1) {
             possibleWordsList.set(lastSelectedPosition, lastSelectedWord);
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDialogPossibleWordsAdapter.notifyItemChanged(lastSelectedPosition);
+                }
+            });
         }
         lastSelectedPosition = event.getPosition();
         lastSelectedWord = possibleWordsList.get(event.getPosition());
@@ -286,7 +285,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         _mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mDialogPossibleWordsAdapter.notifyDataSetChanged();
+                mDialogPossibleWordsAdapter.notifyItemChanged(event.getPosition());
             }
         });
     }

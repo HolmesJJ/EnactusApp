@@ -36,24 +36,26 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Camera2Helper {
-    private static final String TAG = "Camera2Helper";
 
-    private Point maxPreviewSize;
-    private Point minPreviewSize;
+    private static final String TAG = Camera2Helper.class.getSimpleName();
 
     public static final String CAMERA_ID_FRONT = "1";
     public static final String CAMERA_ID_BACK = "0";
 
+    private final Point maxPreviewSize;
+    private final Point minPreviewSize;
+
+    private final int rotation;
+    private final Point previewViewSize;
+    private final Point specificPreviewSize;
+    private final boolean isMirror;
 
     private String mCameraId;
     private String specificCameraId;
     private Camera2Listener camera2Listener;
     private TextureView mTextureView;
-    private int rotation;
-    private Point previewViewSize;
-    private Point specificPreviewSize;
-    private boolean isMirror;
     private Context context;
+
     /**
      * A {@link CameraCaptureSession } for camera preview.
      */
@@ -186,7 +188,7 @@ public class Camera2Helper {
         }
 
     };
-    private CameraCaptureSession.StateCallback mCaptureStateCallback = new CameraCaptureSession.StateCallback() {
+    private final CameraCaptureSession.StateCallback mCaptureStateCallback = new CameraCaptureSession.StateCallback() {
 
         @Override
         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
@@ -238,7 +240,7 @@ public class Camera2Helper {
     /**
      * A {@link Semaphore} to prevent the app from exiting before closing the camera.
      */
-    private Semaphore mCameraOpenCloseLock = new Semaphore(1);
+    private final Semaphore mCameraOpenCloseLock = new Semaphore(1);
 
 
     /**
@@ -388,19 +390,11 @@ public class Camera2Helper {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
-                        PackageManager.PERMISSION_GRANTED) {
-                    cameraManager.openCamera(mCameraId, mDeviceStateCallback, mBackgroundHandler);
-                }
-            } else {
+            if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
+                    PackageManager.PERMISSION_GRANTED) {
                 cameraManager.openCamera(mCameraId, mDeviceStateCallback, mBackgroundHandler);
             }
-        } catch (CameraAccessException e) {
-            if (camera2Listener != null) {
-                camera2Listener.onCameraError(e);
-            }
-        } catch (InterruptedException e) {
+        } catch (CameraAccessException | InterruptedException e) {
             if (camera2Listener != null) {
                 camera2Listener.onCameraError(e);
             }
@@ -572,12 +566,10 @@ public class Camera2Helper {
         public Builder() {
         }
 
-
         public Builder previewOn(TextureView val) {
             previewDisplayView = val;
             return this;
         }
-
 
         public Builder isMirror(boolean val) {
             isMirror = val;
@@ -608,7 +600,6 @@ public class Camera2Helper {
             rotation = val;
             return this;
         }
-
 
         public Builder specificCameraId(String val) {
             specificCameraId = val;
@@ -648,7 +639,7 @@ public class Camera2Helper {
         private byte[] y;
         private byte[] u;
         private byte[] v;
-        private ReentrantLock lock = new ReentrantLock();
+        private final ReentrantLock lock = new ReentrantLock();
 
         @Override
         public void onImageAvailable(ImageReader reader) {

@@ -18,13 +18,6 @@ import com.example.enactusapp.R;
 import androidx.annotation.DrawableRes;
 import androidx.core.content.ContextCompat;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class BottomBarTab extends FrameLayout {
     private ImageView mIcon;
     private TextView mTvTitle;

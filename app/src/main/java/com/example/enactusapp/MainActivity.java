@@ -2,10 +2,10 @@ package com.example.enactusapp;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.Settings;
 
 import com.example.enactusapp.Fragment.MainFragment;
 import com.example.enactusapp.Service.LocationService;
+import com.example.enactusapp.Utils.ContextUtils;
 
 import me.yokeyword.fragmentation.SupportActivity;
 import me.yokeyword.fragmentation.anim.DefaultHorizontalAnimator;
@@ -31,8 +31,19 @@ public class MainActivity extends SupportActivity {
         return new DefaultHorizontalAnimator();
     }
 
+    @Override
+    protected void onDestroy() {
+        stopLocationService();
+        super.onDestroy();
+    }
+
     private void startLocationService() {
-        Intent intent = new Intent(this, LocationService.class);
-        startService(intent);
+        Intent intent = new Intent(ContextUtils.getContext(), LocationService.class);
+        ContextUtils.getContext().startService(intent);
+    }
+
+    private void stopLocationService() {
+        Intent intent = new Intent(ContextUtils.getContext(), LocationService.class);
+        ContextUtils.getContext().stopService(intent);
     }
 }

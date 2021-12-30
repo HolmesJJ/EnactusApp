@@ -11,10 +11,11 @@ import java.io.FileOutputStream;
 
 public class ImageUtils {
 
+    private static final String TAG = ImageUtils.class.getSimpleName();
+
     // This value is 2 ^ 18 - 1, and is used to clamp the RGB values before their ranges
     // are normalized to eight bits.
     static final int kMaxChannelValue = 262143;
-    private static final String TAG = "ImageUtils";
 
     /**
      * 将Y:U:V == 4:2:2的数据转换为nv21
@@ -131,7 +132,7 @@ public class ImageUtils {
         return (int) (dipValue * scale + 0.5f);
     }
 
-    public static int px2dip(Context context,float pxValue){
+    public static int px2dp(Context context, float pxValue) {
         final float scale = context.getResources().getDisplayMetrics ().density;
         return (int) (pxValue / scale + 0.5f);
     }

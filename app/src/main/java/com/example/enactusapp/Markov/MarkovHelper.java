@@ -28,7 +28,7 @@ public class MarkovHelper {
     }
 
     private static class SingleInstance {
-        private static MarkovHelper INSTANCE = new MarkovHelper();
+        private static final MarkovHelper INSTANCE = new MarkovHelper();
     }
 
     public static MarkovHelper getInstance() {

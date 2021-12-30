@@ -17,6 +17,17 @@ import androidx.annotation.Nullable;
 
 public class CalibrationViewer extends ViewGroup {
 
+    private final int backgroundColor = Color.rgb(0x64, 0x5E, 0x5E);
+    //  private int backgroundColor = Color.argb(0x88,0x64,0x5E, 0x5E);
+    private final int redColor = Color.rgb(0xEF, 0x53, 0x50);
+    private final int purpleColor = Color.rgb(0xAB, 0x47, 0xBC);
+    private final int orangeColor = Color.rgb(0xFF, 0xA7, 0x26);
+    private final int blueColor = Color.rgb(0x42, 0xA5, 0xF5);
+    private final int greenColor = Color.rgb(0x66, 0xBB, 0x6A);
+    private final int brownColor = Color.rgb(0xCA, 0x9A, 0x00);
+    private final int yellowColor = Color.rgb(0xFF, 0xFD, 0x00);
+    private final TextPaint textPaint = new TextPaint();
+
     private int[] pointColors;
     private int index = 0;
     private float x;
@@ -24,17 +35,6 @@ public class CalibrationViewer extends ViewGroup {
     private Paint calibPoint;
     private Boolean toDraw = true;
     private CalibrationPoint calibrationPoint;
-    private int backgroundColor = Color.rgb(0x64, 0x5E, 0x5E);
-    //  private int backgroundColor = Color.argb(0x88,0x64,0x5E, 0x5E);
-    private int redColor = Color.rgb(0xEF, 0x53, 0x50);
-    private int purpleColor = Color.rgb(0xAB, 0x47, 0xBC);
-    private int orangeColor = Color.rgb(0xFF, 0xA7, 0x26);
-    private int blueColor = Color.rgb(0x42, 0xA5, 0xF5);
-    private int greenColor = Color.rgb(0x66, 0xBB, 0x6A);
-    private int brownColor = Color.rgb(0xCA, 0x9A, 0x00);
-    private int yellowColor = Color.rgb(0xFF, 0xFD, 0x00);
-
-    private TextPaint textPaint = new TextPaint();
 
     private String msg;
 
@@ -164,10 +164,11 @@ public class CalibrationViewer extends ViewGroup {
         private static final float default_radius = 20;
         private static final float default_rotate = 50;
 
+        private final Paint point_paint;
+        private final RectF oval;
+
         private float animation_power;
-        private Paint point_paint;
         private float center_x, center_y;
-        private RectF oval;
         private RotateAnimation rotateAnimation = null;
         private float last_end_degree, next_end_degree;
 

@@ -4,7 +4,7 @@ public enum MessageType {
     GREETING("Greeting Message"),
     NORMAL("Normal Message");
 
-    private String message;
+    private final String message;
 
     MessageType(String message) {
         this.message = message;

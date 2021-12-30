@@ -15,9 +15,9 @@ import org.json.JSONObject;
 
 public class RecogEventAdapter implements EventListener {
 
-    private IRecogListener listener;
+    private static final String TAG = RecogEventAdapter.class.getSimpleName();
 
-    private static final String TAG = "RecogEventAdapter";
+    private final IRecogListener listener;
 
     public RecogEventAdapter(IRecogListener listener) {
         this.listener = listener;
@@ -26,7 +26,6 @@ public class RecogEventAdapter implements EventListener {
     // 基于DEMO集成3.1 开始回调事件
     @Override
     public void onEvent(String name, String params, byte[] data, int offset, int length) {
-        String currentJson = params;
         String logMessage = "name:" + name + "; params:" + params;
 
         // logcat 中 搜索RecogEventAdapter，即可以看见下面一行的日志
@@ -91,7 +90,7 @@ public class RecogEventAdapter implements EventListener {
 
     private Volume parseVolumeJson(String jsonStr) {
         Volume vol = new Volume();
-        vol.origalJson = jsonStr;
+        vol.originalJson = jsonStr;
         try {
             JSONObject json = new JSONObject(jsonStr);
             vol.volumePercent = json.getInt("volume-percent");
@@ -102,10 +101,9 @@ public class RecogEventAdapter implements EventListener {
         return vol;
     }
 
-    private class Volume {
+    private static class Volume {
         private int volumePercent = -1;
         private int volume = -1;
-        private String origalJson;
+        private String originalJson;
     }
-
 }

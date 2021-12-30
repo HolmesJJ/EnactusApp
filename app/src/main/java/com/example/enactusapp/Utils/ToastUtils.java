@@ -32,7 +32,7 @@ public final class ToastUtils {
     private static int bgResource = -1;
     private static int messageColor = DEFAULT_COLOR;
     private static WeakReference<View> sViewWeakReference;
-    private static Handler sHandler = new Handler(Looper.getMainLooper());
+    private static final Handler sHandler = new Handler(Looper.getMainLooper());
 
     private ToastUtils() {
 

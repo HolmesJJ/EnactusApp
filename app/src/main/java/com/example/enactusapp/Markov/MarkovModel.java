@@ -8,7 +8,7 @@ import java.util.*;
 
 public class MarkovModel {
 
-    private HashMap<String, HashMap<String, Integer>> mp;
+    private final HashMap<String, HashMap<String, Integer>> mp;
     private final static String TAG = "MarkovModel";
 
     public MarkovModel() {

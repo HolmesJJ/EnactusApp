@@ -17,18 +17,11 @@ import com.hc.bluetoothlibrary.DeviceModule;
 
 import java.util.List;
 
-/**
- * @author Administrator
- * @des ${TODO}
- * @verson $Rev$
- * @updateAuthor $Author$
- * @updateDes ${TODO}
- */
 public class BluetoothAdapter extends RecyclerView.Adapter<BluetoothAdapter.BluetoothViewHolder> {
 
-    private static final String TAG = "BluetoothAdapter";
-    private Context context;
-    private List<DeviceModule> deviceModules;
+    private static final String TAG = BluetoothAdapter.class.getSimpleName();
+
+    private final List<DeviceModule> deviceModules;
 
     private LayoutInflater mInflater = null;
     private OnItemClickListener mOnItemClickListener;
@@ -39,7 +32,6 @@ public class BluetoothAdapter extends RecyclerView.Adapter<BluetoothAdapter.Blue
 
     public BluetoothAdapter(Context context, List<DeviceModule> deviceModules) {
         this.mInflater = LayoutInflater.from(context);
-        this.context = context;
         this.deviceModules = deviceModules;
     }
 
@@ -79,14 +71,14 @@ public class BluetoothAdapter extends RecyclerView.Adapter<BluetoothAdapter.Blue
         return deviceModules.size();
     }
 
-    public class BluetoothViewHolder extends RecyclerView.ViewHolder {
+    public static class BluetoothViewHolder extends RecyclerView.ViewHolder {
 
-        private ImageView mIvBluetooth;
-        private TextView mTvName;
-        private TextView mTvMacAddress;
-        private TextView mTvPair;
-        private TextView mTvRssi;
-        private TextView mTvCollect;
+        private final ImageView mIvBluetooth;
+        private final TextView mTvName;
+        private final TextView mTvMacAddress;
+        private final TextView mTvPair;
+        private final TextView mTvRssi;
+        private final TextView mTvCollect;
 
         public BluetoothViewHolder(View itemView) {
             super(itemView);
