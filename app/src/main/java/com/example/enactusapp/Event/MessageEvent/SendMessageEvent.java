@@ -1,10 +1,12 @@
 package com.example.enactusapp.Event.MessageEvent;
 
-import com.example.enactusapp.Entity.User;
-
 public class SendMessageEvent {
 
     private final String message;
+
+    public SendMessageEvent() {
+        this.message = null;
+    }
 
     public SendMessageEvent(String message) {
         this.message = message;

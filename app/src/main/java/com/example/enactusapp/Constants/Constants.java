@@ -3,10 +3,8 @@ package com.example.enactusapp.Constants;
 public class Constants {
 
     public static final String IP_ADDRESS = "http://8.214.40.74/";
-    public static final String SMART_ANSWERING_IP_ADDRESS_1 = "https://phychant-chatbot1.azurewebsites.net/qnamaker/knowledgebases/5fcb7907-9d21-4dd2-b4e9-872c93cf5663/generateAnswer";
-    public static final String SMART_ANSWERING_IP_ADDRESS_2 = "https://phychant-chatbot2.azurewebsites.net/qnamaker/knowledgebases/a3b254bd-4456-4a4a-b576-238271010953/generateAnswer";
-    public static final String SMART_ANSWERING_TOKEN_1 = "EndpointKey 0a977412-0f0b-4be3-8f6e-ee3b82751166";
-    public static final String SMART_ANSWERING_TOKEN_2 = "EndpointKey dd9f9faa-9909-4228-a159-58153f2c6356";
+    public static final String SMART_ANSWERING_IP_ADDRESS = "https://silverplus-chatbot.azurewebsites.net/qnamaker/knowledgebases/65148328-b5b2-4ce6-831c-50499e296d93/generateAnswer";
+    public static final String SMART_ANSWERING_TOKEN = "EndpointKey 805d2b34-f07e-4148-93c2-bbd0e7317f72";
     public static final String FIREBASE_ADDRESS = "https://fcm.googleapis.com/fcm/send";
     public static final String SERVER_KEY = "key=" + "AAAApCBXmvo:APA91bE9AqJEgc3vlpLru-Zh53gQec5T8XtTHxBhKBihFFWIgdrPpAjvk6R5AGCGeTGKsbYvw8r2b0wUtjNb2y0FcE-gh5KCzxh_c-O638BKyGi29ek74WjIYQq6tBECJRB2OYuq50ca";
 
@@ -20,6 +18,8 @@ public class Constants {
     public static final String GAZE_SERVICE_STOP = "GazeServiceStop";
 
     // WebSocketService
+    public static final int WEB_SOCKET_SERVICE_CHANNEL_ID = 102;
+    public static final String WEB_SOCKET_SERVICE_CHANNEL = "WebSocketServiceChannel";
     public static final String WEB_SOCKET_SERVICE_START = "WebSocketServiceStart";
     public static final String WEB_SOCKET_SERVICE_STOP = "WebSocketServiceStop";
 

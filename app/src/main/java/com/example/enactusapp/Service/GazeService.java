@@ -32,7 +32,6 @@ import com.example.enactusapp.Event.CalibrationEvent;
 import com.example.enactusapp.Event.GazeEvent.GazeCoordEvent;
 import com.example.enactusapp.Event.GazeEvent.GazeEyeMovementEvent;
 import com.example.enactusapp.Event.GazeEvent.GazeEvent;
-import com.example.enactusapp.Event.SelectObjectEvent;
 import com.example.enactusapp.EyeTracker.CalibrationViewer;
 import com.example.enactusapp.EyeTracker.GazeDevice;
 import com.example.enactusapp.EyeTracker.GazeHelper;
@@ -56,7 +55,6 @@ import camp.visual.gazetracker.constant.StatusErrorType;
 import camp.visual.gazetracker.state.EyeMovementState;
 import camp.visual.gazetracker.state.TrackingState;
 import camp.visual.gazetracker.util.ViewLayoutChecker;
-import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 
 public class GazeService extends Service implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener {
 
@@ -148,8 +146,8 @@ public class GazeService extends Service implements ViewTreeObserver.OnGlobalLay
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate");
-        createNotificationChannel();
         EventBus.getDefault().register(this);
+        init();
         initWindowManager();
         initLayout();
         setOnClickListener();
@@ -167,6 +165,17 @@ public class GazeService extends Service implements ViewTreeObserver.OnGlobalLay
         );
         NotificationManager manager = getSystemService(NotificationManager.class);
         manager.createNotificationChannel(serviceChannel);
+    }
+
+    private void init() {
+        createNotificationChannel();
+        Notification notification = new NotificationCompat.Builder(ContextUtils.getContext(), Constants.GAZE_SERVICE_CHANNEL)
+                .setContentTitle(getResources().getString(R.string.app_name))
+                .setContentText(getResources().getString(R.string.gaze_capturing))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .build();
+        startForeground(Constants.GAZE_SERVICE_CHANNEL_ID, notification);
     }
 
     private void initWindowManager() {
@@ -202,13 +211,6 @@ public class GazeService extends Service implements ViewTreeObserver.OnGlobalLay
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction().equals(Constants.GAZE_SERVICE_START)) {
-            Notification notification = new NotificationCompat.Builder(ContextUtils.getContext(), Constants.GAZE_SERVICE_CHANNEL)
-                    .setContentTitle(getResources().getString(R.string.app_name))
-                    .setContentText(getResources().getString(R.string.gaze_capturing))
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .build();
-            startForeground(Constants.GAZE_SERVICE_CHANNEL_ID, notification);
             // 系统被杀死后将尝试重新创建服务
             return START_STICKY;
         }  else {
@@ -583,7 +585,7 @@ public class GazeService extends Service implements ViewTreeObserver.OnGlobalLay
                 LinearLayout.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT);
         wmCrossPointLayoutParams.x = -ImageUtils.dp2px(ContextUtils.getContext(), 4);
-        wmCrossPointLayoutParams.y =  -ImageUtils.dp2px(ContextUtils.getContext(), 4);
+        wmCrossPointLayoutParams.y = -ImageUtils.dp2px(ContextUtils.getContext(), 4);
         wmCrossPointLayoutParams.gravity = Gravity.TOP | Gravity.START;
         wmCrossPoint.addView(vCrossPoint, wmCrossPointLayoutParams);
         isCrossPointViewAttached = true;

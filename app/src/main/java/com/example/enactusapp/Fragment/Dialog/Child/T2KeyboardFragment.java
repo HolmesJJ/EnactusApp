@@ -141,7 +141,7 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
         t2KeyboardSendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EventBusActivityScope.getDefault(_mActivity).post(new SendMessageEvent(null));
+                EventBusActivityScope.getDefault(_mActivity).post(new SendMessageEvent());
             }
         });
 
@@ -177,7 +177,12 @@ public class T2KeyboardFragment extends SupportFragment implements OnItemClickLi
     private void possibleWords(List<String> words) {
         possibleWordsList.clear();
         possibleWordsList.addAll(words);
-        mDialogPossibleWordsAdapter.notifyDataSetChanged();
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mDialogPossibleWordsAdapter.notifyDataSetChanged();
+            }
+        });
         lastSelectedPosition = -1;
         lastSelectedWord = "";
         EventBusActivityScope.getDefault(_mActivity).post(new PossibleWordsEvent(possibleWordsList));

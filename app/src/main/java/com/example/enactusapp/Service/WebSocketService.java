@@ -28,10 +28,8 @@ import androidx.core.app.NotificationCompat;
 import com.example.enactusapp.Config.Config;
 import com.example.enactusapp.Constants.Constants;
 import com.example.enactusapp.Entity.Coordinate;
-import com.example.enactusapp.Entity.GazePoint;
 import com.example.enactusapp.Event.CalibrationEvent;
 import com.example.enactusapp.Event.GazeEvent.GazeEvent;
-import com.example.enactusapp.Event.SelectObjectEvent;
 import com.example.enactusapp.Event.WebSocketEvent;
 import com.example.enactusapp.EyeTracker.CalibrationViewer;
 import com.example.enactusapp.EyeTracker.GazeDevice;
@@ -45,7 +43,6 @@ import com.example.enactusapp.Utils.AppUtils;
 import com.example.enactusapp.Utils.ContextUtils;
 import com.example.enactusapp.Utils.ImageUtils;
 import com.example.enactusapp.Utils.ScreenUtils;
-import com.example.enactusapp.Utils.SimulateUtils;
 import com.example.enactusapp.Utils.ToastUtils;
 import com.example.enactusapp.WebSocket.Callback.IClientMessageCallback;
 import com.example.enactusapp.WebSocket.WebSocketClientManager;
@@ -58,10 +55,7 @@ import camp.visual.gazetracker.GazeTracker;
 import camp.visual.gazetracker.constant.CalibrationModeType;
 import camp.visual.gazetracker.constant.InitializationErrorType;
 import camp.visual.gazetracker.constant.StatusErrorType;
-import camp.visual.gazetracker.state.EyeMovementState;
-import camp.visual.gazetracker.state.TrackingState;
 import camp.visual.gazetracker.util.ViewLayoutChecker;
-import me.yokeyword.eventbusactivityscope.EventBusActivityScope;
 
 public class WebSocketService extends Service implements ViewTreeObserver.OnGlobalLayoutListener, GazeListener, IClientMessageCallback {
 
@@ -133,11 +127,11 @@ public class WebSocketService extends Service implements ViewTreeObserver.OnGlob
     private boolean isSlideDownViewAttached = false;
     private boolean isSlideLeftViewAttached = false;
     private boolean isSlideRightViewAttached = false;
+    private boolean isProgressBarViewAttached = false;
     // 十字线
     private boolean isCrossPointViewAttached = false;
     private boolean isHorizontalLineViewAttached = false;
     private boolean isVerticalLineViewAttached = false;
-    private boolean isProgressBarViewAttached = false;
 
     private boolean isGazeMode = false;
     private boolean isMoved = false;
@@ -153,8 +147,8 @@ public class WebSocketService extends Service implements ViewTreeObserver.OnGlob
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate");
-        createNotificationChannel();
         EventBus.getDefault().register(this);
+        init();
         initWindowManager();
         initLayout();
         setOnClickListener();
@@ -167,12 +161,23 @@ public class WebSocketService extends Service implements ViewTreeObserver.OnGlob
 
     private void createNotificationChannel() {
         NotificationChannel serviceChannel = new NotificationChannel(
-                Constants.GAZE_SERVICE_CHANNEL,
-                Constants.GAZE_SERVICE_CHANNEL,
+                Constants.WEB_SOCKET_SERVICE_CHANNEL,
+                Constants.WEB_SOCKET_SERVICE_CHANNEL,
                 NotificationManager.IMPORTANCE_HIGH
         );
         NotificationManager manager = getSystemService(NotificationManager.class);
         manager.createNotificationChannel(serviceChannel);
+    }
+
+    private void init() {
+        createNotificationChannel();
+        Notification notification = new NotificationCompat.Builder(ContextUtils.getContext(), Constants.WEB_SOCKET_SERVICE_CHANNEL)
+                .setContentTitle(getResources().getString(R.string.app_name))
+                .setContentText(getResources().getString(R.string.gaze_capturing))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .build();
+        startForeground(Constants.WEB_SOCKET_SERVICE_CHANNEL_ID, notification);
     }
 
     private void initWindowManager() {
@@ -207,14 +212,7 @@ public class WebSocketService extends Service implements ViewTreeObserver.OnGlob
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && intent.getAction().equals(Constants.GAZE_SERVICE_START)) {
-            Notification notification = new NotificationCompat.Builder(ContextUtils.getContext(), Constants.GAZE_SERVICE_CHANNEL)
-                    .setContentTitle(getResources().getString(R.string.app_name))
-                    .setContentText(getResources().getString(R.string.gaze_capturing))
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .build();
-            startForeground(Constants.GAZE_SERVICE_CHANNEL_ID, notification);
+        if (intent != null && intent.getAction().equals(Constants.WEB_SOCKET_SERVICE_START)) {
             // 系统被杀死后将尝试重新创建服务
             return START_STICKY;
         }  else {
@@ -601,6 +599,13 @@ public class WebSocketService extends Service implements ViewTreeObserver.OnGlob
         hideCrossPoint();
     }
 
+    private void hideCrossPoint() {
+        if (wmCrossPoint != null && vCrossPoint != null && isCrossPointViewAttached) {
+            wmCrossPoint.removeView(vCrossPoint);
+            isCrossPointViewAttached = false;
+        }
+    }
+
     private void hideHorizontalLine() {
         if (wmHorizontalLine != null && vHorizontalLine != null && isHorizontalLineViewAttached) {
             wmHorizontalLine.removeView(vHorizontalLine);
@@ -612,13 +617,6 @@ public class WebSocketService extends Service implements ViewTreeObserver.OnGlob
         if (wmVerticalLine != null && vVerticalLine != null && isVerticalLineViewAttached) {
             wmVerticalLine.removeView(vVerticalLine);
             isVerticalLineViewAttached = false;
-        }
-    }
-
-    private void hideCrossPoint() {
-        if (wmCrossPoint != null && vCrossPoint != null && isCrossPointViewAttached) {
-            wmCrossPoint.removeView(vCrossPoint);
-            isCrossPointViewAttached = false;
         }
     }
 
@@ -876,19 +874,19 @@ public class WebSocketService extends Service implements ViewTreeObserver.OnGlob
         }
     }
 
-    private void moveHorizontalLine(float y) {
+    private void moveHorizontalLine(int y) {
         if (wmHorizontalLine == null || vHorizontalLine == null || wmHorizontalLineLayoutParams == null) {
             return;
         }
-        wmHorizontalLineLayoutParams.y = (int) y;
+        wmHorizontalLineLayoutParams.y = y;
         wmHorizontalLine.updateViewLayout(vHorizontalLine, wmHorizontalLineLayoutParams);
     }
 
-    private void moveVerticalLine(float x) {
+    private void moveVerticalLine(int x) {
         if (wmVerticalLine == null || vVerticalLine == null || wmVerticalLineLayoutParams == null) {
             return;
         }
-        wmVerticalLineLayoutParams.x = (int) x;
+        wmVerticalLineLayoutParams.x = x;
         wmVerticalLine.updateViewLayout(vVerticalLine, wmVerticalLineLayoutParams);
     }
 

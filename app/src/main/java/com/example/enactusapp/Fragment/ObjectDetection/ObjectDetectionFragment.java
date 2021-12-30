@@ -304,7 +304,12 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                         final String currentKeyword = keywords.get(keywordCounter);
                         mTvCurrentKeyword.setText(currentKeyword);
                         initData(currentKeyword);
-                        mSentencesAdapter.notifyDataSetChanged();
+                        _mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mSentencesAdapter.notifyDataSetChanged();
+                            }
+                        });
                         keywordCounter++;
                     } else {
                         keywordCounter = 0;
@@ -313,7 +318,12 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
                     e.fillInStackTrace();
                     mTvCurrentKeyword.setText("");
                     initData("");
-                    mSentencesAdapter.notifyDataSetChanged();
+                    _mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSentencesAdapter.notifyDataSetChanged();
+                        }
+                    });
                 }
             }
         });
@@ -617,12 +627,22 @@ public class ObjectDetectionFragment extends SupportFragment implements OnItemCl
     public void onItemClick(int position) {
         if (lastSelectedPosition != -1) {
             sentences.set(lastSelectedPosition, lastSelectedSentence);
-            mSentencesAdapter.notifyItemChanged(lastSelectedPosition);
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mSentencesAdapter.notifyItemChanged(lastSelectedPosition);
+                }
+            });
         }
         lastSelectedPosition = position;
         lastSelectedSentence = sentences.get(position);
         sentences.set(position, sentences.get(position) + " *");
-        mSentencesAdapter.notifyItemChanged(position);
+        _mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mSentencesAdapter.notifyItemChanged(position);
+            }
+        });
         TTSHelper.getInstance().speak(sentences.get(position));
     }
 

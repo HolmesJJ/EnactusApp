@@ -48,8 +48,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
 
     private static final String TAG = PossibleAnswersFragment.class.getSimpleName();
 
-    private static final int GET_SMART_ANSWERS_1 = 1;
-    private static final int GET_SMART_ANSWERS_2 = 2;
+    private static final int GET_SMART_ANSWERS = 1;
 
     private RecyclerView mDialogPossibleAnswersRecyclerView;
     private GifImageView mGivLoading;
@@ -64,8 +63,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     private String lastSelectedAnswer = "";
 
     private boolean isGeneratingAnswersFromGoogle = false;
-    private boolean isGeneratingAnswersFromMicrosoft1 = false;
-    private boolean isGeneratingAnswersFromMicrosoft2 = false;
+    private boolean isGeneratingAnswersFromMicrosoft = false;
 
     public static PossibleAnswersFragment newInstance() {
         Bundle args = new Bundle();
@@ -94,8 +92,9 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     @Override
     public void onEnterAnimationEnd(Bundle savedInstanceState) {
         initDelayView();
+        // 无论用户是否已经发送过回答，都会自动生成一个回答
         mGivLoading.setVisibility(View.VISIBLE);
-        if (!isGeneratingAnswersFromGoogle && !isGeneratingAnswersFromMicrosoft1 && !isGeneratingAnswersFromMicrosoft2) {
+        if (!isGeneratingAnswersFromGoogle && !isGeneratingAnswersFromMicrosoft) {
             qnaAnswers();
         }
     }
@@ -132,7 +131,12 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
                                 for (SmartReplySuggestion suggestion : result.getSuggestions()) {
                                     Log.i(TAG, "Q&A from Google: " + suggestion.getText());
                                     possibleAnswersList.add(suggestion.getText());
-                                    mDialogPossibleAnswersAdapter.notifyItemInserted(possibleAnswersList.size() - 1);
+                                    _mActivity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mDialogPossibleAnswersAdapter.notifyItemInserted(possibleAnswersList.size() - 1);
+                                        }
+                                    });
                                 }
                                 lastSelectedPosition = -1;
                                 lastSelectedAnswer = "";
@@ -152,7 +156,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
                                 ToastUtils.showShortSafe("No Reply");
                             }
                             isGeneratingAnswersFromGoogle = false;
-                            if (!isGeneratingAnswersFromMicrosoft1 && !isGeneratingAnswersFromMicrosoft2) {
+                            if (!isGeneratingAnswersFromMicrosoft) {
                                 mGivLoading.setVisibility(View.GONE);
                             }
                         }
@@ -162,7 +166,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
                         public void onFailure(@NonNull Exception e) {
                             ToastUtils.showShortSafe("Answers Generation Failed!");
                             isGeneratingAnswersFromGoogle = false;
-                            if (!isGeneratingAnswersFromMicrosoft1 && !isGeneratingAnswersFromMicrosoft2) {
+                            if (!isGeneratingAnswersFromMicrosoft) {
                                 mGivLoading.setVisibility(View.GONE);
                             }
                         }
@@ -172,15 +176,10 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
         // Microsoft
         Log.i(TAG, "Q&A from Microsoft");
         String jsonData = convertToJSONGetSmartAnswers(lastMessage);
-        if (!isGeneratingAnswersFromMicrosoft1) {
-            isGeneratingAnswersFromMicrosoft1 = true;
-            HttpAsyncTaskPost task1 = new HttpAsyncTaskPost(PossibleAnswersFragment.this, GET_SMART_ANSWERS_1);
-            task1.execute(Constants.SMART_ANSWERING_IP_ADDRESS_1, jsonData, Constants.SMART_ANSWERING_TOKEN_1);
-        }
-        if (!isGeneratingAnswersFromMicrosoft2) {
-            isGeneratingAnswersFromMicrosoft2 = true;
-            HttpAsyncTaskPost task2 = new HttpAsyncTaskPost(PossibleAnswersFragment.this, GET_SMART_ANSWERS_2);
-            task2.execute(Constants.SMART_ANSWERING_IP_ADDRESS_2, jsonData, Constants.SMART_ANSWERING_TOKEN_2);
+        if (!isGeneratingAnswersFromMicrosoft) {
+            isGeneratingAnswersFromMicrosoft = true;
+            HttpAsyncTaskPost task1 = new HttpAsyncTaskPost(PossibleAnswersFragment.this, GET_SMART_ANSWERS);
+            task1.execute(Constants.SMART_ANSWERING_IP_ADDRESS, jsonData, Constants.SMART_ANSWERING_TOKEN);
         }
     }
 
@@ -204,7 +203,12 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
             String answer = jsonObjectAnswer.getString("answer");
             if (answerId != -1) {
                 possibleAnswersList.add(answer);
-                mDialogPossibleAnswersAdapter.notifyItemInserted(possibleAnswersList.size() - 1);
+                _mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mDialogPossibleAnswersAdapter.notifyItemInserted(possibleAnswersList.size() - 1);
+                    }
+                });
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -214,7 +218,7 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
     @Subscribe
     public void onGeneratePossibleAnswersEvent(GeneratePossibleAnswersEvent event) {
         mGivLoading.setVisibility(View.VISIBLE);
-        if (!isGeneratingAnswersFromGoogle && !isGeneratingAnswersFromMicrosoft1 && !isGeneratingAnswersFromMicrosoft2) {
+        if (!isGeneratingAnswersFromGoogle && !isGeneratingAnswersFromMicrosoft) {
             qnaAnswers();
         }
     }
@@ -277,18 +281,14 @@ public class PossibleAnswersFragment extends SupportFragment implements OnItemCl
 
     @Override
     public void onTaskCompleted(String response, int requestId, String... others) {
-        if (requestId == GET_SMART_ANSWERS_1) {
+        if (requestId == GET_SMART_ANSWERS) {
             retrieveFromJSONGetSmartAnswers(response);
-            isGeneratingAnswersFromMicrosoft1 = false;
-        }
-        if (requestId == GET_SMART_ANSWERS_2) {
-            retrieveFromJSONGetSmartAnswers(response);
-            isGeneratingAnswersFromMicrosoft2 = false;
+            isGeneratingAnswersFromMicrosoft = false;
         }
         lastSelectedPosition = -1;
         lastSelectedAnswer = "";
         EventBusActivityScope.getDefault(_mActivity).post(new PossibleAnswersEvent(possibleAnswersList));
-        if (!isGeneratingAnswersFromGoogle && !isGeneratingAnswersFromMicrosoft1 && !isGeneratingAnswersFromMicrosoft2) {
+        if (!isGeneratingAnswersFromGoogle && !isGeneratingAnswersFromMicrosoft) {
             mGivLoading.setVisibility(View.GONE);
         }
     }

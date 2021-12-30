@@ -174,7 +174,12 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
                     }
                 });
             }
-            mContactAdapter.notifyDataSetChanged();
+            _mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mContactAdapter.notifyDataSetChanged();
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
             try {
@@ -217,7 +222,9 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             int code = jsonObject.getInt("success");
             if (code == 1) {
                 ToastUtils.showShortSafe("Sent");
-                startWithPopTo(DialogFragment.newInstance(id), MainFragment.class, false);
+                if (getParentFragment() != null) {
+                    ((MainFragment) getParentFragment()).startBrotherFragment(DialogFragment.newInstance(id));
+                }
             } else {
                 String results = jsonObject.getString("results");
                 JSONArray jsonArray = new JSONArray(results);
