@@ -41,11 +41,13 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+            debuggable false
         }
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
+            debuggable false
         }
     }
     lintOptions {
@@ -121,7 +123,7 @@ task nativeLibsToJar(type: Jar, description: 'create a jar archive of the native
     baseName 'native-libs'
     extension 'jar'
     from fileTree(dir: 'libs', include: '**/*.so')
-    into 'lib/'
+    into 'libs/'
 }
 
 tasks.withType(JavaCompile) {
