@@ -69,7 +69,7 @@ public class LocationService extends Service implements OnTaskCompleted {
                     Config.setLongitude(longitude);
                     Config.setLatitude(latitude);
                     String jsonData = convertToJSONUpdateLngLat(Config.sUserId, longitude, latitude);
-                    task.execute(Constants.IP_ADDRESS + "api/Account/EditLngAndLat", jsonData, null);
+                    task.execute(Constants.IP_ADDRESS + "api/Account/EditLngAndLat" + (Constants.SERVER.equals("PHP") ? ".php" : ""), jsonData, null);
                 }
             }
 
@@ -101,7 +101,7 @@ public class LocationService extends Service implements OnTaskCompleted {
                     Config.setLongitude(longitude);
                     Config.setLatitude(latitude);
                     String jsonData = convertToJSONUpdateLngLat(Config.sUserId, longitude, latitude);
-                    task.execute(Constants.IP_ADDRESS + "api/Account/EditLngAndLat", jsonData, null);
+                    task.execute(Constants.IP_ADDRESS + "api/Account/EditLngAndLat" + (Constants.SERVER.equals("PHP") ? ".php" : ""), jsonData, null);
                 }
             }
 

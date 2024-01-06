@@ -133,7 +133,7 @@ public class LoginActivity extends BaseActivity implements OnTaskCompleted, Mark
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(LoginActivity.this, LOGIN);
                 String jsonData = convertToJSONLogin(mUsername.getText().toString(), mPassword.getText().toString());
-                task.execute(Constants.IP_ADDRESS + "api/Account/Login", jsonData, null);
+                task.execute(Constants.IP_ADDRESS + "api/Account/Login" + (Constants.SERVER.equals("PHP") ? ".php" : ""), jsonData, null);
             }
         });
 

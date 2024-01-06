@@ -102,7 +102,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
         mGivLoading.setVisibility(View.VISIBLE);
         HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
         String jsonData = convertToJSONGetUsers(Config.sUserId);
-        task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
+        task.execute(Constants.IP_ADDRESS + "api/Account/Users" + (Constants.SERVER.equals("PHP") ? ".php" : ""), jsonData, null);
     }
 
     private void initDelayView() {
@@ -111,7 +111,7 @@ public class ContactFragment extends SupportFragment implements OnItemClickListe
             public void onRefresh() {
                 HttpAsyncTaskPost task = new HttpAsyncTaskPost(ContactFragment.this, GET_USERS);
                 String jsonData = convertToJSONGetUsers(Config.sUserId);
-                task.execute(Constants.IP_ADDRESS + "api/Account/Users", jsonData, null);
+                task.execute(Constants.IP_ADDRESS + "api/Account/Users" + (Constants.SERVER.equals("PHP") ? ".php" : ""), jsonData, null);
             }
         });
     }

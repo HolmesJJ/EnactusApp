@@ -247,7 +247,7 @@ public class MainFragment extends SupportFragment implements TTSListener, STTLis
                             Config.setFirebaseToken(token);
                             HttpAsyncTaskPost updateTokenTask = new HttpAsyncTaskPost(MainFragment.this, UPDATE_TOKEN);
                             String jsonData = convertToJSONUpdateToken(Config.sUserId, token);
-                            updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken", jsonData, null);
+                            updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken" + (Constants.SERVER.equals("PHP") ? ".php" : ""), jsonData, null);
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -318,7 +318,7 @@ public class MainFragment extends SupportFragment implements TTSListener, STTLis
         Config.setFirebaseToken(firebaseToken);
         HttpAsyncTaskPost updateTokenTask = new HttpAsyncTaskPost(MainFragment.this, UPDATE_TOKEN);
         String jsonData = convertToJSONUpdateToken(Config.sUserId, firebaseToken);
-        updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken", jsonData, null);
+        updateTokenTask.execute(Constants.IP_ADDRESS + "api/Account/EditFirebaseToken" + (Constants.SERVER.equals("PHP") ? ".php" : ""), jsonData, null);
     }
 
     private String convertToJSONUpdateToken(int userId, String firebaseToken) {

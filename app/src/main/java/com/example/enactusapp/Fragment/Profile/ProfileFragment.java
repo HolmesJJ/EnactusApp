@@ -134,7 +134,7 @@ public class ProfileFragment extends SupportFragment implements OnTaskCompleted 
                     mGivLoading.setVisibility(View.VISIBLE);
                     HttpAsyncTaskPost task = new HttpAsyncTaskPost(ProfileFragment.this, UPDATE_USER);
                     String jsonData = convertToJSONUpdateUser(Config.sUserId, profileNameEt.getText().toString());
-                    task.execute(Constants.IP_ADDRESS + "api/Account/EditName", jsonData, null);
+                    task.execute(Constants.IP_ADDRESS + "api/Account/EditName" + (Constants.SERVER.equals("PHP") ? ".php" : ""), jsonData, null);
                 } else {
                     ToastUtils.showShortSafe("Please enter valid name");
                 }
