@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:704917248762:android:8f5029127dda2698d1c743",
         "android_client_info": {
-          "package_name": "com.example.enactusapp"
+          "package_name": "com.jbawesome.comant"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "704917248762-frk6j1hi6l7usn3dsrr0s3ud8kpaeguf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.enactusapp",
+            "package_name": "com.jbawesome.comant",
             "certificate_hash": "4f3640c40fe66561bec8e044c0a05b3e358d3128"
           }
         },

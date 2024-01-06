@@ -3,7 +3,7 @@ package com.example.enactusapp.Constants;
 public class Constants {
 
     public static final String SERVER = "PHP"; // PHP or Microsoft SQL Server (MS)
-    public static final String IP_ADDRESS = "http://8.214.40.74/";
+    public static final String IP_ADDRESS = "http://47.236.56.209/";
     public static final String SMART_ANSWERING_IP_ADDRESS = "https://silverplus-chatbot.azurewebsites.net/qnamaker/knowledgebases/65148328-b5b2-4ce6-831c-50499e296d93/generateAnswer";
     public static final String SMART_ANSWERING_TOKEN = "EndpointKey 805d2b34-f07e-4148-93c2-bbd0e7317f72";
     public static final String FIREBASE_ADDRESS = "https://fcm.googleapis.com/fcm/send";
